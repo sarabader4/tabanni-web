@@ -1,9 +1,24 @@
 import { Router, type IRouter } from "express";
 import { db, petsTable, usersTable, favouritesTable } from "@workspace/db";
 import { eq, and, ilike, sql, desc, gte, lte } from "drizzle-orm";
-import { CreatePetBody, ListPetsQueryParams, UpdatePetBody, GetPetParams, UpdatePetParams, DeletePetParams, ToggleFavouriteParams, ToggleFavouriteBody } from "@workspace/api-zod";
+import {
+  CreatePetBody,
+  ListPetsQueryParams,
+  UpdatePetBody,
+  GetPetParams,
+  UpdatePetParams,
+  DeletePetParams,
+  ToggleFavouriteParams,
+  ToggleFavouriteBody,
+} from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+const PET_TYPES = ["dog", "cat", "rabbit", "bird", "other"] as const;
+const PET_GENDERS = ["male", "female"] as const;
+const PET_SIZES = ["small", "medium", "large"] as const;
+const PET_STATUSES = ["available", "adopted", "fostered", "pending"] as const;
+const PET_PURPOSES = ["adopt", "foster", "both"] as const;
 
 router.get("/pets", async (req, res) => {
   try {
@@ -13,25 +28,37 @@ router.get("/pets", async (req, res) => {
     }
 
     const { type, gender, size, city, breed, sterilized, purpose, status, search, page = 1, limit = 16 } = parsed.data;
-    const minAge = req.query.minAge ? parseInt(req.query.minAge as string) : undefined;
-    const maxAge = req.query.maxAge ? parseInt(req.query.maxAge as string) : undefined;
+    const minAge = req.query.minAge !== undefined ? Number(req.query.minAge) : undefined;
+    const maxAge = req.query.maxAge !== undefined ? Number(req.query.maxAge) : undefined;
 
     const pageNum = page;
     const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
 
     const conditions = [];
-    if (type) conditions.push(eq(petsTable.type, type as any));
-    if (gender) conditions.push(eq(petsTable.gender, gender as any));
-    if (size) conditions.push(eq(petsTable.size, size as any));
+
+    const petType = type ? PET_TYPES.find(t => t === type) : undefined;
+    if (petType) conditions.push(eq(petsTable.type, petType));
+
+    const petGender = gender ? PET_GENDERS.find(g => g === gender) : undefined;
+    if (petGender) conditions.push(eq(petsTable.gender, petGender));
+
+    const petSize = size ? PET_SIZES.find(s => s === size) : undefined;
+    if (petSize) conditions.push(eq(petsTable.size, petSize));
+
     if (city) conditions.push(ilike(petsTable.city, `%${city}%`));
     if (breed) conditions.push(ilike(petsTable.breed, `%${breed}%`));
     if (sterilized !== undefined) conditions.push(eq(petsTable.sterilized, sterilized));
-    if (purpose) conditions.push(eq(petsTable.purpose, purpose as any));
-    if (status) conditions.push(eq(petsTable.status, status as any));
+
+    const petPurpose = purpose ? PET_PURPOSES.find(p => p === purpose) : undefined;
+    if (petPurpose) conditions.push(eq(petsTable.purpose, petPurpose));
+
+    const petStatus = status ? PET_STATUSES.find(s => s === status) : undefined;
+    if (petStatus) conditions.push(eq(petsTable.status, petStatus));
+
     if (search) conditions.push(ilike(petsTable.name, `%${search}%`));
-    if (minAge !== undefined) conditions.push(gte(petsTable.ageMonths, minAge));
-    if (maxAge !== undefined) conditions.push(lte(petsTable.ageMonths, maxAge));
+    if (minAge !== undefined && !isNaN(minAge)) conditions.push(gte(petsTable.ageMonths, minAge));
+    if (maxAge !== undefined && !isNaN(maxAge)) conditions.push(lte(petsTable.ageMonths, maxAge));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -154,8 +181,10 @@ router.get("/pets/featured", async (req, res) => {
 
 router.get("/pets/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid pet id" });
+    const paramsParsed = GetPetParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid pet id", details: paramsParsed.error.issues });
+    }
 
     const [pet] = await db.select({
       id: petsTable.id,
@@ -184,7 +213,7 @@ router.get("/pets/:id", async (req, res) => {
     })
       .from(petsTable)
       .leftJoin(usersTable, eq(petsTable.ownerId, usersTable.id))
-      .where(eq(petsTable.id, id));
+      .where(eq(petsTable.id, paramsParsed.data.id));
 
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
     res.json(pet);

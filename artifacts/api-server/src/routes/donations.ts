@@ -1,19 +1,28 @@
 import { Router, type IRouter } from "express";
 import { db, donationsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
-import { CreateDonationBody } from "@workspace/api-zod";
+import { CreateDonationBody, ListDonationsQueryParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
+const DONATION_TYPES = ["monetary", "supplies", "food", "medical", "other"] as const;
+
 router.get("/donations", async (req, res) => {
   try {
-    const { type, page = "1", limit = "20" } = req.query as Record<string, string>;
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 20;
+    const queryParsed = ListDonationsQueryParams.safeParse(req.query);
+    if (!queryParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: queryParsed.error.issues });
+    }
+
+    const { type, page = 1, limit = 20 } = queryParsed.data;
+    const pageNum = page;
+    const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
 
+    const donationType = type ? DONATION_TYPES.find(t => t === type) : undefined;
+
     const donations = await db.select().from(donationsTable)
-      .where(type ? eq(donationsTable.type, type as any) : undefined)
+      .where(donationType ? eq(donationsTable.type, donationType) : undefined)
       .orderBy(desc(donationsTable.createdAt))
       .limit(limitNum)
       .offset(offset);

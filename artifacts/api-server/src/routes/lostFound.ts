@@ -12,8 +12,10 @@ router.get("/lost-found", async (req, res) => {
     const limitNum = parseInt(limit) || 16;
     const offset = (pageNum - 1) * limitNum;
 
+    const REPORT_TYPES = ["lost", "found"] as const;
     const conditions = [];
-    if (reportType) conditions.push(eq(lostFoundReportsTable.reportType, reportType as any));
+    const validReportType = reportType ? REPORT_TYPES.find(t => t === reportType) : undefined;
+    if (validReportType) conditions.push(eq(lostFoundReportsTable.reportType, validReportType));
     if (type) conditions.push(eq(lostFoundReportsTable.type, type));
     if (city) conditions.push(ilike(lostFoundReportsTable.city, `%${city}%`));
     if (gender) conditions.push(eq(lostFoundReportsTable.gender, gender));

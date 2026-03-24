@@ -1,24 +1,31 @@
 import { Router, type IRouter } from "express";
 import { db, adoptionRequestsTable, petsTable, usersTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
-import { CreateAdoptionRequestBody, UpdateAdoptionRequestStatusBody } from "@workspace/api-zod";
+import {
+  ListAdoptionRequestsQueryParams,
+  CreateAdoptionRequestBody,
+  UpdateAdoptionRequestStatusBody,
+  UpdateAdoptionRequestStatusParams,
+} from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
+const ADOPTION_STATUSES = ["pending", "approved", "rejected"] as const;
+
 router.get("/adoption-requests", async (req, res) => {
   try {
-    const { status, petId, requesterId } = req.query as Record<string, string>;
+    const queryParsed = ListAdoptionRequestsQueryParams.safeParse(req.query);
+    if (!queryParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: queryParsed.error.issues });
+    }
+
+    const { status, petId, requesterId } = queryParsed.data;
 
     const conditions = [];
-    if (status) conditions.push(eq(adoptionRequestsTable.status, status as any));
-    if (petId) {
-      const parsedPetId = parseInt(petId);
-      if (!isNaN(parsedPetId)) conditions.push(eq(adoptionRequestsTable.petId, parsedPetId));
-    }
-    if (requesterId) {
-      const parsedRequesterId = parseInt(requesterId);
-      if (!isNaN(parsedRequesterId)) conditions.push(eq(adoptionRequestsTable.requesterId, parsedRequesterId));
-    }
+    const reqStatus = status ? ADOPTION_STATUSES.find(s => s === status) : undefined;
+    if (reqStatus) conditions.push(eq(adoptionRequestsTable.status, reqStatus));
+    if (petId !== undefined) conditions.push(eq(adoptionRequestsTable.petId, petId));
+    if (requesterId !== undefined) conditions.push(eq(adoptionRequestsTable.requesterId, requesterId));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -69,17 +76,19 @@ router.post("/adoption-requests", async (req, res) => {
 
 router.put("/adoption-requests/:id/status", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    const paramsParsed = UpdateAdoptionRequestStatusParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid id", details: paramsParsed.error.issues });
+    }
 
-    const parsed = UpdateAdoptionRequestStatusBody.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
+    const bodyParsed = UpdateAdoptionRequestStatusBody.safeParse(req.body);
+    if (!bodyParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: bodyParsed.error.issues });
     }
 
     const [request] = await db.update(adoptionRequestsTable)
-      .set({ status: parsed.data.status })
-      .where(eq(adoptionRequestsTable.id, id))
+      .set({ status: bodyParsed.data.status })
+      .where(eq(adoptionRequestsTable.id, paramsParsed.data.id))
       .returning();
     if (!request) return res.status(404).json({ error: "not_found", message: "Request not found" });
     res.json(request);

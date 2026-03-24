@@ -60,8 +60,10 @@ router.get("/admin/users", async (req, res) => {
     const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
 
+    const USER_ROLES = ["user", "admin", "volunteer"] as const;
     const conditions = [];
-    if (role) conditions.push(eq(usersTable.role, role as any));
+    const userRole = role ? USER_ROLES.find(r => r === role) : undefined;
+    if (userRole) conditions.push(eq(usersTable.role, userRole));
     if (search) conditions.push(ilike(usersTable.fullName, `%${search}%`));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
