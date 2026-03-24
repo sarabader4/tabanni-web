@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, lostFoundReportsTable, usersTable } from "@workspace/db";
 import { eq, and, ilike, desc, sql } from "drizzle-orm";
+import { CreateLostFoundReportBody, GetLostFoundReportParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -46,13 +47,13 @@ router.get("/lost-found", async (req, res) => {
 
 router.post("/lost-found", async (req, res) => {
   try {
-    const data = req.body;
-    if (!data.reportType || !data.name || !data.type || !data.city) {
-      return res.status(400).json({ error: "validation_error", message: "reportType, name, type, city required" });
+    const parsed = CreateLostFoundReportBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
     }
     const [report] = await db.insert(lostFoundReportsTable).values({
-      ...data,
-      imageUrls: data.imageUrls ?? [],
+      ...parsed.data,
+      imageUrls: parsed.data.imageUrls ?? [],
     }).returning();
     res.status(201).json(report);
   } catch (err) {
@@ -63,7 +64,11 @@ router.post("/lost-found", async (req, res) => {
 
 router.get("/lost-found/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const paramsParsed = GetLostFoundReportParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid id", details: paramsParsed.error.issues });
+    }
+    const id = paramsParsed.data.id;
     const [report] = await db.select().from(lostFoundReportsTable)
       .where(eq(lostFoundReportsTable.id, id));
     if (!report) return res.status(404).json({ error: "not_found", message: "Report not found" });

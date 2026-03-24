@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, petsTable, usersTable, favouritesTable } from "@workspace/db";
 import { eq, and, ilike, sql, desc, gte, lte } from "drizzle-orm";
-import { CreatePetBody, ListPetsQueryParams } from "@workspace/api-zod";
+import { CreatePetBody, ListPetsQueryParams, UpdatePetBody, GetPetParams, UpdatePetParams, DeletePetParams, ToggleFavouriteParams, ToggleFavouriteBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -196,11 +196,16 @@ router.get("/pets/:id", async (req, res) => {
 
 router.put("/pets/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid pet id" });
+    const paramsParsed = UpdatePetParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid pet id", details: paramsParsed.error.issues });
+    }
+    const bodyParsed = UpdatePetBody.safeParse(req.body);
+    if (!bodyParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: bodyParsed.error.issues });
+    }
 
-    const updates = req.body;
-    const [pet] = await db.update(petsTable).set(updates).where(eq(petsTable.id, id)).returning();
+    const [pet] = await db.update(petsTable).set(bodyParsed.data).where(eq(petsTable.id, paramsParsed.data.id)).returning();
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
     res.json(pet);
   } catch (err) {
@@ -211,10 +216,12 @@ router.put("/pets/:id", async (req, res) => {
 
 router.delete("/pets/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid pet id" });
+    const paramsParsed = DeletePetParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid pet id", details: paramsParsed.error.issues });
+    }
 
-    await db.delete(petsTable).where(eq(petsTable.id, id));
+    await db.delete(petsTable).where(eq(petsTable.id, paramsParsed.data.id));
     res.json({ success: true, message: "Pet deleted" });
   } catch (err) {
     req.log.error({ err }, "Error deleting pet");
@@ -224,11 +231,17 @@ router.delete("/pets/:id", async (req, res) => {
 
 router.post("/pets/:id/favourite", async (req, res) => {
   try {
-    const petId = parseInt(req.params.id);
-    if (isNaN(petId)) return res.status(400).json({ error: "validation_error", message: "Invalid pet id" });
+    const paramsParsed = ToggleFavouriteParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid pet id", details: paramsParsed.error.issues });
+    }
+    const petId = paramsParsed.data.id;
 
-    const { userId } = req.body;
-    if (!userId) return res.status(400).json({ error: "validation_error", message: "userId required" });
+    const bodyParsed = ToggleFavouriteBody.safeParse(req.body);
+    if (!bodyParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: bodyParsed.error.issues });
+    }
+    const { userId } = bodyParsed.data;
 
     const existing = await db.select().from(favouritesTable)
       .where(and(eq(favouritesTable.userId, userId), eq(favouritesTable.petId, petId)));

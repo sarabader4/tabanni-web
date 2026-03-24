@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
+import { UpdateMyProfileBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -21,9 +22,13 @@ router.get("/users/me", async (req, res) => {
 router.put("/users/me", async (req, res) => {
   try {
     const userId = parseInt(req.query.userId as string);
-    if (!userId) return res.status(400).json({ error: "validation_error", message: "userId query param required" });
+    if (!userId || isNaN(userId)) return res.status(400).json({ error: "validation_error", message: "userId query param required" });
 
-    const { fullName, email, phone, country, city, avatarUrl } = req.body;
+    const parsed = UpdateMyProfileBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
+    }
+    const { fullName, email, phone, country, city, avatarUrl } = parsed.data;
     const [user] = await db.update(usersTable)
       .set({ fullName, email, phone, country, city, avatarUrl })
       .where(eq(usersTable.id, userId))

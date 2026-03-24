@@ -1,6 +1,12 @@
 import { Router, type IRouter } from "express";
-import { openai } from "@workspace/integrations-openai-ai-server";
 import type OpenAI from "openai";
+
+let openai: InstanceType<typeof import("openai").default> | null = null;
+const AI_ENABLED = !!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
+if (AI_ENABLED) {
+  // Lazy import to avoid crashing when the integration is not configured
+  import("@workspace/integrations-openai-ai-server").then(m => { openai = m.openai; });
+}
 
 const router: IRouter = Router();
 
@@ -19,6 +25,9 @@ Always respond in the same language as the user (English or Arabic).`;
 
 router.post("/ai/chat", async (req, res) => {
   try {
+    if (!openai) {
+      return res.status(503).json({ error: "ai_unavailable", message: "AI service not configured" });
+    }
     const { message, history = [] } = req.body as { message: string; history?: { role: string; content: string }[] };
     if (!message) {
       return res.status(400).json({ error: "validation_error", message: "message required" });
@@ -46,6 +55,9 @@ router.post("/ai/chat", async (req, res) => {
 
 router.post("/ai/match", async (req, res) => {
   try {
+    if (!openai) {
+      return res.status(503).json({ error: "ai_unavailable", message: "AI service not configured" });
+    }
     const { preferences } = req.body as { preferences: Record<string, unknown> };
     if (!preferences) {
       return res.status(400).json({ error: "validation_error", message: "preferences required" });
@@ -83,6 +95,9 @@ Return ONLY a JSON object with: { petType: string, size: string, ageRange: strin
 
 router.post("/ai/describe", async (req, res) => {
   try {
+    if (!openai) {
+      return res.status(503).json({ error: "ai_unavailable", message: "AI service not configured" });
+    }
     const { pet } = req.body as { pet: Record<string, unknown> };
     if (!pet) {
       return res.status(400).json({ error: "validation_error", message: "pet data required" });

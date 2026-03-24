@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable } from "@workspace/db";
 import { eq, and, ilike, desc, sql, gte } from "drizzle-orm";
+import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -50,9 +51,13 @@ router.get("/admin/stats", async (req, res) => {
 
 router.get("/admin/users", async (req, res) => {
   try {
-    const { role, search, page = "1", limit = "20" } = req.query as Record<string, string>;
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 20;
+    const queryParsed = ListAdminUsersQueryParams.safeParse(req.query);
+    if (!queryParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: queryParsed.error.issues });
+    }
+    const { role, search, page = 1, limit = 20 } = queryParsed.data;
+    const pageNum = page;
+    const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
 
     const conditions = [];
@@ -76,7 +81,11 @@ router.get("/admin/users", async (req, res) => {
 
 router.put("/admin/pets/:id/approve", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const paramsParsed = ApprovePetParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid pet id", details: paramsParsed.error.issues });
+    }
+    const id = paramsParsed.data.id;
     const [pet] = await db.update(petsTable)
       .set({ approved: true })
       .where(eq(petsTable.id, id))
@@ -91,7 +100,11 @@ router.put("/admin/pets/:id/approve", async (req, res) => {
 
 router.put("/admin/pets/:id/featured", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const paramsParsed = TogglePetFeaturedParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid pet id", details: paramsParsed.error.issues });
+    }
+    const id = paramsParsed.data.id;
     const [current] = await db.select({ featured: petsTable.featured }).from(petsTable).where(eq(petsTable.id, id));
     if (!current) return res.status(404).json({ error: "not_found", message: "Pet not found" });
 

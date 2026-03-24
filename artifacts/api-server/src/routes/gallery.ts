@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, galleryPostsTable, usersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
+import { CreateGalleryPostBody, GetGalleryPostParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -35,10 +36,11 @@ router.get("/gallery", async (req, res) => {
 
 router.post("/gallery", async (req, res) => {
   try {
-    const { title, content, imageUrl, authorId } = req.body;
-    if (!title || !content) {
-      return res.status(400).json({ error: "validation_error", message: "title and content required" });
+    const parsed = CreateGalleryPostBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
     }
+    const { title, content, imageUrl, authorId } = parsed.data;
     const [post] = await db.insert(galleryPostsTable).values({ title, content, imageUrl, authorId }).returning();
     res.status(201).json(post);
   } catch (err) {
@@ -49,7 +51,11 @@ router.post("/gallery", async (req, res) => {
 
 router.get("/gallery/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const paramsParsed = GetGalleryPostParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid id", details: paramsParsed.error.issues });
+    }
+    const id = paramsParsed.data.id;
     const [post] = await db.select({
       id: galleryPostsTable.id,
       title: galleryPostsTable.title,
@@ -73,7 +79,11 @@ router.get("/gallery/:id", async (req, res) => {
 
 router.delete("/gallery/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const paramsParsed = GetGalleryPostParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid id", details: paramsParsed.error.issues });
+    }
+    const id = paramsParsed.data.id;
     await db.delete(galleryPostsTable).where(eq(galleryPostsTable.id, id));
     res.json({ success: true, message: "Post deleted" });
   } catch (err) {
