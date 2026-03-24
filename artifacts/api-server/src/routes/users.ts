@@ -148,6 +148,7 @@ router.get("/users/me/donations", async (req, res) => {
     if (!userId) return res.status(400).json({ error: "validation_error", message: "userId query param required" });
 
     const donations = await db.select().from(donationsTable)
+      .where(eq(donationsTable.userId, userId))
       .orderBy(desc(donationsTable.createdAt));
     res.json(donations);
   } catch (err) {

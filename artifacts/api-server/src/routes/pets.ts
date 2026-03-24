@@ -1,15 +1,23 @@
 import { Router, type IRouter } from "express";
 import { db, petsTable, usersTable, favouritesTable } from "@workspace/db";
-import { eq, and, ilike, sql, desc } from "drizzle-orm";
+import { eq, and, ilike, sql, desc, gte, lte } from "drizzle-orm";
+import { CreatePetBody, ListPetsQueryParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
 router.get("/pets", async (req, res) => {
   try {
-    const { type, gender, size, city, breed, sterilized, purpose, status, search, page = "1", limit = "16" } = req.query as Record<string, string>;
+    const parsed = ListPetsQueryParams.safeParse(req.query);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: parsed.error.issues });
+    }
 
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 16;
+    const { type, gender, size, city, breed, sterilized, purpose, status, search, page = 1, limit = 16 } = parsed.data;
+    const minAge = req.query.minAge ? parseInt(req.query.minAge as string) : undefined;
+    const maxAge = req.query.maxAge ? parseInt(req.query.maxAge as string) : undefined;
+
+    const pageNum = page;
+    const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
 
     const conditions = [];
@@ -18,10 +26,12 @@ router.get("/pets", async (req, res) => {
     if (size) conditions.push(eq(petsTable.size, size as any));
     if (city) conditions.push(ilike(petsTable.city, `%${city}%`));
     if (breed) conditions.push(ilike(petsTable.breed, `%${breed}%`));
-    if (sterilized) conditions.push(eq(petsTable.sterilized, sterilized === "true"));
+    if (sterilized !== undefined) conditions.push(eq(petsTable.sterilized, sterilized));
     if (purpose) conditions.push(eq(petsTable.purpose, purpose as any));
     if (status) conditions.push(eq(petsTable.status, status as any));
     if (search) conditions.push(ilike(petsTable.name, `%${search}%`));
+    if (minAge !== undefined) conditions.push(gte(petsTable.ageMonths, minAge));
+    if (maxAge !== undefined) conditions.push(lte(petsTable.ageMonths, maxAge));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -76,11 +86,12 @@ router.get("/pets", async (req, res) => {
 
 router.post("/pets", async (req, res) => {
   try {
-    const { name, type, breed, gender, ageMonths, weightKg, size, color, sterilized, yearlyVaccines, birthday, city, purpose, imageUrls, story, ownerId } = req.body;
-
-    if (!name || !type || !gender || !size || !city || !purpose) {
-      return res.status(400).json({ error: "validation_error", message: "Missing required fields" });
+    const parsed = CreatePetBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
     }
+
+    const { name, type, breed, gender, ageMonths, weightKg, size, color, sterilized, yearlyVaccines, birthday, city, purpose, imageUrls, story, ownerId } = parsed.data;
 
     const [pet] = await db.insert(petsTable).values({
       name, type, breed, gender,
@@ -144,6 +155,8 @@ router.get("/pets/featured", async (req, res) => {
 router.get("/pets/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid pet id" });
+
     const [pet] = await db.select({
       id: petsTable.id,
       name: petsTable.name,
@@ -184,6 +197,8 @@ router.get("/pets/:id", async (req, res) => {
 router.put("/pets/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid pet id" });
+
     const updates = req.body;
     const [pet] = await db.update(petsTable).set(updates).where(eq(petsTable.id, id)).returning();
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
@@ -197,6 +212,8 @@ router.put("/pets/:id", async (req, res) => {
 router.delete("/pets/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid pet id" });
+
     await db.delete(petsTable).where(eq(petsTable.id, id));
     res.json({ success: true, message: "Pet deleted" });
   } catch (err) {
@@ -208,8 +225,9 @@ router.delete("/pets/:id", async (req, res) => {
 router.post("/pets/:id/favourite", async (req, res) => {
   try {
     const petId = parseInt(req.params.id);
-    const { userId } = req.body;
+    if (isNaN(petId)) return res.status(400).json({ error: "validation_error", message: "Invalid pet id" });
 
+    const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: "validation_error", message: "userId required" });
 
     const existing = await db.select().from(favouritesTable)

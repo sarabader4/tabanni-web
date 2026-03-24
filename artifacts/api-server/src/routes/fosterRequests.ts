@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, fosterRequestsTable, petsTable, usersTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
+import { CreateFosterRequestBody, UpdateFosterRequestStatusBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -10,8 +11,14 @@ router.get("/foster-requests", async (req, res) => {
 
     const conditions = [];
     if (status) conditions.push(eq(fosterRequestsTable.status, status as any));
-    if (petId) conditions.push(eq(fosterRequestsTable.petId, parseInt(petId)));
-    if (requesterId) conditions.push(eq(fosterRequestsTable.requesterId, parseInt(requesterId)));
+    if (petId) {
+      const parsedPetId = parseInt(petId);
+      if (!isNaN(parsedPetId)) conditions.push(eq(fosterRequestsTable.petId, parsedPetId));
+    }
+    if (requesterId) {
+      const parsedRequesterId = parseInt(requesterId);
+      if (!isNaN(parsedRequesterId)) conditions.push(eq(fosterRequestsTable.requesterId, parsedRequesterId));
+    }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -46,10 +53,12 @@ router.get("/foster-requests", async (req, res) => {
 
 router.post("/foster-requests", async (req, res) => {
   try {
-    const { petId, requesterId, message } = req.body;
-    if (!petId || !requesterId) {
-      return res.status(400).json({ error: "validation_error", message: "petId and requesterId required" });
+    const parsed = CreateFosterRequestBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
     }
+
+    const { petId, requesterId, message } = parsed.data;
     const [request] = await db.insert(fosterRequestsTable).values({ petId, requesterId, message }).returning();
     res.status(201).json(request);
   } catch (err) {
@@ -61,12 +70,15 @@ router.post("/foster-requests", async (req, res) => {
 router.put("/foster-requests/:id/status", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { status } = req.body;
-    if (!["approved", "rejected"].includes(status)) {
-      return res.status(400).json({ error: "validation_error", message: "Invalid status" });
+    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+
+    const parsed = UpdateFosterRequestStatusBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
     }
+
     const [request] = await db.update(fosterRequestsTable)
-      .set({ status })
+      .set({ status: parsed.data.status })
       .where(eq(fosterRequestsTable.id, id))
       .returning();
     if (!request) return res.status(404).json({ error: "not_found", message: "Request not found" });

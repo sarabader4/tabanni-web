@@ -2,6 +2,7 @@ import { pgTable, text, serial, timestamp, integer, numeric, pgEnum } from "driz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { petsTable } from "./pets";
+import { usersTable } from "./users";
 
 export const donationTypeEnum = pgEnum("donation_type", ["monetary", "supplies"]);
 export const donationFrequencyEnum = pgEnum("donation_frequency", ["one_time", "monthly"]);
@@ -10,6 +11,7 @@ export const donationsTable = pgTable("donations", {
   id: serial("id").primaryKey(),
   donorName: text("donor_name").notNull(),
   donorPhone: text("donor_phone"),
+  userId: integer("user_id").references(() => usersTable.id),
   amount: numeric("amount", { precision: 10, scale: 2 }),
   type: donationTypeEnum("type").notNull().default("monetary"),
   donationTypeLabel: text("donation_type_label"),

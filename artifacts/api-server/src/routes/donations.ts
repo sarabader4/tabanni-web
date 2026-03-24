@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, donationsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
+import { CreateDonationBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -10,8 +11,6 @@ router.get("/donations", async (req, res) => {
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 20;
     const offset = (pageNum - 1) * limitNum;
-
-    let query = db.select().from(donationsTable).orderBy(desc(donationsTable.createdAt));
 
     const donations = await db.select().from(donationsTable)
       .where(type ? eq(donationsTable.type, type as any) : undefined)
@@ -28,15 +27,20 @@ router.get("/donations", async (req, res) => {
 
 router.post("/donations", async (req, res) => {
   try {
-    const { donorName, donorPhone, amount, type, donationTypeLabel, description, paymentMethod, frequency, petId } = req.body;
-    if (!donorName || !type) {
-      return res.status(400).json({ error: "validation_error", message: "donorName and type required" });
+    const parsed = CreateDonationBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
     }
+
+    const { donorName, donorPhone, amount, type, donationTypeLabel, description, paymentMethod, frequency, petId } = parsed.data;
+    const userId = req.body.userId ? parseInt(req.body.userId) : undefined;
+
     const [donation] = await db.insert(donationsTable).values({
       donorName, donorPhone, amount, type,
       donationTypeLabel, description, paymentMethod,
       frequency: frequency ?? "one_time",
       petId: petId ?? null,
+      userId: userId ?? null,
     }).returning();
     res.status(201).json(donation);
   } catch (err) {
