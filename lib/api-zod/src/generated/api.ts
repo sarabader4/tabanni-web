@@ -531,6 +531,13 @@ export const SendMessageBody = zod.object({
 });
 
 /**
+ * @summary Query params for /users/me endpoints (userId identifies the caller)
+ */
+export const UserIdQueryParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
+/**
  * @summary Get current user profile
  */
 export const GetMyProfileResponse = zod.object({
