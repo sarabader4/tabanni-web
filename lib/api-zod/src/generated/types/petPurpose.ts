@@ -12,4 +12,5 @@ export const PetPurpose = {
   adopt: "adopt",
   foster: "foster",
   both: "both",
+  lost_found: "lost_found",
 } as const;

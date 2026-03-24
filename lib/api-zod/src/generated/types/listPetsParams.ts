@@ -18,4 +18,6 @@ export type ListPetsParams = {
   search?: string;
   page?: number;
   limit?: number;
+  minAge?: number;
+  maxAge?: number;
 };

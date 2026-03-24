@@ -13,4 +13,6 @@ export const PetStatus = {
   adopted: "adopted",
   fostered: "fostered",
   pending: "pending",
+  lost: "lost",
+  found: "found",
 } as const;
