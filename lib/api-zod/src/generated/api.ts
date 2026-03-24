@@ -441,6 +441,7 @@ export const ListLostFoundReportsQueryParams = zod.object({
   breed: zod.coerce.string().optional(),
   page: zod.coerce.number().optional(),
   limit: zod.coerce.number().optional(),
+  reporterId: zod.coerce.number().optional(),
 });
 
 export const ListLostFoundReportsResponse = zod.object({

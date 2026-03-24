@@ -452,6 +452,8 @@ export type ListPetsParams = {
   search?: string;
   page?: number;
   limit?: number;
+  minAge?: number;
+  maxAge?: number;
 };
 
 export type ListAdoptionRequestsParams = {
@@ -486,6 +488,7 @@ export type ListLostFoundReportsParams = {
   breed?: string;
   page?: number;
   limit?: number;
+  reporterId?: number;
 };
 
 export type ListAdminUsersParams = {

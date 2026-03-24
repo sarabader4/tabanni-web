@@ -5,7 +5,7 @@ import { ArrowLeft, Loader2, PawPrint } from "lucide-react";
 export default function GalleryDetail() {
   const { id } = useParams();
   const postId = Number(id);
-  const { data: post, isLoading } = useGetGalleryPost(postId);
+  const { data: post, isLoading, isError } = useGetGalleryPost(postId);
   const { data: allPosts } = useListGalleryPosts({ limit: 10 });
 
   const related = (Array.isArray(allPosts) ? allPosts : []).filter((p) => p.id !== postId).slice(0, 3);
@@ -14,6 +14,18 @@ export default function GalleryDetail() {
     return (
       <div className="flex items-center justify-center py-32">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-20">
+        <h2 className="text-2xl font-display font-bold mb-2 text-red-500">Failed to load story</h2>
+        <p className="text-gray-400 mb-6">Please try again later.</p>
+        <Link href="/gallery" className="text-primary hover:underline font-medium">
+          ← Back to Gallery
+        </Link>
       </div>
     );
   }

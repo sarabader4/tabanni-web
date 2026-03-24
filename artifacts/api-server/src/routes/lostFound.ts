@@ -12,7 +12,7 @@ router.get("/lost-found", async (req, res) => {
       return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: queryParsed.error.issues });
     }
 
-    const { reportType, type, city, gender, size, breed, page = 1, limit = 16 } = queryParsed.data;
+    const { reportType, type, city, gender, size, breed, page = 1, limit = 16, reporterId } = queryParsed.data;
     const pageNum = page;
     const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
@@ -26,6 +26,7 @@ router.get("/lost-found", async (req, res) => {
     if (gender) conditions.push(eq(lostFoundReportsTable.gender, gender));
     if (size) conditions.push(eq(lostFoundReportsTable.size, size));
     if (breed) conditions.push(ilike(lostFoundReportsTable.breed, `%${breed}%`));
+    if (reporterId !== undefined) conditions.push(eq(lostFoundReportsTable.reporterId, reporterId));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 

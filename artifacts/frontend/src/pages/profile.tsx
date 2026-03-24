@@ -47,7 +47,7 @@ export default function Profile() {
   const { data: applications, isLoading: appLoading } = useGetMyApplications();
   const { data: favourites, isLoading: favLoading } = useGetMyFavourites();
   const { data: donations, isLoading: donLoading } = useGetMyDonations();
-  const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports({ limit: 20 });
+  const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports({ limit: 20, reporterId: 1 });
 
   const [form, setForm] = useState({
     fullName: "",
@@ -377,18 +377,31 @@ export default function Profile() {
 
             {/* ── Notifications Tab ── */}
             {activeTab === "Notifications" && (
-              donLoading ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <div className="space-y-8">
+                {/* Notifications section */}
+                <div>
+                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">Notifications</h2>
+                  <div className="text-center py-10 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400">
+                    <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="font-semibold text-[#1E2A3A]">No notifications yet</p>
+                    <p className="text-sm mt-1">You'll be notified about adoption updates, messages, and more.</p>
+                  </div>
                 </div>
-              ) : (
+
+                {/* Donation history section */}
                 <div>
                   <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">Donation History</h2>
-                  {!donations || donations.length === 0 ? (
-                    <div className="text-center py-16 text-gray-400">
-                      <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p className="text-lg font-semibold text-[#1E2A3A]">No activity yet</p>
+                  {donLoading ? (
+                    <div className="flex items-center justify-center py-10">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  ) : !donations || donations.length === 0 ? (
+                    <div className="text-center py-10 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400">
+                      <p className="font-semibold text-[#1E2A3A]">No donations yet</p>
                       <p className="text-sm mt-1">Your donation activity will appear here.</p>
+                      <Link href="/donate" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
+                        Make a Donation
+                      </Link>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -407,7 +420,7 @@ export default function Profile() {
                     </div>
                   )}
                 </div>
-              )
+              </div>
             )}
 
             {/* ── Lost&Found Tab ── */}

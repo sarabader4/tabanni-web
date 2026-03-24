@@ -32,7 +32,7 @@ export default function LostFound() {
   const { toast } = useToast();
   const pageSize = 20;
 
-  const { data, isLoading, refetch } = useListLostFoundReports({
+  const { data, isLoading, isError, refetch } = useListLostFoundReports({
     reportType: tab,
     type: filters.type || undefined,
     city: filters.city || undefined,
@@ -146,7 +146,15 @@ export default function LostFound() {
 
       {/* Pet Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        {isLoading ? (
+        {isError ? (
+          <div className="text-center py-20 bg-white rounded-2xl border border-red-100">
+            <p className="font-bold text-lg text-red-500 mb-2">Failed to load reports</p>
+            <p className="text-gray-400 text-sm mb-4">Please try again.</p>
+            <button onClick={() => refetch()} className="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
+              Retry
+            </button>
+          </div>
+        ) : isLoading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>

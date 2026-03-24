@@ -17,7 +17,18 @@ export default function Adopt() {
 
   const sterilizedParam = filters.sterilized === "yes" ? true : filters.sterilized === "no" ? false : undefined;
 
-  const { data, isLoading } = useListPets({
+  function parseAgeRange(ageStr: string): { minAge?: number; maxAge?: number } {
+    if (!ageStr) return {};
+    if (ageStr === "< 1 year") return { maxAge: 12 };
+    if (ageStr === "1–3 years") return { minAge: 12, maxAge: 36 };
+    if (ageStr === "3–5 years") return { minAge: 36, maxAge: 60 };
+    if (ageStr === "5+ years") return { minAge: 60 };
+    return {};
+  }
+
+  const ageRange = parseAgeRange(filters.minAge);
+
+  const { data, isLoading, isError } = useListPets({
     purpose,
     search: search || undefined,
     type: filters.type || undefined,
@@ -26,6 +37,8 @@ export default function Adopt() {
     city: filters.city || undefined,
     breed: filters.breed || undefined,
     sterilized: sterilizedParam,
+    minAge: ageRange.minAge,
+    maxAge: ageRange.maxAge,
     page,
     limit: pageSize,
   });
@@ -87,7 +100,12 @@ export default function Adopt() {
 
       {/* Pet Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        {isLoading ? (
+        {isError ? (
+          <div className="text-center py-20 bg-white rounded-2xl border border-red-100">
+            <p className="font-bold text-lg text-red-500 mb-2">Failed to load pets</p>
+            <p className="text-gray-400 text-sm">Please try again later.</p>
+          </div>
+        ) : isLoading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
