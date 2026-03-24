@@ -29,6 +29,8 @@ export const ListPetsQueryParams = zod.object({
   search: zod.coerce.string().optional(),
   page: zod.coerce.number().optional(),
   limit: zod.coerce.number().optional(),
+  minAge: zod.coerce.number().optional(),
+  maxAge: zod.coerce.number().optional(),
 });
 
 export const ListPetsResponse = zod.object({

@@ -93,6 +93,14 @@ paths:
           in: query
           schema:
             type: number
+        - name: minAge
+          in: query
+          schema:
+            type: number
+        - name: maxAge
+          in: query
+          schema:
+            type: number
       responses:
         "200":
           description: List of pets

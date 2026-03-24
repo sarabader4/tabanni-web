@@ -27,9 +27,7 @@ router.get("/pets", async (req, res) => {
       return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: parsed.error.issues });
     }
 
-    const { type, gender, size, city, breed, sterilized, purpose, status, search, page = 1, limit = 16 } = parsed.data;
-    const minAge = req.query.minAge !== undefined ? Number(req.query.minAge) : undefined;
-    const maxAge = req.query.maxAge !== undefined ? Number(req.query.maxAge) : undefined;
+    const { type, gender, size, city, breed, sterilized, purpose, status, search, page = 1, limit = 16, minAge, maxAge } = parsed.data;
 
     const pageNum = page;
     const limitNum = limit;
