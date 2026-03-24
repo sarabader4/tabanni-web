@@ -1,0 +1,122 @@
+import { Search } from "lucide-react";
+import { useState } from "react";
+
+export interface FilterState {
+  search: string;
+  type: string;
+  gender: string;
+  size: string;
+  city: string;
+}
+
+interface FilterSidebarProps {
+  filters: FilterState;
+  onChange: (filters: FilterState) => void;
+  title?: string;
+}
+
+export function FilterSidebar({ filters, onChange, title = "Filters" }: FilterSidebarProps) {
+  const updateFilter = (key: keyof FilterState, value: string) => {
+    onChange({ ...filters, [key]: value });
+  };
+
+  return (
+    <div className="bg-card rounded-3xl p-6 border border-border shadow-sm sticky top-28">
+      <h3 className="font-display font-bold text-xl mb-6">{title}</h3>
+
+      <div className="space-y-6">
+        {/* Search */}
+        <div>
+          <label className="text-sm font-bold text-foreground mb-2 block">Search</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search by name or breed..."
+              value={filters.search}
+              onChange={(e) => updateFilter("search", e.target.value)}
+              className="w-full bg-muted/50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Type */}
+        <div>
+          <label className="text-sm font-bold text-foreground mb-2 block">Pet Type</label>
+          <div className="flex flex-wrap gap-2">
+            {["all", "dog", "cat", "rabbit", "bird", "other"].map((type) => (
+              <button
+                key={type}
+                onClick={() => updateFilter("type", type === "all" ? "" : type)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${
+                  (filters.type === type || (type === "all" && !filters.type))
+                    ? "bg-primary text-white"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Gender */}
+        <div>
+          <label className="text-sm font-bold text-foreground mb-2 block">Gender</label>
+          <div className="flex flex-wrap gap-2">
+            {["all", "male", "female"].map((gender) => (
+              <button
+                key={gender}
+                onClick={() => updateFilter("gender", gender === "all" ? "" : gender)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${
+                  (filters.gender === gender || (gender === "all" && !filters.gender))
+                    ? "bg-primary text-white"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {gender}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Size */}
+        <div>
+          <label className="text-sm font-bold text-foreground mb-2 block">Size</label>
+          <select
+            value={filters.size}
+            onChange={(e) => updateFilter("size", e.target.value)}
+            className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/50 outline-none appearance-none"
+          >
+            <option value="">Any Size</option>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+
+        {/* City */}
+        <div>
+          <label className="text-sm font-bold text-foreground mb-2 block">City</label>
+          <select
+            value={filters.city}
+            onChange={(e) => updateFilter("city", e.target.value)}
+            className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/50 outline-none appearance-none"
+          >
+            <option value="">Any City</option>
+            <option value="Amman">Amman</option>
+            <option value="Irbid">Irbid</option>
+            <option value="Zarqa">Zarqa</option>
+          </select>
+        </div>
+
+        <button 
+          onClick={() => onChange({ search: "", type: "", gender: "", size: "", city: "" })}
+          className="w-full py-2.5 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Reset Filters
+        </button>
+      </div>
+    </div>
+  );
+}

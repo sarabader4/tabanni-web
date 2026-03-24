@@ -1,0 +1,85 @@
+import { Router, type IRouter } from "express";
+import { db, galleryPostsTable, usersTable } from "@workspace/db";
+import { eq, desc } from "drizzle-orm";
+
+const router: IRouter = Router();
+
+router.get("/gallery", async (req, res) => {
+  try {
+    const { page = "1", limit = "12" } = req.query as Record<string, string>;
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 12;
+    const offset = (pageNum - 1) * limitNum;
+
+    const posts = await db.select({
+      id: galleryPostsTable.id,
+      title: galleryPostsTable.title,
+      content: galleryPostsTable.content,
+      imageUrl: galleryPostsTable.imageUrl,
+      authorId: galleryPostsTable.authorId,
+      authorName: usersTable.fullName,
+      createdAt: galleryPostsTable.createdAt,
+    })
+      .from(galleryPostsTable)
+      .leftJoin(usersTable, eq(galleryPostsTable.authorId, usersTable.id))
+      .orderBy(desc(galleryPostsTable.createdAt))
+      .limit(limitNum)
+      .offset(offset);
+
+    res.json(posts);
+  } catch (err) {
+    req.log.error({ err }, "Error listing gallery posts");
+    res.status(500).json({ error: "internal_error", message: "Failed to list gallery posts" });
+  }
+});
+
+router.post("/gallery", async (req, res) => {
+  try {
+    const { title, content, imageUrl, authorId } = req.body;
+    if (!title || !content) {
+      return res.status(400).json({ error: "validation_error", message: "title and content required" });
+    }
+    const [post] = await db.insert(galleryPostsTable).values({ title, content, imageUrl, authorId }).returning();
+    res.status(201).json(post);
+  } catch (err) {
+    req.log.error({ err }, "Error creating gallery post");
+    res.status(500).json({ error: "internal_error", message: "Failed to create gallery post" });
+  }
+});
+
+router.get("/gallery/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [post] = await db.select({
+      id: galleryPostsTable.id,
+      title: galleryPostsTable.title,
+      content: galleryPostsTable.content,
+      imageUrl: galleryPostsTable.imageUrl,
+      authorId: galleryPostsTable.authorId,
+      authorName: usersTable.fullName,
+      createdAt: galleryPostsTable.createdAt,
+    })
+      .from(galleryPostsTable)
+      .leftJoin(usersTable, eq(galleryPostsTable.authorId, usersTable.id))
+      .where(eq(galleryPostsTable.id, id));
+
+    if (!post) return res.status(404).json({ error: "not_found", message: "Post not found" });
+    res.json(post);
+  } catch (err) {
+    req.log.error({ err }, "Error getting gallery post");
+    res.status(500).json({ error: "internal_error", message: "Failed to get gallery post" });
+  }
+});
+
+router.delete("/gallery/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await db.delete(galleryPostsTable).where(eq(galleryPostsTable.id, id));
+    res.json({ success: true, message: "Post deleted" });
+  } catch (err) {
+    req.log.error({ err }, "Error deleting gallery post");
+    res.status(500).json({ error: "internal_error", message: "Failed to delete gallery post" });
+  }
+});
+
+export default router;

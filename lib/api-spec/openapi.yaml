@@ -3,20 +3,38 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Tabanni Pet Adoption Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: pets
+    description: Pet management
+  - name: adoption-requests
+    description: Adoption request operations
+  - name: foster-requests
+    description: Foster request operations
+  - name: donations
+    description: Donation operations
+  - name: gallery
+    description: Gallery post operations
+  - name: lost-found
+    description: Lost and found report operations
+  - name: messages
+    description: Messaging operations
+  - name: users
+    description: User profile operations
+  - name: admin
+    description: Admin operations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +42,704 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /pets:
+    get:
+      operationId: listPets
+      tags: [pets]
+      summary: List pets with filters
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: gender
+          in: query
+          schema:
+            type: string
+        - name: size
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: breed
+          in: query
+          schema:
+            type: string
+        - name: sterilized
+          in: query
+          schema:
+            type: boolean
+        - name: purpose
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: number
+        - name: limit
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of pets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PetListResponse"
+    post:
+      operationId: createPet
+      tags: [pets]
+      summary: Create a new pet listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePetInput"
+      responses:
+        "201":
+          description: Created pet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+
+  /pets/featured:
+    get:
+      operationId: getFeaturedPets
+      tags: [pets]
+      summary: Get featured pets for home page
+      responses:
+        "200":
+          description: Featured pets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+
+  /pets/{id}:
+    get:
+      operationId: getPet
+      tags: [pets]
+      summary: Get pet detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Pet detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updatePet
+      tags: [pets]
+      summary: Update a pet listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePetInput"
+      responses:
+        "200":
+          description: Updated pet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+    delete:
+      operationId: deletePet
+      tags: [pets]
+      summary: Delete a pet listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /pets/{id}/favourite:
+    post:
+      operationId: toggleFavourite
+      tags: [pets]
+      summary: Toggle favourite for a pet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ToggleFavouriteInput"
+      responses:
+        "200":
+          description: Favourite toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /adoption-requests:
+    get:
+      operationId: listAdoptionRequests
+      tags: [adoption-requests]
+      summary: List adoption requests
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: petId
+          in: query
+          schema:
+            type: number
+        - name: requesterId
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of adoption requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdoptionRequest"
+    post:
+      operationId: createAdoptionRequest
+      tags: [adoption-requests]
+      summary: Submit an adoption request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdoptionRequestInput"
+      responses:
+        "201":
+          description: Created request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdoptionRequest"
+
+  /adoption-requests/{id}/status:
+    put:
+      operationId: updateAdoptionRequestStatus
+      tags: [adoption-requests]
+      summary: Approve or reject an adoption request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRequestStatusInput"
+      responses:
+        "200":
+          description: Updated request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdoptionRequest"
+
+  /foster-requests:
+    get:
+      operationId: listFosterRequests
+      tags: [foster-requests]
+      summary: List foster requests
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: petId
+          in: query
+          schema:
+            type: number
+        - name: requesterId
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of foster requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FosterRequest"
+    post:
+      operationId: createFosterRequest
+      tags: [foster-requests]
+      summary: Submit a foster request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFosterRequestInput"
+      responses:
+        "201":
+          description: Created request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FosterRequest"
+
+  /foster-requests/{id}/status:
+    put:
+      operationId: updateFosterRequestStatus
+      tags: [foster-requests]
+      summary: Approve or reject a foster request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRequestStatusInput"
+      responses:
+        "200":
+          description: Updated request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FosterRequest"
+
+  /donations:
+    get:
+      operationId: listDonations
+      tags: [donations]
+      summary: List donations
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: number
+        - name: limit
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of donations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Donation"
+    post:
+      operationId: createDonation
+      tags: [donations]
+      summary: Submit a donation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDonationInput"
+      responses:
+        "201":
+          description: Created donation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Donation"
+
+  /gallery:
+    get:
+      operationId: listGalleryPosts
+      tags: [gallery]
+      summary: List gallery posts
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: number
+        - name: limit
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of gallery posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GalleryPost"
+    post:
+      operationId: createGalleryPost
+      tags: [gallery]
+      summary: Create a gallery post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGalleryPostInput"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryPost"
+
+  /gallery/{id}:
+    get:
+      operationId: getGalleryPost
+      tags: [gallery]
+      summary: Get a single gallery post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Gallery post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryPost"
+
+  /lost-found:
+    get:
+      operationId: listLostFoundReports
+      tags: [lost-found]
+      summary: List lost and found reports
+      parameters:
+        - name: reportType
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: gender
+          in: query
+          schema:
+            type: string
+        - name: size
+          in: query
+          schema:
+            type: string
+        - name: breed
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: number
+        - name: limit
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of reports
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LostFoundListResponse"
+    post:
+      operationId: createLostFoundReport
+      tags: [lost-found]
+      summary: Report a lost or found pet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLostFoundReportInput"
+      responses:
+        "201":
+          description: Created report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LostFoundReport"
+
+  /lost-found/{id}:
+    get:
+      operationId: getLostFoundReport
+      tags: [lost-found]
+      summary: Get a lost/found report detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Report detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LostFoundReport"
+
+  /messages:
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message to a pet owner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessageInput"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  /users/me:
+    get:
+      operationId: getMyProfile
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      operationId: updateMyProfile
+      tags: [users]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInput"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/me/pets:
+    get:
+      operationId: getMyPets
+      tags: [users]
+      summary: Get current user's listed pets
+      responses:
+        "200":
+          description: My pets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+
+  /users/me/applications:
+    get:
+      operationId: getMyApplications
+      tags: [users]
+      summary: Get current user's adoption and foster applications
+      responses:
+        "200":
+          description: My applications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyApplicationsResponse"
+
+  /users/me/favourites:
+    get:
+      operationId: getMyFavourites
+      tags: [users]
+      summary: Get current user's favourited pets
+      responses:
+        "200":
+          description: My favourites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+
+  /users/me/donations:
+    get:
+      operationId: getMyDonations
+      tags: [users]
+      summary: Get current user's donation history
+      responses:
+        "200":
+          description: My donations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Donation"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin KPI stats
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: listAdminUsers
+      tags: [admin]
+      summary: List all users (admin)
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: number
+        - name: limit
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /admin/pets/{id}/approve:
+    put:
+      operationId: approvePet
+      tags: [admin]
+      summary: Approve a pet listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Pet approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+
+  /admin/pets/{id}/featured:
+    put:
+      operationId: togglePetFeatured
+      tags: [admin]
+      summary: Toggle featured status for a pet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Pet featured status toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +750,688 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    User:
+      type: object
+      properties:
+        id:
+          type: number
+        fullName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [user, admin, volunteer]
+        createdAt:
+          type: string
+      required:
+        - id
+        - fullName
+        - email
+        - role
+        - createdAt
+
+    UpdateUserInput:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+        avatarUrl:
+          type: string
+
+    Pet:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        type:
+          type: string
+          enum: [dog, cat, rabbit, bird, other]
+        breed:
+          type: string
+          nullable: true
+        gender:
+          type: string
+          enum: [male, female]
+        ageMonths:
+          type: number
+        weightKg:
+          type: string
+          nullable: true
+        size:
+          type: string
+          enum: [small, medium, large]
+        color:
+          type: string
+          nullable: true
+        sterilized:
+          type: boolean
+        yearlyVaccines:
+          type: boolean
+        birthday:
+          type: string
+          nullable: true
+        city:
+          type: string
+        status:
+          type: string
+          enum: [available, adopted, fostered, pending]
+        purpose:
+          type: string
+          enum: [adopt, foster, both]
+        imageUrls:
+          type: array
+          items:
+            type: string
+        story:
+          type: string
+          nullable: true
+        ownerId:
+          type: number
+          nullable: true
+        ownerName:
+          type: string
+          nullable: true
+        ownerPhone:
+          type: string
+          nullable: true
+        approved:
+          type: boolean
+        featured:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - type
+        - gender
+        - ageMonths
+        - size
+        - city
+        - status
+        - purpose
+        - imageUrls
+        - sterilized
+        - yearlyVaccines
+        - approved
+        - featured
+        - createdAt
+
+    CreatePetInput:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [dog, cat, rabbit, bird, other]
+        breed:
+          type: string
+        gender:
+          type: string
+          enum: [male, female]
+        ageMonths:
+          type: number
+        weightKg:
+          type: string
+        size:
+          type: string
+          enum: [small, medium, large]
+        color:
+          type: string
+        sterilized:
+          type: boolean
+        yearlyVaccines:
+          type: boolean
+        birthday:
+          type: string
+        city:
+          type: string
+        purpose:
+          type: string
+          enum: [adopt, foster, both]
+        imageUrls:
+          type: array
+          items:
+            type: string
+        story:
+          type: string
+        ownerId:
+          type: number
+      required:
+        - name
+        - type
+        - gender
+        - size
+        - city
+        - purpose
+
+    UpdatePetInput:
+      type: object
+      properties:
+        name:
+          type: string
+        breed:
+          type: string
+        gender:
+          type: string
+        ageMonths:
+          type: number
+        weightKg:
+          type: string
+        size:
+          type: string
+        color:
+          type: string
+        sterilized:
+          type: boolean
+        yearlyVaccines:
+          type: boolean
+        birthday:
+          type: string
+        city:
+          type: string
+        status:
+          type: string
+        purpose:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+        story:
+          type: string
+        approved:
+          type: boolean
+        featured:
+          type: boolean
+
+    PetListResponse:
+      type: object
+      properties:
+        pets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pet"
+        total:
+          type: number
+        page:
+          type: number
+        totalPages:
+          type: number
+      required:
+        - pets
+        - total
+        - page
+        - totalPages
+
+    ToggleFavouriteInput:
+      type: object
+      properties:
+        userId:
+          type: number
+      required:
+        - userId
+
+    AdoptionRequest:
+      type: object
+      properties:
+        id:
+          type: number
+        petId:
+          type: number
+        requesterId:
+          type: number
+        message:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        petName:
+          type: string
+          nullable: true
+        petImageUrl:
+          type: string
+          nullable: true
+        requesterName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - petId
+        - requesterId
+        - status
+        - createdAt
+
+    CreateAdoptionRequestInput:
+      type: object
+      properties:
+        petId:
+          type: number
+        requesterId:
+          type: number
+        message:
+          type: string
+      required:
+        - petId
+        - requesterId
+
+    FosterRequest:
+      type: object
+      properties:
+        id:
+          type: number
+        petId:
+          type: number
+        requesterId:
+          type: number
+        message:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        petName:
+          type: string
+          nullable: true
+        petImageUrl:
+          type: string
+          nullable: true
+        requesterName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - petId
+        - requesterId
+        - status
+        - createdAt
+
+    CreateFosterRequestInput:
+      type: object
+      properties:
+        petId:
+          type: number
+        requesterId:
+          type: number
+        message:
+          type: string
+      required:
+        - petId
+        - requesterId
+
+    UpdateRequestStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [approved, rejected]
+      required:
+        - status
+
+    Donation:
+      type: object
+      properties:
+        id:
+          type: number
+        donorName:
+          type: string
+        donorPhone:
+          type: string
+          nullable: true
+        amount:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [monetary, supplies]
+        donationTypeLabel:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        paymentMethod:
+          type: string
+          nullable: true
+        frequency:
+          type: string
+          enum: [one_time, monthly]
+        petId:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - donorName
+        - type
+        - frequency
+        - createdAt
+
+    CreateDonationInput:
+      type: object
+      properties:
+        donorName:
+          type: string
+        donorPhone:
+          type: string
+        amount:
+          type: string
+        type:
+          type: string
+          enum: [monetary, supplies]
+        donationTypeLabel:
+          type: string
+        description:
+          type: string
+        paymentMethod:
+          type: string
+        frequency:
+          type: string
+          enum: [one_time, monthly]
+        petId:
+          type: number
+      required:
+        - donorName
+        - type
+
+    GalleryPost:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        content:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+        authorId:
+          type: number
+          nullable: true
+        authorName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - title
+        - content
+        - createdAt
+
+    CreateGalleryPostInput:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        imageUrl:
+          type: string
+        authorId:
+          type: number
+      required:
+        - title
+        - content
+
+    LostFoundReport:
+      type: object
+      properties:
+        id:
+          type: number
+        reportType:
+          type: string
+          enum: [lost, found]
+        name:
+          type: string
+        type:
+          type: string
+        breed:
+          type: string
+          nullable: true
+        gender:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        ageMonths:
+          type: number
+          nullable: true
+        size:
+          type: string
+          nullable: true
+        city:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+          nullable: true
+        lostDate:
+          type: string
+          nullable: true
+        foundDate:
+          type: string
+          nullable: true
+        reporterId:
+          type: number
+          nullable: true
+        reporterName:
+          type: string
+          nullable: true
+        reporterPhone:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - reportType
+        - name
+        - type
+        - city
+        - imageUrls
+        - createdAt
+
+    CreateLostFoundReportInput:
+      type: object
+      properties:
+        reportType:
+          type: string
+          enum: [lost, found]
+        name:
+          type: string
+        type:
+          type: string
+        breed:
+          type: string
+        gender:
+          type: string
+        color:
+          type: string
+        ageMonths:
+          type: number
+        size:
+          type: string
+        city:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        lostDate:
+          type: string
+        foundDate:
+          type: string
+        reporterId:
+          type: number
+        reporterName:
+          type: string
+        reporterPhone:
+          type: string
+      required:
+        - reportType
+        - name
+        - type
+        - city
+
+    LostFoundListResponse:
+      type: object
+      properties:
+        reports:
+          type: array
+          items:
+            $ref: "#/components/schemas/LostFoundReport"
+        total:
+          type: number
+        page:
+          type: number
+        totalPages:
+          type: number
+      required:
+        - reports
+        - total
+        - page
+        - totalPages
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: number
+        senderId:
+          type: number
+          nullable: true
+        recipientId:
+          type: number
+          nullable: true
+        petId:
+          type: number
+          nullable: true
+        senderName:
+          type: string
+          nullable: true
+        content:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - content
+        - createdAt
+
+    CreateMessageInput:
+      type: object
+      properties:
+        senderId:
+          type: number
+        recipientId:
+          type: number
+        petId:
+          type: number
+        senderName:
+          type: string
+        content:
+          type: string
+      required:
+        - content
+
+    MyApplicationsResponse:
+      type: object
+      properties:
+        adoptionRequests:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdoptionRequest"
+        fosterRequests:
+          type: array
+          items:
+            $ref: "#/components/schemas/FosterRequest"
+      required:
+        - adoptionRequests
+        - fosterRequests
+
+    AdminStats:
+      type: object
+      properties:
+        totalPets:
+          type: number
+        pendingApproval:
+          type: number
+        activeAdoptions:
+          type: number
+        activeFosters:
+          type: number
+        adoptionsCount:
+          type: number
+        totalDonationsThisMonth:
+          type: string
+        newUsersToday:
+          type: number
+        totalUsers:
+          type: number
+      required:
+        - totalPets
+        - pendingApproval
+        - activeAdoptions
+        - activeFosters
+        - adoptionsCount
+        - totalDonationsThisMonth
+        - newUsersToday
+        - totalUsers

@@ -1,0 +1,25 @@
+packages:
+  "framer-motion": "For page transitions and smooth UI animations"
+  "date-fns": "For formatting dates in gallery and lost-found"
+  "react-hook-form": "For robust form state management"
+  "@hookform/resolvers": "For Zod schema validation integration"
+  "zod": "For form validation schemas"
+
+images:
+  - path: "artifacts/frontend/public/images/hero-pets.png"
+    description: "A heartwarming, high-quality illustration of a happy golden retriever and a fluffy orange tabby cat sitting together playfully on a solid cream (#FFF8F3) background. Modern vector art style, warm and friendly, clean composition."
+    aspect_ratio: "16:9"
+  - path: "artifacts/frontend/public/images/about-team.png"
+    description: "A beautiful, modern flat vector illustration of diverse friendly people petting and playing with dogs and cats in a sunlit park. Warm color palette with orange and teal accents on a light background."
+    aspect_ratio: "4:3"
+  - path: "artifacts/frontend/public/images/foster-hero.png"
+    description: "A cozy living room scene illustration featuring a person sitting on a sofa with a sleeping cat on their lap and a dog resting by their feet. Warm, inviting, soft teal and orange tones, clean minimal style."
+    aspect_ratio: "16:9"
+  - path: "artifacts/frontend/public/images/pattern-bg.png"
+    description: "Abstract subtle geometric pattern background with soft overlapping wavy shapes in very light cream, pale orange, and pale teal colors. Very low opacity, suitable for a web background."
+    aspect_ratio: "16:9"
+
+notes:
+  - Using generated hooks from @workspace/api-client-react
+  - Base API URL is /api
+  - Mock userId=1 is used for all user-specific operations

@@ -1,96 +1,169 @@
-# Workspace
+# Tabbani — Jordan's Pet Adoption & Fostering Platform
 
-## Overview
+## Project Overview
+A full-stack monorepo web platform for pet adoption and fostering in Jordan. Built with React/Vite frontend, Express backend, PostgreSQL + Drizzle ORM, and OpenAI AI integration.
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+## Architecture
 
-## Stack
+### Tech Stack
+- **Frontend**: React 18 + Vite + TypeScript + Tailwind CSS + Wouter (routing) + Framer Motion
+- **Backend**: Express 5 + TypeScript + Pino logger
+- **Database**: PostgreSQL + Drizzle ORM + drizzle-zod
+- **AI**: OpenAI GPT-5.2 via Replit AI Integrations
+- **Package Manager**: pnpm workspace monorepo
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+### Ports
+- Frontend: 18130 (preview at `/`)
+- API Server: 8080
 
-## Structure
+### Design System
+- Background: Cream `#FFF8F3`
+- Primary: Orange `#FF6B35`
+- Accent: Teal `#00B8A0`
+- Header/Footer/Admin: Dark Navy `#1E2A3A`
+- Font: Inter (sans-serif)
 
-```text
-artifacts-monorepo/
-├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
-├── lib/                    # Shared libraries
-│   ├── api-spec/           # OpenAPI spec + Orval codegen config
-│   ├── api-client-react/   # Generated React Query hooks
-│   ├── api-zod/            # Generated Zod schemas from OpenAPI
-│   └── db/                 # Drizzle ORM schema + DB connection
-├── scripts/                # Utility scripts (single workspace package)
-│   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
-├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
-├── tsconfig.json           # Root TS project references
-└── package.json            # Root package with hoisted devDeps
+## Project Structure
+
+```
+artifacts/
+  api-server/           # Express API server (port 8080)
+  frontend/             # React/Vite frontend (port 18130)
+  mockup-sandbox/       # Vite component preview server
+
+lib/
+  db/                   # Drizzle ORM schema + migrations
+  api-spec/             # OpenAPI YAML spec
+  api-zod/              # Generated Zod validation schemas (from codegen)
+  api-client-react/     # Generated React Query hooks (from codegen)
+  integrations-openai-ai-server/  # OpenAI client for server-side AI
+  integrations-openai-ai-react/   # React hooks for AI audio features
+
+scripts/
+  src/seed.ts           # Database seed script (20 pets, 3 users, etc.)
 ```
 
-## TypeScript & Composite Projects
+## Database Schema (9 tables)
+| Table | Purpose |
+|---|---|
+| `users` | Platform users (user/admin/volunteer roles) |
+| `pets` | Pet listings with images, status, city |
+| `adoption_requests` | Adoption request management |
+| `foster_requests` | Foster request management |
+| `donations` | Monetary + supply donations |
+| `gallery_posts` | Success stories gallery |
+| `lost_found_reports` | Lost & found pet reports |
+| `messages` | User messaging system |
+| `notifications` | User notifications |
 
-Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references. This means:
+## Frontend Pages
 
-- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly. Running `tsc` inside a single package will fail if its dependencies haven't been built yet.
-- **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by esbuild/tsx/vite...etc, not `tsc`.
-- **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array. `tsc --build` uses this to determine build order and skip up-to-date packages.
+### User-Facing
+| Route | Component | Description |
+|---|---|---|
+| `/` | `Home` | Hero + featured pets + stats + gallery |
+| `/adopt` | `Adopt` | Pet listing with filters (type, gender, size, city) |
+| `/foster` | `Foster` | Foster pets listing with filters |
+| `/pets/:id` | `PetDetail` | Pet detail + adopt/foster request form |
+| `/lost-found` | `LostFound` | Lost & found reports with tabs |
+| `/donate` | `Donate` | Monetary & supply donation forms |
+| `/gallery` | `Gallery` | Happy tails success stories |
+| `/about` | `About` | About page |
 
-## Root Scripts
+### Admin Dashboard (at `/admin/*`)
+| Route | Component | Description |
+|---|---|---|
+| `/admin` | `AdminDashboard` | KPI stats (8 cards): pets, users, donations, etc. |
+| `/admin/pets` | `AdminPets` | Pet management table with approve/feature/delete |
+| `/admin/users` | `AdminUsers` | User management with search/filter by role |
+| `/admin/adoptions` | `AdminAdoptions` | Adoption request approval/rejection |
+| `/admin/fosters` | `AdminFosters` | Foster request approval/rejection |
 
-- `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
-- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
+## API Endpoints
 
-## Packages
+### Public API (via `/api/`)
+- `GET /api/health`
+- `GET /api/pets` — list with filters (type, status, purpose, city, search, featured)
+- `GET /api/pets/featured` — featured pets only
+- `GET /api/pets/:id` — pet detail
+- `POST /api/pets` — create pet listing
+- `GET /api/adoption-requests` — list adoption requests
+- `POST /api/adoption-requests` — submit adoption request
+- `PATCH /api/adoption-requests/:id/status` — update request status
+- `GET /api/foster-requests` — list foster requests
+- `POST /api/foster-requests` — submit foster request
+- `PATCH /api/foster-requests/:id/status` — update request status
+- `POST /api/donations` — submit donation
+- `GET /api/gallery` — gallery posts
+- `GET /api/lost-found` — lost/found reports
+- `POST /api/lost-found` — report lost/found pet
+- `GET /api/users/:id` — user profile
+- `POST /api/messages` — send message
 
-### `artifacts/api-server` (`@workspace/api-server`)
+### Admin API
+- `GET /api/admin/stats` — platform KPIs
+- `GET /api/admin/users` — user management list
+- `POST /api/pets/:id/approve` — approve pet listing
+- `POST /api/pets/:id/toggle-featured` — toggle featured status
+- `DELETE /api/pets/:id` — delete pet
 
-Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.
+### AI API
+- `POST /api/ai/chat` — AI chat assistant (body: `{message, history[]}`)
+- `POST /api/ai/match` — Pet matching by preferences (body: `{preferences}`)
+- `POST /api/ai/describe` — Generate pet description (body: `{pet}`)
 
-- Entry: `src/index.ts` — reads `PORT`, starts Express
-- App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
-- Depends on: `@workspace/db`, `@workspace/api-zod`
-- `pnpm --filter @workspace/api-server run dev` — run the dev server
-- `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
-- Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
+## AI Features
+- **Chat Widget**: Floating orange bubble on all user pages, powered by GPT-5.2
+  - System prompt configured for Jordan pet context (Amman, Irbid, Zarqa, Aqaba)
+  - Maintains conversation history within session
+  - Responds in English or Arabic based on user language
+- **Pet Matching**: POST `/api/ai/match` to find the best pet type based on lifestyle
+- **Description Generation**: POST `/api/ai/describe` to generate pet adoption stories
 
-### `lib/db` (`@workspace/db`)
+## Environment Variables
+- `DATABASE_URL` — PostgreSQL connection string
+- `AI_INTEGRATIONS_OPENAI_BASE_URL` — Replit AI Integrations proxy URL
+- `AI_INTEGRATIONS_OPENAI_API_KEY` — Replit AI Integrations API key
+- `PORT` — Assigned by Replit per artifact
 
-Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client instance and schema models.
+## Commands
+```bash
+# Development
+pnpm --filter @workspace/frontend run dev        # Frontend
+pnpm --filter @workspace/api-server run dev      # API server
 
-- `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
-- `src/schema/index.ts` — barrel re-export of all models
-- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas (no models definitions exist right now)
-- `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
-- Exports: `.` (pool, db, schema), `./schema` (schema only)
+# Database
+pnpm --filter @workspace/db run push             # Apply migrations
+pnpm --filter @workspace/db run push-force       # Force push (if conflicts)
+pnpm --filter @workspace/scripts run seed        # Seed database
 
-Production migrations are handled by Replit when publishing. In development, we just use `pnpm --filter @workspace/db run push`, and we fallback to `pnpm --filter @workspace/db run push-force`.
+# Code generation
+pnpm --filter @workspace/api-spec run codegen    # Regenerate API client + Zod schemas
 
-### `lib/api-spec` (`@workspace/api-spec`)
+# Install
+pnpm install --no-frozen-lockfile
+```
 
-Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`). Running codegen produces output into two sibling packages:
+## Seed Data
+The seed script creates:
+- 20 pets (7 dogs, 7 cats, 3 rabbits, 2 birds, 1 other) across Amman, Irbid, Zarqa
+- 3 users: Admin Tabanni (admin), Sara Ahmed (user), Omar Hassan (user)
+- Adoption requests with mixed statuses (pending/approved/rejected)
+- Foster requests
+- Donations totaling 1000+ JOD
+- Gallery posts with success stories
+- Lost/found reports
 
-1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
-2. `lib/api-zod/src/generated/` — Zod schemas
+## Jordan Context
+- Cities: Amman, Irbid, Zarqa, Aqaba
+- Currency: JOD (Jordanian Dinar)
+- Phone numbers: +962 prefix
+- Language: English v1 (Arabic support planned)
+- Mock user: userId=1 (Admin Tabanni) used for unauthenticated requests
 
-Run codegen: `pnpm --filter @workspace/api-spec run codegen`
-
-### `lib/api-zod` (`@workspace/api-zod`)
-
-Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used by `api-server` for response validation.
-
-### `lib/api-client-react` (`@workspace/api-client-react`)
-
-Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
-
-### `scripts` (`@workspace/scripts`)
-
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+## Status: PRODUCTION-READY
+All tasks completed:
+- [x] Task 1: Foundation (DB, API, backend routes)
+- [x] Task 2: Frontend (all user-facing pages)
+- [x] Task 3: Admin Dashboard (full CRUD management)
+- [x] Task 4: AI Features (chat widget, matching, descriptions)
