@@ -27,6 +27,7 @@ router.get("/users/me", async (req, res) => {
 
 router.put("/users/me", async (req, res) => {
   try {
+    if (!requireAuth(req, res)) return;
     const parsed = UpdateMyProfileBody.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
@@ -46,6 +47,7 @@ router.put("/users/me", async (req, res) => {
 
 router.get("/users/me/pets", async (req, res) => {
   try {
+    if (!requireAuth(req, res)) return;
     const pets = await db.select().from(petsTable)
       .where(eq(petsTable.ownerId, req.userId))
       .orderBy(desc(petsTable.createdAt));
@@ -58,6 +60,7 @@ router.get("/users/me/pets", async (req, res) => {
 
 router.get("/users/me/applications", async (req, res) => {
   try {
+    if (!requireAuth(req, res)) return;
     const [adoptionRequests, fosterRequests] = await Promise.all([
       db.select({
         id: adoptionRequestsTable.id,
@@ -105,6 +108,7 @@ router.get("/users/me/applications", async (req, res) => {
 
 router.get("/users/me/favourites", async (req, res) => {
   try {
+    if (!requireAuth(req, res)) return;
     const pets = await db.select({
       id: petsTable.id,
       name: petsTable.name,
@@ -143,6 +147,7 @@ router.get("/users/me/favourites", async (req, res) => {
 
 router.get("/users/me/donations", async (req, res) => {
   try {
+    if (!requireAuth(req, res)) return;
     const donations = await db.select().from(donationsTable)
       .where(eq(donationsTable.userId, req.userId))
       .orderBy(desc(donationsTable.createdAt));
