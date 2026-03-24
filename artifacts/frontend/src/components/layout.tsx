@@ -259,7 +259,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           <div className="mt-10 pt-6 border-t border-white/10 text-center">
             <p className="text-white/40 text-xs">
-              Copyright &copy; 2025 Apple Inc. All rights reserved.
+              Copyright &copy; 2025 Tabbani Platform. All rights reserved.
             </p>
           </div>
         </div>

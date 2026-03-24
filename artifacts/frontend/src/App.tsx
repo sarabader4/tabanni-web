@@ -10,6 +10,7 @@ import PetDetail from "@/pages/pet-detail";
 import LostFound from "@/pages/lost-found";
 import Donate from "@/pages/donate";
 import Gallery from "@/pages/gallery";
+import GalleryDetail from "@/pages/gallery-detail";
 import About from "@/pages/about";
 import Shop from "@/pages/shop";
 import Profile from "@/pages/profile";
@@ -40,6 +41,7 @@ function AppRoutes() {
             <Route path="/pets/:id" component={PetDetail} />
             <Route path="/lost-found" component={LostFound} />
             <Route path="/donate" component={Donate} />
+            <Route path="/gallery/:id" component={GalleryDetail} />
             <Route path="/gallery" component={Gallery} />
             <Route path="/about" component={About} />
             <Route path="/shop" component={Shop} />

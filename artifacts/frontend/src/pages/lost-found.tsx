@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { useListLostFoundReports, useCreateLostFoundReport } from "@workspace/api-client-react";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
-import { Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Loader2, ChevronLeft, ChevronRight, Bookmark } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
-import { Bookmark } from "lucide-react";
 
 const reportSchema = z.object({
   reportType: z.enum(["lost", "found"]),
@@ -24,6 +22,7 @@ const reportSchema = z.object({
 });
 
 export default function LostFound() {
+  const [tab, setTab] = useState<"lost" | "found">("lost");
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<FilterBarState>({
     type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "",
@@ -34,11 +33,12 @@ export default function LostFound() {
   const pageSize = 20;
 
   const { data, isLoading, refetch } = useListLostFoundReports({
+    reportType: tab,
     type: filters.type || undefined,
     city: filters.city || undefined,
     gender: filters.gender || undefined,
     limit: pageSize,
-    offset: (page - 1) * pageSize,
+    page,
   });
 
   const createMutation = useCreateLostFoundReport();
@@ -74,7 +74,7 @@ export default function LostFound() {
 
   const reports = data?.reports ?? [];
   const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / pageSize);
+  const totalPages = Math.ceil(total / pageSize) || 1;
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,7 +92,10 @@ export default function LostFound() {
             />
           </div>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              form.reset({ reportType: "lost", name: "", type: "Dog", city: "Amman", reporterName: "", reporterPhone: "" });
+              setIsModalOpen(true);
+            }}
             className="px-5 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors whitespace-nowrap"
           >
             Lost Pet
@@ -101,8 +104,34 @@ export default function LostFound() {
       </div>
 
       {/* Filter Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
         <FilterBar filters={filters} onChange={setFilters} showMonth />
+      </div>
+
+      {/* Lost / Found Tabs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-5">
+        <div className="inline-flex bg-gray-100 rounded-full p-1 gap-1">
+          <button
+            onClick={() => { setTab("lost"); setPage(1); }}
+            className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
+              tab === "lost"
+                ? "bg-white text-[#1E2A3A] shadow-sm"
+                : "text-gray-500 hover:text-[#1E2A3A]"
+            }`}
+          >
+            Lost Pets
+          </button>
+          <button
+            onClick={() => { setTab("found"); setPage(1); }}
+            className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
+              tab === "found"
+                ? "bg-white text-[#1E2A3A] shadow-sm"
+                : "text-gray-500 hover:text-[#1E2A3A]"
+            }`}
+          >
+            Found Pets
+          </button>
+        </div>
       </div>
 
       {/* Pet Grid */}
@@ -114,9 +143,9 @@ export default function LostFound() {
         ) : reports.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
             <h3 className="font-display font-bold text-xl mb-2 text-[#1E2A3A]">
-              No reports found
+              No {tab} reports found
             </h3>
-            <p className="text-gray-400">There are no reports matching your filters.</p>
+            <p className="text-gray-400">There are no {tab} pets matching your filters.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -134,6 +163,12 @@ export default function LostFound() {
                     alt={report.name}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                   />
+                  {/* Report type badge */}
+                  <div className={`absolute top-3 left-3 px-2 py-0.5 rounded-full text-white text-xs font-bold ${
+                    report.reportType === "lost" ? "bg-red-500" : "bg-[#00B8A0]"
+                  }`}>
+                    {report.reportType === "lost" ? "LOST" : "FOUND"}
+                  </div>
                   <button className="absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-400 hover:text-primary transition-all shadow-sm">
                     <Bookmark className="w-4 h-4" />
                   </button>
@@ -143,7 +178,7 @@ export default function LostFound() {
                     <h3 className="font-display font-bold text-base text-[#1E2A3A]">
                       {report.name}
                     </h3>
-                    <span className="text-xs text-gray-400 font-medium">{report.type}</span>
+                    <span className="text-xs text-gray-400 font-medium capitalize">{report.type}</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     <span className="px-2 py-0.5 bg-[#00B8A0]/10 text-[#00B8A0] rounded-full text-xs font-semibold capitalize">
@@ -163,9 +198,12 @@ export default function LostFound() {
                         {report.color}
                       </span>
                     )}
-                    {report.lostDate && (
+                    {(report.lostDate || report.foundDate) && (
                       <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">
-                        {new Date(report.lostDate).toLocaleDateString("en", { day: "numeric", month: "short" })}
+                        {new Date(report.lostDate || report.foundDate || new Date()).toLocaleDateString("en", {
+                          day: "numeric",
+                          month: "short",
+                        })}
                       </span>
                     )}
                   </div>
@@ -180,30 +218,34 @@ export default function LostFound() {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-between items-center mt-8">
-            <button className="px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md hover:bg-primary/90 transition-colors">
-              Add your pet to adopt!
+        {/* Bottom row: floating add button + pagination */}
+        <div className="flex justify-between items-center mt-8">
+          <button
+            onClick={() => {
+              form.reset({ reportType: "lost", name: "", type: "Dog", city: "Amman", reporterName: "", reporterPhone: "" });
+              setIsModalOpen(true);
+            }}
+            className="px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md hover:bg-primary/90 transition-colors"
+          >
+            Add your pet to adopt!
+          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-500" />
             </button>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-gray-500" />
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
-              >
-                <ChevronRight className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="w-10 h-10 rounded-full bg-primary border border-primary flex items-center justify-center hover:bg-primary/90 transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Report Modal */}
@@ -235,7 +277,9 @@ export default function LostFound() {
               <div className="space-y-2">
                 <label className="text-sm font-bold">Pet Name</label>
                 <input {...form.register("name")} placeholder="e.g. Buddy" className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
-                {form.formState.errors.name && <p className="text-red-500 text-xs">{form.formState.errors.name.message}</p>}
+                {form.formState.errors.name && (
+                  <p className="text-red-500 text-xs">{form.formState.errors.name.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">

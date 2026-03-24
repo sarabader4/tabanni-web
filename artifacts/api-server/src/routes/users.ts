@@ -6,8 +6,9 @@ import { UserIdQueryParams, UpdateMyProfileBody } from "@workspace/api-zod";
 const router: IRouter = Router();
 
 function parseUserId(query: Record<string, unknown>): { id: number } | { error: string } {
+  if (!query.userId) return { id: 1 };
   const parsed = UserIdQueryParams.safeParse(query);
-  if (!parsed.success) return { error: "userId query param required and must be a number" };
+  if (!parsed.success) return { error: "userId query param must be a number" };
   return { id: parsed.data.userId };
 }
 

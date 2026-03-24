@@ -40,7 +40,7 @@ export default function Gallery() {
             {post.content || post.title}
           </p>
           <Link
-            href={`/gallery`}
+            href={`/gallery/${post.id}`}
             className="inline-block px-4 py-1.5 border border-gray-200 rounded-full text-xs font-semibold text-[#1E2A3A] hover:border-primary hover:text-primary transition-colors"
           >
             Read More
@@ -53,30 +53,27 @@ export default function Gallery() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Column 1 */}
-          <div>
-            {col1.map((post) => (
-              <GalleryCard key={post.id} post={post} />
-            ))}
-          </div>
-          {/* Column 2 */}
-          <div>
-            {col2.map((post) => (
-              <GalleryCard key={post.id} post={post} />
-            ))}
-          </div>
-          {/* Column 3 - hidden on mobile */}
-          <div className="hidden lg:block">
-            {col3.map((post) => (
-              <GalleryCard key={post.id} post={post} />
-            ))}
-          </div>
-        </div>
-
-        {(!posts || posts.length === 0) && (
+        {(!posts || posts.length === 0) ? (
           <div className="text-center py-20">
             <p className="text-gray-400 text-lg">No stories yet. Check back soon!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              {col1.map((post) => (
+                <GalleryCard key={post.id} post={post} />
+              ))}
+            </div>
+            <div>
+              {col2.map((post) => (
+                <GalleryCard key={post.id} post={post} />
+              ))}
+            </div>
+            <div className="hidden lg:block">
+              {col3.map((post) => (
+                <GalleryCard key={post.id} post={post} />
+              ))}
+            </div>
           </div>
         )}
       </div>
