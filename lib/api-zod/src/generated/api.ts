@@ -47,8 +47,8 @@ export const ListPetsResponse = zod.object({
       yearlyVaccines: zod.boolean(),
       birthday: zod.string().nullish(),
       city: zod.string(),
-      status: zod.enum(["available", "adopted", "fostered", "pending"]),
-      purpose: zod.enum(["adopt", "foster", "both"]),
+      status: zod.enum(["available", "adopted", "fostered", "pending", "lost", "found"]),
+      purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
       imageUrls: zod.array(zod.string()),
       story: zod.string().nullish(),
       ownerId: zod.number().nullish(),
@@ -536,6 +536,13 @@ export const SendMessageBody = zod.object({
 export const UserIdQueryParams = zod.object({
   userId: zod.coerce.number(),
 });
+
+export const GetMyProfileQueryParams = UserIdQueryParams;
+export const UpdateMyProfileQueryParams = UserIdQueryParams;
+export const GetMyPetsQueryParams = UserIdQueryParams;
+export const GetMyApplicationsQueryParams = UserIdQueryParams;
+export const GetMyFavouritesQueryParams = UserIdQueryParams;
+export const GetMyDonationsQueryParams = UserIdQueryParams;
 
 /**
  * @summary Get current user profile
