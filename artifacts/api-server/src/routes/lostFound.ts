@@ -1,15 +1,20 @@
 import { Router, type IRouter } from "express";
 import { db, lostFoundReportsTable, usersTable } from "@workspace/db";
 import { eq, and, ilike, desc, sql } from "drizzle-orm";
-import { CreateLostFoundReportBody, GetLostFoundReportParams } from "@workspace/api-zod";
+import { ListLostFoundReportsQueryParams, CreateLostFoundReportBody, GetLostFoundReportParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
 router.get("/lost-found", async (req, res) => {
   try {
-    const { reportType, type, city, gender, size, breed, page = "1", limit = "16" } = req.query as Record<string, string>;
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 16;
+    const queryParsed = ListLostFoundReportsQueryParams.safeParse(req.query);
+    if (!queryParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: queryParsed.error.issues });
+    }
+
+    const { reportType, type, city, gender, size, breed, page = 1, limit = 16 } = queryParsed.data;
+    const pageNum = page;
+    const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
 
     const REPORT_TYPES = ["lost", "found"] as const;

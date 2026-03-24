@@ -1,15 +1,19 @@
 import { Router, type IRouter } from "express";
 import { db, galleryPostsTable, usersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
-import { CreateGalleryPostBody, GetGalleryPostParams } from "@workspace/api-zod";
+import { ListGalleryPostsQueryParams, CreateGalleryPostBody, GetGalleryPostParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
 router.get("/gallery", async (req, res) => {
   try {
-    const { page = "1", limit = "12" } = req.query as Record<string, string>;
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 12;
+    const queryParsed = ListGalleryPostsQueryParams.safeParse(req.query);
+    if (!queryParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: queryParsed.error.issues });
+    }
+    const { page = 1, limit = 12 } = queryParsed.data;
+    const pageNum = page;
+    const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
 
     const posts = await db.select({
