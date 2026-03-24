@@ -5,7 +5,7 @@ import { CreateDonationBody, ListDonationsQueryParams } from "@workspace/api-zod
 
 const router: IRouter = Router();
 
-const DONATION_TYPES = ["monetary", "supplies", "food", "medical", "other"] as const;
+const DONATION_TYPES = ["monetary", "supplies"] as const;
 
 router.get("/donations", async (req, res) => {
   try {

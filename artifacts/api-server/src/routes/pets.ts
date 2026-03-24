@@ -17,8 +17,8 @@ const router: IRouter = Router();
 const PET_TYPES = ["dog", "cat", "rabbit", "bird", "other"] as const;
 const PET_GENDERS = ["male", "female"] as const;
 const PET_SIZES = ["small", "medium", "large"] as const;
-const PET_STATUSES = ["available", "adopted", "fostered", "pending", "lost", "found"] as const;
-const PET_PURPOSES = ["adopt", "foster", "both", "lost_found"] as const;
+const PET_STATUSES = ["available", "adopted", "fostered", "pending"] as const;
+const PET_PURPOSES = ["adopt", "foster", "both"] as const;
 
 router.get("/pets", async (req, res) => {
   try {

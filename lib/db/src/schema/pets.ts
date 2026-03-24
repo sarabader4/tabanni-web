@@ -6,8 +6,8 @@ import { usersTable } from "./users";
 export const petTypeEnum = pgEnum("pet_type", ["dog", "cat", "rabbit", "bird", "other"]);
 export const petGenderEnum = pgEnum("pet_gender", ["male", "female"]);
 export const petSizeEnum = pgEnum("pet_size", ["small", "medium", "large"]);
-export const petStatusEnum = pgEnum("pet_status", ["available", "adopted", "fostered", "pending", "lost", "found"]);
-export const petPurposeEnum = pgEnum("pet_purpose", ["adopt", "foster", "both", "lost_found"]);
+export const petStatusEnum = pgEnum("pet_status", ["available", "adopted", "fostered", "pending"]);
+export const petPurposeEnum = pgEnum("pet_purpose", ["adopt", "foster", "both"]);
 
 export const petsTable = pgTable("pets", {
   id: serial("id").primaryKey(),

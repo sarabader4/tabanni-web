@@ -857,10 +857,10 @@ components:
           type: string
         status:
           type: string
-          enum: [available, adopted, fostered, pending, lost, found]
+          enum: [available, adopted, fostered, pending]
         purpose:
           type: string
-          enum: [adopt, foster, both, lost_found]
+          enum: [adopt, foster, both]
         imageUrls:
           type: array
           items:
@@ -932,7 +932,7 @@ components:
           type: string
         purpose:
           type: string
-          enum: [adopt, foster, both, lost_found]
+          enum: [adopt, foster, both]
         imageUrls:
           type: array
           items:
