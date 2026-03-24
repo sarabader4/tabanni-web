@@ -3,12 +3,21 @@ import { Loader2, PawPrint } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Gallery() {
-  const { data: posts, isLoading } = useListGalleryPosts({ limit: 50 });
+  const { data: posts, isLoading, isError } = useListGalleryPosts({ limit: 50 });
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-32">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center py-32 flex-col gap-4">
+        <p className="text-red-500 font-bold text-lg">Failed to load stories</p>
+        <p className="text-gray-400 text-sm">Please try refreshing the page.</p>
       </div>
     );
   }

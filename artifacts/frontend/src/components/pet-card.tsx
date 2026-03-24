@@ -78,6 +78,11 @@ export function PetCard({ pet, onFavorite, isFavorited, variant = "adopt" }: Pet
                 {pet.size}
               </span>
             )}
+            {pet.weightKg && (
+              <span className="px-2 py-0.5 bg-orange-50 text-orange-500 rounded-full text-xs font-semibold">
+                {pet.weightKg} kg
+              </span>
+            )}
           </div>
 
           {/* CTA Button */}

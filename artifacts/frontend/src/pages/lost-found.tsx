@@ -75,14 +75,27 @@ export default function LostFound() {
   };
 
   const allReports = data?.reports ?? [];
-  const reports = search
-    ? allReports.filter((r) =>
-        r.name?.toLowerCase().includes(search.toLowerCase()) ||
-        r.type?.toLowerCase().includes(search.toLowerCase()) ||
-        r.breed?.toLowerCase().includes(search.toLowerCase()) ||
-        r.city?.toLowerCase().includes(search.toLowerCase())
-      )
-    : allReports;
+
+  const MONTH_NAMES = [
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december",
+  ];
+
+  const reports = allReports.filter((r) => {
+    const matchesSearch = !search || (
+      r.name?.toLowerCase().includes(search.toLowerCase()) ||
+      r.type?.toLowerCase().includes(search.toLowerCase()) ||
+      r.breed?.toLowerCase().includes(search.toLowerCase()) ||
+      r.city?.toLowerCase().includes(search.toLowerCase())
+    );
+    const matchesMonth = !filters.month || (() => {
+      const monthIdx = MONTH_NAMES.indexOf(filters.month.toLowerCase());
+      if (monthIdx === -1) return true;
+      const d = new Date(r.createdAt);
+      return d.getMonth() === monthIdx;
+    })();
+    return matchesSearch && matchesMonth;
+  });
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / pageSize) || 1;
 
