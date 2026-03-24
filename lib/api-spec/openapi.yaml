@@ -1277,6 +1277,9 @@ components:
         reportType:
           type: string
           enum: [lost, found]
+        petId:
+          type: number
+          nullable: true
         name:
           type: string
         type:
@@ -1337,6 +1340,8 @@ components:
         reportType:
           type: string
           enum: [lost, found]
+        petId:
+          type: number
         name:
           type: string
         type:

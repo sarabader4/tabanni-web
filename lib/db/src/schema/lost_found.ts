@@ -2,12 +2,14 @@ import { pgTable, text, serial, timestamp, integer, pgEnum } from "drizzle-orm/p
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
+import { petsTable } from "./pets";
 
 export const reportTypeEnum = pgEnum("report_type", ["lost", "found"]);
 
 export const lostFoundReportsTable = pgTable("lost_found_reports", {
   id: serial("id").primaryKey(),
   reportType: reportTypeEnum("report_type").notNull(),
+  petId: integer("pet_id").references(() => petsTable.id),
   name: text("name").notNull(),
   type: text("type").notNull(),
   breed: text("breed"),

@@ -448,6 +448,7 @@ export const ListLostFoundReportsResponse = zod.object({
     zod.object({
       id: zod.number(),
       reportType: zod.enum(["lost", "found"]),
+      petId: zod.number().nullish(),
       name: zod.string(),
       type: zod.string(),
       breed: zod.string().nullish(),
@@ -476,6 +477,7 @@ export const ListLostFoundReportsResponse = zod.object({
  */
 export const CreateLostFoundReportBody = zod.object({
   reportType: zod.enum(["lost", "found"]),
+  petId: zod.number().optional(),
   name: zod.string(),
   type: zod.string(),
   breed: zod.string().optional(),
@@ -503,6 +505,7 @@ export const GetLostFoundReportParams = zod.object({
 export const GetLostFoundReportResponse = zod.object({
   id: zod.number(),
   reportType: zod.enum(["lost", "found"]),
+  petId: zod.number().nullish(),
   name: zod.string(),
   type: zod.string(),
   breed: zod.string().nullish(),

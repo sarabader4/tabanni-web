@@ -9,6 +9,7 @@ import type { CreateLostFoundReportInputReportType } from "./createLostFoundRepo
 
 export interface CreateLostFoundReportInput {
   reportType: CreateLostFoundReportInputReportType;
+  petId?: number;
   name: string;
   type: string;
   breed?: string;

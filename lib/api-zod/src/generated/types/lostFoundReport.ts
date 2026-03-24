@@ -10,6 +10,7 @@ import type { LostFoundReportReportType } from "./lostFoundReportReportType";
 export interface LostFoundReport {
   id: number;
   reportType: LostFoundReportReportType;
+  petId?: number | null;
   name: string;
   type: string;
   breed?: string | null;
