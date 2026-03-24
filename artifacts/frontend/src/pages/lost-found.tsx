@@ -32,6 +32,7 @@ export default function LostFound() {
   const { toast } = useToast();
   const pageSize = 20;
 
+  const isClientFiltering = !!(search || filters.month);
   const { data, isLoading, isError, refetch } = useListLostFoundReports({
     reportType: tab,
     type: filters.type || undefined,
@@ -39,8 +40,8 @@ export default function LostFound() {
     gender: filters.gender || undefined,
     size: filters.size || undefined,
     breed: filters.breed || undefined,
-    limit: pageSize,
-    page,
+    limit: isClientFiltering ? 1000 : pageSize,
+    page: isClientFiltering ? 1 : page,
   });
 
   const createMutation = useCreateLostFoundReport();
@@ -266,8 +267,8 @@ export default function LostFound() {
           >
             {tab === "lost" ? "Report Lost Pet" : "Report Found Pet"}
           </button>
-          {/* Hide pagination when client-side filtering is active to avoid empty pages */}
-          {!search && !filters.month && (
+          {/* Hide pagination when client-side filtering is active (fetches all results) */}
+          {!isClientFiltering && (
             <div className="flex gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
