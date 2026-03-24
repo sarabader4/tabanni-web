@@ -1,0 +1,119 @@
+am working on a web project called tabanni, which is a platform that connects pet owners with people who want to adopt, foster, or donate to animals.
+
+I will provide you with a file that contains all the UI screens and designs of the project.
+
+Your task is to carefully analyze the designs first, understand the system, and then implement the following requirements step by step.
+
+🎯 Your Tasks
+1. Project Analysis (VERY IMPORTANT)
+Carefully review all the provided UI screens.
+Extract:
+All pages
+User flows
+Shared components (Navbar, Cards, Forms, etc.)
+Provide a clear summary of your understanding before writing any code.
+2. Refactor & Improve Frontend
+
+We already built most of the frontend, but it needs improvement:
+
+Rebuild/refactor the frontend using:
+Same idea
+Same content
+Same color theme (orange & cyan OR pastel)
+But make it:
+More structured
+Cleaner
+Component-based
+Consistent UI/UX
+
+⚠️ Requirements:
+
+Use a modern framework (React or Next.js preferred)
+Reusable components
+Clean architecture
+Improved spacing, hierarchy, and consistency
+3. Complete Missing Screens
+
+Implement any missing pages such as:
+
+User Profile Page, including:
+User info
+User’s pets
+Adoption & foster requests
+Donations history
+Any other missing screens found in the designs
+4. Build Backend using .NET
+Use ASP.NET Core Web API
+Design a proper backend for:
+Modules:
+Users
+Pets
+Adoption Requests
+Foster Requests
+Donations
+Admin controls
+Requirements:
+Clean Architecture
+Controllers / Services / Repositories
+DTOs
+Validation
+5. Connect Frontend with Backend
+Integrate all frontend pages with APIs
+Use:
+Axios or Fetch
+Implement proper state management:
+Context API or Redux
+6. Database (Temporary Setup)
+Design a real database structure (SQL Server)
+Tables:
+Users
+Pets
+Requests
+Donations
+For now:
+Use mock data / seed data
+7. Admin Dashboard (IMPORTANT)
+
+Create a full-featured admin dashboard with:
+
+Sections:
+Dashboard Overview (KPIs + charts)
+Pets Management
+Pending Approval
+Adoption Requests
+Foster Requests
+Users Management
+Donations
+Content Management
+Reports & Analytics
+Features:
+Full CRUD operations
+Approve / Reject workflows
+Tables with filters & search
+8. AI Integration (LLM)
+
+Add AI features in appropriate places, such as:
+
+Recommending pets based on user preferences
+AI chat assistant to help users choose pets
+Auto-generating/improving pet descriptions
+
+⚠️ Use an LLM API such as OpenAI.
+
+9. Code Quality & Best Practices
+Clean code
+Clear naming conventions
+Scalable folder structure
+Responsive design
+Proper loading & error handling
+🚀 Execution Instructions
+Work in phases
+For each phase:
+Explain what you will do
+Then provide the code
+Do NOT generate everything at once
+⚠️ Notes
+Do NOT change the core idea of the project
+Keep branding and concept consistent
+Focus on improving structure and quality
+Ensure scalability and maintainability
