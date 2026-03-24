@@ -62,13 +62,29 @@ scripts/
 | Route | Component | Description |
 |---|---|---|
 | `/` | `Home` | Hero + featured pets + stats + gallery |
-| `/adopt` | `Adopt` | Pet listing with filters (type, gender, size, city) |
-| `/foster` | `Foster` | Foster pets listing with filters |
+| `/adopt` | `Adopt` | Pet grid with search + horizontal chip filters (Type/Gender/Age/Size/City/Breed) |
+| `/foster` | `Foster` | Foster pets grid with search + chip filters |
 | `/pets/:id` | `PetDetail` | Pet detail + adopt/foster request form |
-| `/lost-found` | `LostFound` | Lost & found reports with tabs |
+| `/lost-found` | `LostFound` | Lost/found reports grid with search + "Lost Pet" button + filters |
 | `/donate` | `Donate` | Monetary & supply donation forms |
-| `/gallery` | `Gallery` | Happy tails success stories |
+| `/gallery` | `Gallery` | 3-column masonry grid with "Read More" cards |
 | `/about` | `About` | About page |
+| `/shop` | `Shop` | Mlabbas + PetsJo shop cards + support section |
+| `/profile` | `Profile` | User profile with dark navy sidebar + edit form |
+
+### Navbar Design
+- Logo: orange paw icon + "tabbani" text
+- Nav links: Home, Donate, Lost&Found, Shop, About us
+- "Adopt Now!" orange pill button → /adopt
+- EN + UK flag badge
+- Bell notification icon
+- "Hi, Sara!" user avatar pill → /profile
+
+### Footer Design  
+- Dark navy (#1E2A3A) background with rounded top corners
+- Col 1: tabbani logo, Amman, Jordan address, social icons, EN toggle
+- Col 2: "Easy to access" links
+- Col 3: "Contact Us" form (name, phone+email, message, Submit)
 
 ### Admin Dashboard (at `/admin/*`)
 | Route | Component | Description |

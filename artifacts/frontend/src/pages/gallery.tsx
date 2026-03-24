@@ -1,53 +1,85 @@
 import { useListGalleryPosts } from "@workspace/api-client-react";
-import { Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { Loader2, PawPrint } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Gallery() {
   const { data: posts, isLoading } = useListGalleryPosts({ limit: 50 });
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center max-w-3xl mx-auto mb-16">
-        <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
-          Happy Tails
-        </h1>
-        <p className="text-lg text-muted-foreground leading-relaxed">
-          There's nothing we love more than seeing our rescued pets thriving in their forever homes. Read the success stories from our community.
-        </p>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
+    );
+  }
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
-      ) : (
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-          {posts?.map((post) => (
-            <div key={post.id} className="break-inside-avoid bg-card rounded-3xl overflow-hidden border border-border shadow-sm hover:shadow-xl transition-all duration-300">
-              {post.imageUrl && (
-                <img 
-                  src={post.imageUrl} 
-                  alt={post.title} 
-                  className="w-full object-cover border-b border-border/50"
-                  loading="lazy"
-                />
-              )}
-              <div className="p-6 md:p-8">
-                <h3 className="font-display font-bold text-2xl mb-3 text-foreground leading-tight">
-                  {post.title}
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-6 whitespace-pre-wrap">
-                  {post.content}
-                </p>
-                <div className="flex justify-between items-center text-xs font-bold text-muted-foreground pt-4 border-t border-border/50">
-                  <span className="uppercase tracking-wider text-primary">{post.authorName || "Anonymous"}</span>
-                  <span>{format(new Date(post.createdAt), "MMM yyyy")}</span>
-                </div>
-              </div>
+  const col1 = posts?.filter((_, i) => i % 3 === 0) ?? [];
+  const col2 = posts?.filter((_, i) => i % 3 === 1) ?? [];
+  const col3 = posts?.filter((_, i) => i % 3 === 2) ?? [];
+
+  function GalleryCard({ post }: { post: NonNullable<typeof posts>[number] }) {
+    return (
+      <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 mb-4 break-inside-avoid">
+        {post.imageUrl && (
+          <img
+            src={post.imageUrl}
+            alt={post.title}
+            className="w-full object-cover"
+            loading="lazy"
+            style={{ maxHeight: "280px" }}
+          />
+        )}
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+              <PawPrint className="w-4 h-4 text-white" />
             </div>
-          ))}
+            <span className="text-xs font-bold text-[#1E2A3A]">tabbanni</span>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed mb-3 line-clamp-2">
+            {post.content || post.title}
+          </p>
+          <Link
+            href={`/gallery`}
+            className="inline-block px-4 py-1.5 border border-gray-200 rounded-full text-xs font-semibold text-[#1E2A3A] hover:border-primary hover:text-primary transition-colors"
+          >
+            Read More
+          </Link>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Column 1 */}
+          <div>
+            {col1.map((post) => (
+              <GalleryCard key={post.id} post={post} />
+            ))}
+          </div>
+          {/* Column 2 */}
+          <div>
+            {col2.map((post) => (
+              <GalleryCard key={post.id} post={post} />
+            ))}
+          </div>
+          {/* Column 3 - hidden on mobile */}
+          <div className="hidden lg:block">
+            {col3.map((post) => (
+              <GalleryCard key={post.id} post={post} />
+            ))}
+          </div>
+        </div>
+
+        {(!posts || posts.length === 0) && (
+          <div className="text-center py-20">
+            <p className="text-gray-400 text-lg">No stories yet. Check back soon!</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

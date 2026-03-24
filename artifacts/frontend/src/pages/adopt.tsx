@@ -1,73 +1,85 @@
 import { useState } from "react";
 import { useListPets } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
-import { FilterSidebar, type FilterState } from "@/components/filter-sidebar";
-import { Loader2 } from "lucide-react";
+import { FilterBar, type FilterBarState } from "@/components/filter-bar";
+import { Search, Loader2, Plus } from "lucide-react";
 
 export default function Adopt() {
-  const [filters, setFilters] = useState<FilterState>({
-    search: "", type: "", gender: "", size: "", city: ""
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<FilterBarState>({
+    type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "",
   });
 
   const { data, isLoading } = useListPets({
     purpose: "adopt",
-    search: filters.search || undefined,
+    search: search || undefined,
     type: filters.type || undefined,
     gender: filters.gender || undefined,
     size: filters.size || undefined,
     city: filters.city || undefined,
-    limit: 20
+    limit: 20,
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-          Adopt a Pet
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl">
-          Open your heart and home to a pet in need. Browse our available companions and find your perfect match today.
-        </p>
+    <div className="min-h-screen bg-background">
+      {/* Search bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+        <div className="flex gap-3 items-center">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search for friend to adopt..."
+              className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
-        {/* Sidebar */}
-        <aside className="w-full lg:w-80 flex-shrink-0">
-          <FilterSidebar filters={filters} onChange={setFilters} />
-        </aside>
+      {/* Filter Bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+        <FilterBar filters={filters} onChange={setFilters} />
+      </div>
 
-        {/* Main Content */}
-        <main className="flex-1 w-full">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : data?.pets?.length === 0 ? (
-            <div className="text-center py-20 bg-muted/30 rounded-3xl border border-border border-dashed">
-              <h3 className="font-display font-bold text-xl mb-2">No pets found</h3>
-              <p className="text-muted-foreground">Try adjusting your filters to see more results.</p>
-              <button 
-                onClick={() => setFilters({ search: "", type: "", gender: "", size: "", city: "" })}
-                className="mt-6 px-6 py-2 bg-primary text-white rounded-xl font-bold"
-              >
-                Clear Filters
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="mb-6 flex justify-between items-center">
-                <span className="text-sm font-bold text-muted-foreground">
-                  Showing {data?.pets?.length} pets
-                </span>
-              </div>
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {data?.pets?.map((pet) => (
-                  <PetCard key={pet.id} pet={pet} />
-                ))}
-              </div>
-            </>
-          )}
-        </main>
+      {/* Pet Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : data?.pets?.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
+            <h3 className="font-display font-bold text-xl mb-2 text-[#1E2A3A]">
+              No pets found
+            </h3>
+            <p className="text-gray-400 mb-6">Try adjusting your filters to see more results.</p>
+            <button
+              onClick={() => {
+                setSearch("");
+                setFilters({ type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "" });
+              }}
+              className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm"
+            >
+              Clear Filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {data?.pets?.map((pet) => (
+              <PetCard key={pet.id} pet={pet} variant="adopt" />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Floating add button */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40">
+        <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-xl shadow-primary/30 hover:bg-primary/90 hover:-translate-y-0.5 transition-all">
+          <Plus className="w-4 h-4" />
+          Add your pet to adopt!
+        </button>
       </div>
     </div>
   );

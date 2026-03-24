@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { useListLostFoundReports, useCreateLostFoundReport } from "@workspace/api-client-react";
-import { FilterSidebar, type FilterState } from "@/components/filter-sidebar";
-import { MapPin, Calendar, Search, Loader2, Plus, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
+import { FilterBar, type FilterBarState } from "@/components/filter-bar";
+import { Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
+import { Bookmark } from "lucide-react";
 
 const reportSchema = z.object({
   reportType: z.enum(["lost", "found"]),
-  name: z.string().min(1, "Name is required (use 'Unknown' if found)"),
+  name: z.string().min(1, "Name is required"),
   type: z.string().min(1, "Type is required"),
   breed: z.string().optional(),
   gender: z.string().optional(),
@@ -23,213 +24,260 @@ const reportSchema = z.object({
 });
 
 export default function LostFound() {
-  const [tab, setTab] = useState<"lost" | "found">("lost");
-  const [filters, setFilters] = useState<FilterState>({ search: "", type: "", gender: "", size: "", city: "" });
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<FilterBarState>({
+    type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "",
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
   const { toast } = useToast();
+  const pageSize = 20;
 
   const { data, isLoading, refetch } = useListLostFoundReports({
-    reportType: tab,
     type: filters.type || undefined,
     city: filters.city || undefined,
     gender: filters.gender || undefined,
-    size: filters.size || undefined,
-    limit: 20
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
   });
 
   const createMutation = useCreateLostFoundReport();
 
   const form = useForm<z.infer<typeof reportSchema>>({
     resolver: zodResolver(reportSchema),
-    defaultValues: { reportType: "lost", name: "", type: "Dog", city: "Amman", reporterName: "", reporterPhone: "" }
+    defaultValues: {
+      reportType: "lost",
+      name: "",
+      type: "Dog",
+      city: "Amman",
+      reporterName: "",
+      reporterPhone: "",
+    },
   });
 
   const onSubmit = async (values: z.infer<typeof reportSchema>) => {
     try {
-      await createMutation.mutateAsync({ 
+      await createMutation.mutateAsync({
         data: {
           ...values,
-          imageUrls: ["https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"], // mock image for now
-        }
+          imageUrls: ["https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"],
+        },
       });
       toast({ title: "Report submitted successfully." });
       setIsModalOpen(false);
       form.reset();
       refetch();
-    } catch (error) {
+    } catch {
       toast({ title: "Error submitting report", variant: "destructive" });
     }
   };
 
+  const reports = data?.reports ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / pageSize);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-        <div>
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Lost & Found Pets
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            Help reunite pets with their families. Report a lost pet or see if someone is looking for a pet you found.
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Search bar + Lost Pet button */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+        <div className="flex gap-3 items-center">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search for friend to adopt..."
+              className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+            />
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-5 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors whitespace-nowrap"
+          >
+            Lost Pet
+          </button>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-foreground text-white rounded-xl font-bold hover:bg-foreground/90 transition-all shadow-lg"
-        >
-          <Plus className="w-5 h-5" />
-          Submit a Report
-        </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
-        <aside className="w-full lg:w-80 flex-shrink-0">
-          <FilterSidebar filters={filters} onChange={setFilters} title="Filter Reports" />
-        </aside>
+      {/* Filter Bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+        <FilterBar filters={filters} onChange={setFilters} showMonth />
+      </div>
 
-        <main className="flex-1 w-full">
-          {/* Tabs */}
-          <div className="flex bg-muted/50 p-1.5 rounded-2xl mb-8 w-fit">
-            <button
-              onClick={() => setTab("lost")}
-              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                tab === "lost" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Lost Pets
-            </button>
-            <button
-              onClick={() => setTab("found")}
-              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                tab === "found" ? "bg-white text-secondary shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Found Pets
-            </button>
+      {/* Pet Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : data?.reports?.length === 0 ? (
-            <div className="text-center py-20 bg-muted/30 rounded-3xl border border-border border-dashed">
-              <h3 className="font-display font-bold text-xl mb-2">No reports found</h3>
-              <p className="text-muted-foreground">There are no {tab} pets matching your criteria.</p>
-            </div>
-          ) : (
-            <div className="grid sm:grid-cols-2 gap-6">
-              {data?.reports?.map((report) => (
-                <div key={report.id} className="bg-card rounded-3xl overflow-hidden border border-border flex flex-col group hover:shadow-xl hover:-translate-y-1 transition-all">
-                  <div className="relative aspect-[16/10]">
-                    <img 
-                      src={report.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"} 
-                      alt={report.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className={`px-3 py-1 text-xs font-bold rounded-full text-white shadow-sm ${
-                        report.reportType === 'lost' ? 'bg-destructive/90 backdrop-blur-sm' : 'bg-secondary/90 backdrop-blur-sm'
-                      }`}>
-                        {report.reportType.toUpperCase()}
-                      </span>
-                    </div>
+        ) : reports.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
+            <h3 className="font-display font-bold text-xl mb-2 text-[#1E2A3A]">
+              No reports found
+            </h3>
+            <p className="text-gray-400">There are no reports matching your filters.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {reports.map((report) => (
+              <div
+                key={report.id}
+                className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+              >
+                <div className="relative overflow-hidden" style={{ height: "180px" }}>
+                  <img
+                    src={
+                      report.imageUrls?.[0] ||
+                      "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"
+                    }
+                    alt={report.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                  <button className="absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-400 hover:text-primary transition-all shadow-sm">
+                    <Bookmark className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="p-4 flex flex-col flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-display font-bold text-base text-[#1E2A3A]">
+                      {report.name}
+                    </h3>
+                    <span className="text-xs text-gray-400 font-medium">{report.type}</span>
                   </div>
-                  <div className="p-6">
-                    <h3 className="font-display font-bold text-xl mb-1">{report.name}</h3>
-                    <p className="text-sm font-medium text-muted-foreground mb-4">{report.breed || report.type} • {report.color}</p>
-                    
-                    <div className="space-y-2 text-sm text-foreground mb-4">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <span>{report.city}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <span>{report.lostDate || report.foundDate ? format(new Date(report.lostDate || report.foundDate || new Date()), 'MMM dd, yyyy') : 'Date unknown'}</span>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-muted/50 rounded-2xl border border-border/50">
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Contact</p>
-                      <p className="font-medium text-sm">{report.reporterName}</p>
-                      <p className="text-sm text-primary font-bold">{report.reporterPhone}</p>
-                    </div>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    <span className="px-2 py-0.5 bg-[#00B8A0]/10 text-[#00B8A0] rounded-full text-xs font-semibold capitalize">
+                      {report.type}
+                    </span>
+                    {report.gender && (
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${
+                        report.gender === "male"
+                          ? "bg-blue-50 text-blue-500"
+                          : "bg-pink-50 text-pink-500"
+                      }`}>
+                        {report.gender}
+                      </span>
+                    )}
+                    {report.color && (
+                      <span className="px-2 py-0.5 bg-orange-50 text-orange-500 rounded-full text-xs font-semibold">
+                        {report.color}
+                      </span>
+                    )}
+                    {report.lostDate && (
+                      <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">
+                        {new Date(report.lostDate).toLocaleDateString("en", { day: "numeric", month: "short" })}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-auto">
+                    <button className="w-full py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors">
+                      Help Me
+                    </button>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center mt-8">
+            <button className="px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md hover:bg-primary/90 transition-colors">
+              Add your pet to adopt!
+            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-500" />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-500" />
+              </button>
             </div>
-          )}
-        </main>
+          </div>
+        )}
       </div>
 
+      {/* Report Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-xl rounded-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-xl rounded-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl">Submit a Report</DialogTitle>
-            <DialogDescription>Please provide as many details as possible to help identify the pet.</DialogDescription>
+            <DialogDescription>
+              Provide as many details as possible to help identify the pet.
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2 col-span-2">
-                <label className="text-sm font-bold">Report Type</label>
+              <div className="col-span-2">
+                <label className="text-sm font-bold text-[#1E2A3A] mb-2 block">Report Type</label>
                 <div className="flex gap-4">
-                  <label className="flex items-center gap-2 bg-muted/50 px-4 py-3 rounded-xl flex-1 cursor-pointer">
+                  <label className="flex items-center gap-2 bg-gray-50 px-4 py-3 rounded-xl flex-1 cursor-pointer">
                     <input type="radio" value="lost" {...form.register("reportType")} className="accent-primary" />
                     <span className="text-sm font-medium">I lost a pet</span>
                   </label>
-                  <label className="flex items-center gap-2 bg-muted/50 px-4 py-3 rounded-xl flex-1 cursor-pointer">
-                    <input type="radio" value="found" {...form.register("reportType")} className="accent-secondary" />
+                  <label className="flex items-center gap-2 bg-gray-50 px-4 py-3 rounded-xl flex-1 cursor-pointer">
+                    <input type="radio" value="found" {...form.register("reportType")} className="accent-[#00B8A0]" />
                     <span className="text-sm font-medium">I found a pet</span>
                   </label>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold">Pet Name (or 'Unknown')</label>
-                <input {...form.register("name")} className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm" />
+                <label className="text-sm font-bold">Pet Name</label>
+                <input {...form.register("name")} placeholder="e.g. Buddy" className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+                {form.formState.errors.name && <p className="text-red-500 text-xs">{form.formState.errors.name.message}</p>}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold">Type (Dog, Cat, etc.)</label>
-                <input {...form.register("type")} className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm" />
+                <label className="text-sm font-bold">Type</label>
+                <input {...form.register("type")} placeholder="Dog, Cat..." className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold">Breed</label>
-                <input {...form.register("breed")} className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm" />
+                <input {...form.register("breed")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold">Color</label>
-                <input {...form.register("color")} className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm" />
+                <input {...form.register("color")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
-              <div className="space-y-2 col-span-2">
-                <label className="text-sm font-bold">City Location</label>
-                <input {...form.register("city")} className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm" />
+              <div className="col-span-2 space-y-2">
+                <label className="text-sm font-bold">City</label>
+                <input {...form.register("city")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
-              <div className="space-y-2 col-span-2">
+              <div className="col-span-2 space-y-2">
                 <label className="text-sm font-bold">Description</label>
-                <textarea {...form.register("description")} className="w-full min-h-[100px] bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm" />
+                <textarea {...form.register("description")} className="w-full min-h-[80px] bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold">Your Name</label>
-                <input {...form.register("reporterName")} className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm" />
+                <input {...form.register("reporterName")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold">Your Phone</label>
-                <input {...form.register("reporterPhone")} className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm" />
+                <input {...form.register("reporterPhone")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={createMutation.isPending}
-              className="w-full mt-6 bg-primary hover:bg-primary/90 text-white py-4 rounded-2xl font-bold transition-all disabled:opacity-50"
+              className="w-full mt-4 bg-primary hover:bg-primary/90 text-white py-3.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
             >
               {createMutation.isPending ? "Submitting..." : "Submit Report"}
             </button>

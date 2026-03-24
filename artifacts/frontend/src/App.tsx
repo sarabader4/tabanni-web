@@ -11,6 +11,8 @@ import LostFound from "@/pages/lost-found";
 import Donate from "@/pages/donate";
 import Gallery from "@/pages/gallery";
 import About from "@/pages/about";
+import Shop from "@/pages/shop";
+import Profile from "@/pages/profile";
 import AdminDashboard from "@/pages/admin/index";
 import AdminPets from "@/pages/admin/pets";
 import AdminUsers from "@/pages/admin/users";
@@ -40,6 +42,8 @@ function AppRoutes() {
             <Route path="/donate" component={Donate} />
             <Route path="/gallery" component={Gallery} />
             <Route path="/about" component={About} />
+            <Route path="/shop" component={Shop} />
+            <Route path="/profile" component={Profile} />
             <Route component={NotFound} />
           </Switch>
           <AIChatWidget />
