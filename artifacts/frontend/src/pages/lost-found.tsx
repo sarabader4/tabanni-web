@@ -25,7 +25,7 @@ export default function LostFound() {
   const [tab, setTab] = useState<"lost" | "found">("lost");
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<FilterBarState>({
-    type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "",
+    type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -72,7 +72,15 @@ export default function LostFound() {
     }
   };
 
-  const reports = data?.reports ?? [];
+  const allReports = data?.reports ?? [];
+  const reports = search
+    ? allReports.filter((r) =>
+        r.name?.toLowerCase().includes(search.toLowerCase()) ||
+        r.type?.toLowerCase().includes(search.toLowerCase()) ||
+        r.breed?.toLowerCase().includes(search.toLowerCase()) ||
+        r.city?.toLowerCase().includes(search.toLowerCase())
+      )
+    : allReports;
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / pageSize) || 1;
 

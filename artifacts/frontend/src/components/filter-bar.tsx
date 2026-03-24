@@ -9,12 +9,14 @@ export interface FilterBarState {
   city: string;
   breed: string;
   month: string;
+  sterilized: string;
 }
 
 interface FilterBarProps {
   filters: FilterBarState;
   onChange: (filters: FilterBarState) => void;
   showMonth?: boolean;
+  showSterilized?: boolean;
 }
 
 const petTypes = ["Dog", "Cat", "Rabbit", "Bird", "Other"];
@@ -56,7 +58,7 @@ function FilterSelect({
   );
 }
 
-export function FilterBar({ filters, onChange, showMonth = false }: FilterBarProps) {
+export function FilterBar({ filters, onChange, showMonth = false, showSterilized = false }: FilterBarProps) {
   const update = (key: keyof FilterBarState, value: string) => {
     onChange({ ...filters, [key]: value });
   };
@@ -99,6 +101,14 @@ export function FilterBar({ filters, onChange, showMonth = false }: FilterBarPro
         options={["Golden Retriever", "Husky", "Labrador", "Mixed", "Persian", "Siamese"]}
         onChange={(v) => update("breed", v)}
       />
+      {showSterilized && (
+        <FilterSelect
+          label="Sterilized"
+          value={filters.sterilized}
+          options={["Yes", "No"]}
+          onChange={(v) => update("sterilized", v)}
+        />
+      )}
       {showMonth && (
         <FilterSelect
           label="Month"

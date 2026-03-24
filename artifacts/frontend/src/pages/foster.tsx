@@ -2,13 +2,15 @@ import { useState } from "react";
 import { useListPets } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
-import { Search, Loader2, Plus, Home, Heart, Calendar } from "lucide-react";
+import { Search, Loader2, Plus, Home, Heart, Calendar, Sparkles } from "lucide-react";
 
 export default function Foster() {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<FilterBarState>({
-    type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "",
+    type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
   });
+
+  const sterilizedParam = filters.sterilized === "yes" ? true : filters.sterilized === "no" ? false : undefined;
 
   const { data, isLoading } = useListPets({
     purpose: "foster",
@@ -17,6 +19,8 @@ export default function Foster() {
     gender: filters.gender || undefined,
     size: filters.size || undefined,
     city: filters.city || undefined,
+    breed: filters.breed || undefined,
+    sterilized: sterilizedParam,
     limit: 20,
   });
 
@@ -62,21 +66,31 @@ export default function Foster() {
 
       {/* Search */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search for pets to foster..."
-            className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
-          />
+        <div className="flex gap-3 items-center">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search for pets to foster..."
+              className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+            />
+          </div>
+          <button
+            className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap"
+            style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
+            title="AI-powered pet matching"
+          >
+            <Sparkles className="w-4 h-4" />
+            AI Pet Match
+          </button>
         </div>
       </div>
 
       {/* Filter Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-        <FilterBar filters={filters} onChange={setFilters} />
+        <FilterBar filters={filters} onChange={setFilters} showSterilized />
       </div>
 
       {/* Grid */}

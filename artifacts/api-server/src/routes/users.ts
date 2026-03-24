@@ -1,23 +1,13 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
-import { UserIdQueryParams, UpdateMyProfileBody } from "@workspace/api-zod";
+import { UpdateMyProfileBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
-function parseUserId(query: Record<string, unknown>): { id: number } | { error: string } {
-  if (!query.userId) return { id: 1 };
-  const parsed = UserIdQueryParams.safeParse(query);
-  if (!parsed.success) return { error: "userId query param must be a number" };
-  return { id: parsed.data.userId };
-}
-
 router.get("/users/me", async (req, res) => {
   try {
-    const result = parseUserId(req.query as Record<string, unknown>);
-    if ("error" in result) return res.status(400).json({ error: "validation_error", message: result.error });
-
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, result.id));
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.userId));
     if (!user) return res.status(404).json({ error: "not_found", message: "User not found" });
     res.json(user);
   } catch (err) {
@@ -28,9 +18,6 @@ router.get("/users/me", async (req, res) => {
 
 router.put("/users/me", async (req, res) => {
   try {
-    const result = parseUserId(req.query as Record<string, unknown>);
-    if ("error" in result) return res.status(400).json({ error: "validation_error", message: result.error });
-
     const parsed = UpdateMyProfileBody.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
@@ -38,7 +25,7 @@ router.put("/users/me", async (req, res) => {
     const { fullName, email, phone, country, city, avatarUrl } = parsed.data;
     const [user] = await db.update(usersTable)
       .set({ fullName, email, phone, country, city, avatarUrl })
-      .where(eq(usersTable.id, result.id))
+      .where(eq(usersTable.id, req.userId))
       .returning();
     if (!user) return res.status(404).json({ error: "not_found", message: "User not found" });
     res.json(user);
@@ -50,11 +37,8 @@ router.put("/users/me", async (req, res) => {
 
 router.get("/users/me/pets", async (req, res) => {
   try {
-    const result = parseUserId(req.query as Record<string, unknown>);
-    if ("error" in result) return res.status(400).json({ error: "validation_error", message: result.error });
-
     const pets = await db.select().from(petsTable)
-      .where(eq(petsTable.ownerId, result.id))
+      .where(eq(petsTable.ownerId, req.userId))
       .orderBy(desc(petsTable.createdAt));
     res.json(pets);
   } catch (err) {
@@ -65,9 +49,6 @@ router.get("/users/me/pets", async (req, res) => {
 
 router.get("/users/me/applications", async (req, res) => {
   try {
-    const result = parseUserId(req.query as Record<string, unknown>);
-    if ("error" in result) return res.status(400).json({ error: "validation_error", message: result.error });
-
     const [adoptionRequests, fosterRequests] = await Promise.all([
       db.select({
         id: adoptionRequestsTable.id,
@@ -83,7 +64,7 @@ router.get("/users/me/applications", async (req, res) => {
         .from(adoptionRequestsTable)
         .leftJoin(petsTable, eq(adoptionRequestsTable.petId, petsTable.id))
         .leftJoin(usersTable, eq(adoptionRequestsTable.requesterId, usersTable.id))
-        .where(eq(adoptionRequestsTable.requesterId, result.id))
+        .where(eq(adoptionRequestsTable.requesterId, req.userId))
         .orderBy(desc(adoptionRequestsTable.createdAt)),
       db.select({
         id: fosterRequestsTable.id,
@@ -99,7 +80,7 @@ router.get("/users/me/applications", async (req, res) => {
         .from(fosterRequestsTable)
         .leftJoin(petsTable, eq(fosterRequestsTable.petId, petsTable.id))
         .leftJoin(usersTable, eq(fosterRequestsTable.requesterId, usersTable.id))
-        .where(eq(fosterRequestsTable.requesterId, result.id))
+        .where(eq(fosterRequestsTable.requesterId, req.userId))
         .orderBy(desc(fosterRequestsTable.createdAt)),
     ]);
 
@@ -115,9 +96,6 @@ router.get("/users/me/applications", async (req, res) => {
 
 router.get("/users/me/favourites", async (req, res) => {
   try {
-    const result = parseUserId(req.query as Record<string, unknown>);
-    if ("error" in result) return res.status(400).json({ error: "validation_error", message: result.error });
-
     const pets = await db.select({
       id: petsTable.id,
       name: petsTable.name,
@@ -146,7 +124,7 @@ router.get("/users/me/favourites", async (req, res) => {
       .from(favouritesTable)
       .innerJoin(petsTable, eq(favouritesTable.petId, petsTable.id))
       .leftJoin(usersTable, eq(petsTable.ownerId, usersTable.id))
-      .where(eq(favouritesTable.userId, result.id));
+      .where(eq(favouritesTable.userId, req.userId));
     res.json(pets);
   } catch (err) {
     req.log.error({ err }, "Error getting user favourites");
@@ -156,11 +134,8 @@ router.get("/users/me/favourites", async (req, res) => {
 
 router.get("/users/me/donations", async (req, res) => {
   try {
-    const result = parseUserId(req.query as Record<string, unknown>);
-    if ("error" in result) return res.status(400).json({ error: "validation_error", message: result.error });
-
     const donations = await db.select().from(donationsTable)
-      .where(eq(donationsTable.userId, result.id))
+      .where(eq(donationsTable.userId, req.userId))
       .orderBy(desc(donationsTable.createdAt));
     res.json(donations);
   } catch (err) {

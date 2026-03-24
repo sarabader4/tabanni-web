@@ -1,10 +1,14 @@
 import { useParams, Link } from "wouter";
-import { useGetGalleryPost } from "@workspace/api-client-react";
+import { useGetGalleryPost, useListGalleryPosts } from "@workspace/api-client-react";
 import { ArrowLeft, Loader2, PawPrint } from "lucide-react";
 
 export default function GalleryDetail() {
   const { id } = useParams();
-  const { data: post, isLoading } = useGetGalleryPost(Number(id));
+  const postId = Number(id);
+  const { data: post, isLoading } = useGetGalleryPost(postId);
+  const { data: allPosts } = useListGalleryPosts({ limit: 10 });
+
+  const related = (Array.isArray(allPosts) ? allPosts : []).filter((p) => p.id !== postId).slice(0, 3);
 
   if (isLoading) {
     return (
@@ -70,6 +74,41 @@ export default function GalleryDetail() {
             </div>
           </div>
         </div>
+
+        {/* You Might Like */}
+        {related.length > 0 && (
+          <div className="mt-12">
+            <h2 className="font-display text-xl font-bold text-[#1E2A3A] mb-5">You Might Like</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {related.map((item) => (
+                <Link key={item.id} href={`/gallery/${item.id}`}>
+                  <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-36 object-cover"
+                      />
+                    )}
+                    <div className="p-4">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                          <PawPrint className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-500">
+                          {item.authorName || "tabbanni"}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-sm text-[#1E2A3A] line-clamp-2 leading-snug">
+                        {item.title}
+                      </h3>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
