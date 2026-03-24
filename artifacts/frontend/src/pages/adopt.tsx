@@ -2,10 +2,15 @@ import { useState } from "react";
 import { useListPets } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
-import { Search, Loader2, Plus, Sparkles } from "lucide-react";
+import { Search, Loader2, Plus, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+
+type PurposeFilter = "adopt" | "foster" | "both";
 
 export default function Adopt() {
   const [search, setSearch] = useState("");
+  const [purpose, setPurpose] = useState<PurposeFilter>("adopt");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
   const [filters, setFilters] = useState<FilterBarState>({
     type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
   });
@@ -13,7 +18,7 @@ export default function Adopt() {
   const sterilizedParam = filters.sterilized === "yes" ? true : filters.sterilized === "no" ? false : undefined;
 
   const { data, isLoading } = useListPets({
-    purpose: "adopt",
+    purpose,
     search: search || undefined,
     type: filters.type || undefined,
     gender: filters.gender || undefined,
@@ -21,8 +26,17 @@ export default function Adopt() {
     city: filters.city || undefined,
     breed: filters.breed || undefined,
     sterilized: sterilizedParam,
-    limit: 20,
+    page,
+    limit: pageSize,
   });
+
+  const totalPages = Math.ceil((data?.total ?? 0) / pageSize) || 1;
+
+  const purposeOptions: { key: PurposeFilter; label: string }[] = [
+    { key: "adopt", label: "Adopt" },
+    { key: "foster", label: "Foster" },
+    { key: "both", label: "Adopt & Foster" },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,12 +48,13 @@ export default function Adopt() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="Search for friend to adopt..."
               className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
           </div>
-          <button className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap"
+          <button
+            className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap"
             style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
             title="AI-powered pet matching"
           >
@@ -49,9 +64,25 @@ export default function Adopt() {
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-        <FilterBar filters={filters} onChange={setFilters} showSterilized />
+      {/* Filter Bar + Purpose Chips */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 space-y-3">
+        {/* Purpose filter chips */}
+        <div className="flex gap-2 flex-wrap">
+          {purposeOptions.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => { setPurpose(opt.key); setPage(1); }}
+              className={`px-4 py-1.5 rounded-full text-sm font-bold border transition-all ${
+                purpose === opt.key
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-500 border-gray-200 hover:border-primary/50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <FilterBar filters={filters} onChange={(f) => { setFilters(f); setPage(1); }} showSterilized />
       </div>
 
       {/* Pet Grid */}
@@ -69,6 +100,8 @@ export default function Adopt() {
             <button
               onClick={() => {
                 setSearch("");
+                setPurpose("adopt");
+                setPage(1);
                 setFilters({ type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "" });
               }}
               className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm"
@@ -83,14 +116,30 @@ export default function Adopt() {
             ))}
           </div>
         )}
-      </div>
 
-      {/* Floating add button */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40">
-        <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-xl shadow-primary/30 hover:bg-primary/90 hover:-translate-y-0.5 transition-all">
-          <Plus className="w-4 h-4" />
-          Add your pet to adopt!
-        </button>
+        {/* Bottom row: floating add + pagination */}
+        <div className="flex justify-between items-center mt-8">
+          <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 transition-all">
+            <Plus className="w-4 h-4" />
+            Add your pet to adopt!
+          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-500" />
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="w-10 h-10 rounded-full bg-primary border border-primary flex items-center justify-center hover:bg-primary/90 transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

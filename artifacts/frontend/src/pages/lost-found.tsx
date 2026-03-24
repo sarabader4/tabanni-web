@@ -101,12 +101,14 @@ export default function LostFound() {
           </div>
           <button
             onClick={() => {
-              form.reset({ reportType: "lost", name: "", type: "Dog", city: "Amman", reporterName: "", reporterPhone: "" });
+              form.reset({ reportType: tab, name: "", type: "Dog", city: "Amman", reporterName: "", reporterPhone: "" });
               setIsModalOpen(true);
             }}
-            className="px-5 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors whitespace-nowrap"
+            className={`px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-colors whitespace-nowrap text-white ${
+              tab === "lost" ? "bg-primary shadow-primary/20 hover:bg-primary/90" : "bg-[#00B8A0] shadow-[#00B8A0]/20 hover:bg-[#00B8A0]/90"
+            }`}
           >
-            Lost Pet
+            {tab === "lost" ? "Lost Pet" : "Found Pet"}
           </button>
         </div>
       </div>
@@ -216,8 +218,10 @@ export default function LostFound() {
                     )}
                   </div>
                   <div className="mt-auto">
-                    <button className="w-full py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors">
-                      Help Me
+                    <button className={`w-full py-2.5 rounded-xl font-bold text-sm transition-colors text-white ${
+                      report.reportType === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#00B8A0] hover:bg-[#00B8A0]/90"
+                    }`}>
+                      {report.reportType === "lost" ? "Help Me!" : "Help This Pet"}
                     </button>
                   </div>
                 </div>
@@ -230,12 +234,14 @@ export default function LostFound() {
         <div className="flex justify-between items-center mt-8">
           <button
             onClick={() => {
-              form.reset({ reportType: "lost", name: "", type: "Dog", city: "Amman", reporterName: "", reporterPhone: "" });
+              form.reset({ reportType: tab, name: "", type: "Dog", city: "Amman", reporterName: "", reporterPhone: "" });
               setIsModalOpen(true);
             }}
-            className="px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md hover:bg-primary/90 transition-colors"
+            className={`px-6 py-3 rounded-full font-bold text-sm shadow-md transition-colors text-white ${
+              tab === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#00B8A0] hover:bg-[#00B8A0]/90"
+            }`}
           >
-            Add your pet to adopt!
+            {tab === "lost" ? "Report Lost Pet" : "Report Found Pet"}
           </button>
           <div className="flex gap-2">
             <button

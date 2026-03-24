@@ -9,6 +9,10 @@ declare global {
 }
 
 export function mockAuth(req: Request, _res: Response, next: NextFunction): void {
-  req.userId = 1;
+  if (process.env.NODE_ENV === "production") {
+    req.userId = 0;
+  } else {
+    req.userId = 1;
+  }
   next();
 }
