@@ -29,7 +29,7 @@ export default function Adopt() {
   const ageRange = parseAgeRange(filters.minAge);
 
   const { data, isLoading, isError } = useListPets({
-    purpose,
+    purpose: purpose === "both" ? undefined : purpose,
     search: search || undefined,
     type: filters.type || undefined,
     gender: filters.gender || undefined,
