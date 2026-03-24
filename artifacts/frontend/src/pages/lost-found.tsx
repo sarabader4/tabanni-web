@@ -109,7 +109,7 @@ export default function LostFound() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="Search for friend to adopt..."
               className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
@@ -130,7 +130,7 @@ export default function LostFound() {
 
       {/* Filter Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
-        <FilterBar filters={filters} onChange={setFilters} showMonth />
+        <FilterBar filters={filters} onChange={(f) => { setFilters(f); setPage(1); }} showMonth />
       </div>
 
       {/* Lost / Found Tabs */}
