@@ -8,11 +8,13 @@ declare global {
   }
 }
 
-export function mockAuth(req: Request, _res: Response, next: NextFunction): void {
-  if (process.env.NODE_ENV === "production") {
+export function mockAuth(req: Request, res: Response, next: NextFunction): void {
+  if (process.env.NODE_ENV === "production" && !process.env.MOCK_AUTH_USER_ID) {
     req.userId = 0;
-  } else {
-    req.userId = 1;
+    next();
+    return;
   }
+  const configuredId = process.env.MOCK_AUTH_USER_ID ? Number(process.env.MOCK_AUTH_USER_ID) : 1;
+  req.userId = isNaN(configuredId) ? 1 : configuredId;
   next();
 }

@@ -37,6 +37,8 @@ export default function LostFound() {
     type: filters.type || undefined,
     city: filters.city || undefined,
     gender: filters.gender || undefined,
+    size: filters.size || undefined,
+    breed: filters.breed || undefined,
     limit: pageSize,
     page,
   });

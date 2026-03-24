@@ -6,6 +6,7 @@ import {
   useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useGetMyDonations, useListLostFoundReports,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { Link } from "wouter";
 
 const sidebarLinks = [
@@ -41,13 +42,17 @@ export default function Profile() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("Profile");
 
+  const { userId } = useCurrentUser();
   const { data: profile, isLoading } = useGetMyProfile();
   const updateMutation = useUpdateMyProfile();
   const { data: myPets, isLoading: petsLoading } = useGetMyPets();
   const { data: applications, isLoading: appLoading } = useGetMyApplications();
   const { data: favourites, isLoading: favLoading } = useGetMyFavourites();
   const { data: donations, isLoading: donLoading } = useGetMyDonations();
-  const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports({ limit: 20, reporterId: 1 });
+  const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports({
+    limit: 20,
+    reporterId: userId ?? undefined,
+  });
 
   const [form, setForm] = useState({
     fullName: "",

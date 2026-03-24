@@ -1,12 +1,21 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { UpdateMyProfileBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
+function requireAuth(req: Request, res: Response): boolean {
+  if (!req.userId) {
+    res.status(401).json({ error: "unauthorized", message: "Authentication required" });
+    return false;
+  }
+  return true;
+}
+
 router.get("/users/me", async (req, res) => {
   try {
+    if (!requireAuth(req, res)) return;
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.userId));
     if (!user) return res.status(404).json({ error: "not_found", message: "User not found" });
     res.json(user);
