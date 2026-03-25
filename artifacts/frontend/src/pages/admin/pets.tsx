@@ -21,6 +21,13 @@ const STATUS_COLORS: Record<string, string> = {
   found: "bg-purple-100 text-purple-700",
 };
 
+function getApprovalBadge(pet: Pet & { rejected?: boolean }) {
+  if (pet.featured) return { label: "Featured", cls: "bg-amber-100 text-amber-700" };
+  if (pet.rejected) return { label: "Rejected", cls: "bg-red-100 text-red-700" };
+  if (pet.approved) return { label: "Approved", cls: "bg-green-100 text-green-700" };
+  return { label: "Pending", cls: "bg-yellow-100 text-yellow-700" };
+}
+
 const PURPOSE_COLORS: Record<string, string> = {
   adopt: "bg-orange-100 text-orange-700",
   foster: "bg-teal-100 text-teal-700",
@@ -269,15 +276,20 @@ export default function AdminPets() {
 
   const { data, refetch } = useListPets({
     search: search || undefined,
-    status: activeTab === "pending" ? "pending" : (filterStatus || undefined),
-    limit: 50,
+    status: activeTab === "all" ? (filterStatus || undefined) : undefined,
+    limit: 100,
   });
 
   const approveMutation = useApprovePet();
   const featureMutation = useTogglePetFeatured();
   const deleteMutation = useDeletePet();
 
-  const pets = data?.pets ?? [];
+  type EnrichedPet = Pet & { rejected?: boolean };
+
+  const allPets = (data?.pets ?? []) as EnrichedPet[];
+  const pets = activeTab === "pending"
+    ? allPets.filter(p => !p.approved && !p.rejected)
+    : allPets;
 
   function formatDate(d: string) {
     return new Date(d).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" });
@@ -349,7 +361,8 @@ export default function AdminPets() {
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Type / Breed</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">City</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Purpose</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Pet Status</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Approval</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Created</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
               </tr>
@@ -399,6 +412,12 @@ export default function AdminPets() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5">
+                    {(() => {
+                      const badge = getApprovalBadge(pet);
+                      return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${badge.cls}`}>{badge.label}</span>;
+                    })()}
+                  </td>
+                  <td className="px-5 py-3.5">
                     <span className="text-xs text-gray-500">{formatDate(pet.createdAt)}</span>
                   </td>
                   <td className="px-5 py-3.5">
@@ -413,9 +432,12 @@ export default function AdminPets() {
                             Approve
                           </button>
                           <button
-                            onClick={() => deleteMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })}
-                            disabled={deleteMutation.isPending}
-                            className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-50"
+                            onClick={async () => {
+                              const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+                              await fetch(`${base}/api/admin/pets/${pet.id}/reject`, { method: "PUT" });
+                              refetch();
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors"
                           >
                             Reject
                           </button>
@@ -437,10 +459,13 @@ export default function AdminPets() {
                             <Star className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => { if (confirm(`Reject and remove ${pet.name}?`)) deleteMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() }); }}
-                            title="Reject / Remove"
-                            disabled={deleteMutation.isPending}
-                            className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors disabled:opacity-50"
+                            onClick={async () => {
+                              const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+                              await fetch(`${base}/api/admin/pets/${pet.id}/reject`, { method: "PUT" });
+                              refetch();
+                            }}
+                            title="Reject"
+                            className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -471,7 +496,7 @@ export default function AdminPets() {
               ))}
               {pets.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center text-gray-400">
+                  <td colSpan={9} className="px-5 py-12 text-center text-gray-400">
                     {activeTab === "pending" ? "No pending pets" : "No pets found"}
                   </td>
                 </tr>

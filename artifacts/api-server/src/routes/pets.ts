@@ -83,6 +83,7 @@ router.get("/pets", async (req, res) => {
         ownerName: usersTable.fullName,
         ownerPhone: usersTable.phone,
         approved: petsTable.approved,
+        rejected: petsTable.rejected,
         featured: petsTable.featured,
         createdAt: petsTable.createdAt,
       })

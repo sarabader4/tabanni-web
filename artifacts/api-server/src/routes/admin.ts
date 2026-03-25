@@ -174,14 +174,15 @@ router.put("/admin/pets/:id/settings", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
-    const { status, featured, approved } = req.body;
-    const updates: Partial<{ status: "available" | "adopted" | "fostered" | "pending" | "lost" | "found"; featured: boolean; approved: boolean }> = {};
+    const { status, featured, approved, rejected } = req.body;
+    const updates: Partial<{ status: "available" | "adopted" | "fostered" | "pending" | "lost" | "found"; featured: boolean; approved: boolean; rejected: boolean }> = {};
     const validStatuses = ["available", "adopted", "fostered", "pending", "lost", "found"] as const;
     if (typeof status === "string" && validStatuses.includes(status as typeof validStatuses[number])) {
       updates.status = status as typeof validStatuses[number];
     }
     if (typeof featured === "boolean") updates.featured = featured;
     if (typeof approved === "boolean") updates.approved = approved;
+    if (typeof rejected === "boolean") updates.rejected = rejected;
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "validation_error", message: "No valid fields to update" });
     }
@@ -202,7 +203,7 @@ router.put("/admin/pets/:id/approve", async (req, res) => {
     }
     const id = paramsParsed.data.id;
     const [pet] = await db.update(petsTable)
-      .set({ approved: true })
+      .set({ approved: true, rejected: false })
       .where(eq(petsTable.id, id))
       .returning();
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
@@ -210,6 +211,22 @@ router.put("/admin/pets/:id/approve", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Error approving pet");
     res.status(500).json({ error: "internal_error", message: "Failed to approve pet" });
+  }
+});
+
+router.put("/admin/pets/:id/reject", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid pet id" });
+    const [pet] = await db.update(petsTable)
+      .set({ approved: false, rejected: true })
+      .where(eq(petsTable.id, id))
+      .returning();
+    if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
+    res.json(pet);
+  } catch (err) {
+    req.log.error({ err }, "Error rejecting pet");
+    res.status(500).json({ error: "internal_error", message: "Failed to reject pet" });
   }
 });
 

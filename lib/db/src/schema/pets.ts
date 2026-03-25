@@ -29,6 +29,7 @@ export const petsTable = pgTable("pets", {
   story: text("story"),
   ownerId: integer("owner_id").references(() => usersTable.id),
   approved: boolean("approved").notNull().default(false),
+  rejected: boolean("rejected").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
