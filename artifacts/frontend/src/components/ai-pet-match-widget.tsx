@@ -23,30 +23,53 @@ interface RecommendResult {
   explanation: string;
 }
 
-export default function AIPetMatchWidget() {
+interface AIPetMatchWidgetProps {
+  mode?: "search" | "similar";
+  currentPet?: {
+    id: number;
+    name: string;
+    type: string;
+    breed?: string | null;
+    size?: string | null;
+    city?: string;
+    ageMonths?: number;
+  };
+}
+
+export default function AIPetMatchWidget({ mode = "search", currentPet }: AIPetMatchWidgetProps) {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleFind(e: React.FormEvent) {
-    e.preventDefault();
-    if (!description.trim() || loading) return;
+  const isSimilarMode = mode === "similar" && currentPet;
+
+  async function handleFind(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    if (loading) return;
+    if (!isSimilarMode && !description.trim()) return;
 
     setLoading(true);
     setResult(null);
     setError(null);
 
     try {
+      const body = isSimilarMode
+        ? {
+            preferences: `Similar to ${currentPet.name}: a ${currentPet.type}${currentPet.breed ? ` (${currentPet.breed})` : ""}${currentPet.size ? `, ${currentPet.size} size` : ""}${currentPet.city ? ` in ${currentPet.city}` : ""}`,
+            excludePetId: currentPet.id,
+          }
+        : {
+            preferences: description.trim(),
+          };
+
       const response = await fetch(`${import.meta.env.BASE_URL}api/ai/recommend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: description.trim() }),
+        body: JSON.stringify(body),
       });
 
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
+      if (!response.ok) throw new Error("Request failed");
 
       const data = await response.json() as RecommendResult;
       setResult(data);
@@ -63,12 +86,85 @@ export default function AIPetMatchWidget() {
     return "Adopt / Foster";
   };
 
+  if (isSimilarMode) {
+    return (
+      <div className="bg-card border border-border rounded-3xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="w-5 h-5 text-primary" />
+          <h3 className="font-display font-bold text-lg">You Might Also Like</h3>
+        </div>
+        <p className="text-muted-foreground text-sm mb-4">
+          Let our AI suggest pets similar to {currentPet.name}.
+        </p>
+
+        {!result && !loading && (
+          <button
+            onClick={() => handleFind()}
+            data-testid="ai-similar-btn"
+            className="w-full py-3 rounded-2xl text-white font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
+            style={{ background: "#FF6B35" }}
+          >
+            <Sparkles className="w-4 h-4" />
+            Find Similar Pets
+          </button>
+        )}
+
+        {loading && (
+          <div className="flex items-center justify-center py-6">
+            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+          </div>
+        )}
+
+        {error && <p className="text-destructive text-sm text-center">{error}</p>}
+
+        {result && (
+          <div className="space-y-3">
+            {result.explanation && (
+              <p className="text-muted-foreground text-xs italic">{result.explanation}</p>
+            )}
+            {result.matches.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center">No similar pets found right now.</p>
+            ) : (
+              result.matches.slice(0, 3).map(({ pet, matchReason }) => (
+                <Link key={pet.id} href={`/pets/${pet.id}`} className="group flex gap-3 items-center p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-primary/5 transition-all">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border">
+                    <img
+                      src={pet.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200"}
+                      alt={pet.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="font-display font-bold text-sm">{pet.name}</p>
+                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <p className="text-muted-foreground text-xs mb-1">
+                      {[pet.type, pet.breed, pet.city].filter(Boolean).join(" · ")}
+                    </p>
+                    <div className="flex items-start gap-1">
+                      <Sparkles className="w-3 h-3 text-primary mt-0.5 shrink-0" />
+                      <p className="text-muted-foreground text-xs leading-snug line-clamp-2">{matchReason}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="rounded-3xl overflow-hidden" style={{ background: "linear-gradient(135deg, #1E2A3A 0%, #2d3f55 100%)" }}>
         <div className="p-8 md:p-12">
           <div className="max-w-2xl mx-auto text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold mb-4" style={{ background: "rgba(255,107,53,0.2)", color: "#FF6B35" }}>
+            <div
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold mb-4"
+              style={{ background: "rgba(255,107,53,0.2)", color: "#FF6B35" }}
+            >
               <Sparkles className="w-4 h-4" />
               AI-Powered Matching
             </div>
@@ -126,8 +222,11 @@ export default function AIPetMatchWidget() {
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {result.matches.map(({ pet, matchReason }) => (
-                    <Link key={pet.id} href={`/adopt/${pet.id}`} className="group block">
-                      <div className="rounded-2xl overflow-hidden border border-white/10 hover:border-orange-400/50 transition-all hover:-translate-y-1" style={{ background: "rgba(255,255,255,0.05)" }}>
+                    <Link key={pet.id} href={`/pets/${pet.id}`} className="group block">
+                      <div
+                        className="rounded-2xl overflow-hidden border border-white/10 hover:border-orange-400/50 transition-all hover:-translate-y-1"
+                        style={{ background: "rgba(255,255,255,0.05)" }}
+                      >
                         <div className="relative aspect-video overflow-hidden">
                           <img
                             src={pet.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"}
@@ -135,7 +234,10 @@ export default function AIPetMatchWidget() {
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                           <div className="absolute top-3 right-3">
-                            <span className="px-2.5 py-1 rounded-full text-xs font-bold text-white" style={{ background: "#FF6B35" }}>
+                            <span
+                              className="px-2.5 py-1 rounded-full text-xs font-bold text-white"
+                              style={{ background: "#FF6B35" }}
+                            >
                               {purposeLabel(pet.purpose)}
                             </span>
                           </div>

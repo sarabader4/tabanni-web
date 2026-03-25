@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import AIPetMatchWidget from "@/components/ai-pet-match-widget";
 
 const requestSchema = z.object({
   message: z.string().min(10, "Please provide a bit more detail about why you want to adopt/foster."),
@@ -172,6 +173,22 @@ export default function PetDetail() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* AI Similar Pets */}
+      <div className="mt-12">
+        <AIPetMatchWidget
+          mode="similar"
+          currentPet={{
+            id: pet.id,
+            name: pet.name,
+            type: pet.type,
+            breed: pet.breed,
+            size: pet.size,
+            city: pet.city,
+            ageMonths: pet.ageMonths,
+          }}
+        />
       </div>
 
       {/* Request Modal */}

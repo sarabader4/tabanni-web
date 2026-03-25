@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import type OpenAI from "openai";
 import { db, petsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray, ne } from "drizzle-orm";
 
 let openai: InstanceType<typeof import("openai").default> | null = null;
 const AI_ENABLED = !!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
@@ -11,7 +11,7 @@ if (AI_ENABLED) {
 
 const router: IRouter = Router();
 
-const SYSTEM_PROMPT = `You are a friendly pet adoption assistant for Tabbani, Jordan's premier pet adoption and fostering platform. 
+const SYSTEM_PROMPT = `You are a friendly pet adoption assistant for Tabbani, Jordan's premier pet adoption and fostering platform.
 You help people find, adopt, and foster pets in Jordan (cities: Amman, Irbid, Zarqa, Aqaba).
 You have expertise in:
 - Pet adoption and fostering processes in Jordan
@@ -29,20 +29,34 @@ router.post("/ai/chat", async (req, res) => {
     if (!openai) {
       return res.status(503).json({ error: "ai_unavailable", message: "AI service not configured" });
     }
-    const { message, history = [] } = req.body as { message: string; history?: { role: string; content: string }[] };
-    if (!message) {
-      return res.status(400).json({ error: "validation_error", message: "message required" });
-    }
 
-    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
-      { role: "user", content: message },
-    ];
+    const body = req.body as {
+      messages?: { role: string; content: string }[];
+      message?: string;
+      history?: { role: string; content: string }[];
+    };
+
+    let chatMessages: OpenAI.Chat.ChatCompletionMessageParam[];
+
+    if (Array.isArray(body.messages) && body.messages.length > 0) {
+      chatMessages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...body.messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+      ];
+    } else if (typeof body.message === "string" && body.message.trim()) {
+      const history = Array.isArray(body.history) ? body.history : [];
+      chatMessages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+        { role: "user", content: body.message },
+      ];
+    } else {
+      return res.status(400).json({ error: "validation_error", message: "messages or message required" });
+    }
 
     const completion = await openai.chat.completions.create({
       model: "gpt-5.2",
-      messages,
+      messages: chatMessages,
       max_completion_tokens: 512,
     });
 
@@ -59,12 +73,31 @@ router.post("/ai/recommend", async (req, res) => {
     if (!openai) {
       return res.status(503).json({ error: "ai_unavailable", message: "AI service not configured" });
     }
-    const { description } = req.body as { description: string };
-    if (!description || typeof description !== "string" || !description.trim()) {
-      return res.status(400).json({ error: "validation_error", message: "description required" });
+
+    const body = req.body as {
+      preferences?: string | Record<string, unknown>;
+      petIds?: number[];
+      excludePetId?: number;
+      description?: string;
+    };
+
+    const preferenceText =
+      typeof body.preferences === "string"
+        ? body.preferences
+        : typeof body.preferences === "object" && body.preferences !== null
+        ? JSON.stringify(body.preferences)
+        : body.description ?? "";
+
+    if (!preferenceText.trim() && !body.petIds?.length) {
+      return res.status(400).json({ error: "validation_error", message: "preferences or petIds required" });
     }
 
-    const availablePets = await db
+    let whereClause = and(eq(petsTable.status, "available"), eq(petsTable.approved, true));
+    if (body.excludePetId) {
+      whereClause = and(whereClause, ne(petsTable.id, body.excludePetId));
+    }
+
+    let query = db
       .select({
         id: petsTable.id,
         name: petsTable.name,
@@ -82,8 +115,10 @@ router.post("/ai/recommend", async (req, res) => {
         city: petsTable.city,
       })
       .from(petsTable)
-      .where(and(eq(petsTable.status, "available"), eq(petsTable.approved, true)))
+      .where(whereClause)
       .limit(30);
+
+    const availablePets = await query;
 
     if (availablePets.length === 0) {
       return res.json({ matches: [], explanation: "No pets are currently available for adoption." });
@@ -102,6 +137,10 @@ router.post("/ai/recommend", async (req, res) => {
       purpose: p.purpose,
     }));
 
+    const userPrompt = preferenceText.trim()
+      ? `Available pets:\n${JSON.stringify(petsJson, null, 2)}\n\nUser is looking for: ${preferenceText}`
+      : `Available pets:\n${JSON.stringify(petsJson, null, 2)}\n\nFind the best similar companions from this list.`;
+
     const completion = await openai.chat.completions.create({
       model: "gpt-5.2",
       max_completion_tokens: 600,
@@ -109,7 +148,7 @@ router.post("/ai/recommend", async (req, res) => {
         {
           role: "system",
           content: `You are a pet matching expert for Tabbani (Jordan's pet adoption platform).
-You will be given a list of available pets and a description of what the user is looking for.
+You will be given a list of available pets and either a description of what the user is looking for or context about a current pet.
 Return ONLY valid JSON in this exact format (no markdown, no explanation outside the JSON):
 {
   "matches": [
@@ -122,7 +161,7 @@ Return between 3 and 5 of the best matching pet IDs from the provided list. Only
         },
         {
           role: "user",
-          content: `Available pets:\n${JSON.stringify(petsJson, null, 2)}\n\nUser is looking for: ${description}`,
+          content: userPrompt,
         },
       ],
     });
@@ -141,13 +180,10 @@ Return between 3 and 5 of the best matching pet IDs from the provided list. Only
 
     const enrichedMatches = (parsed.matches ?? [])
       .filter(m => petsById.has(m.petId))
-      .map(m => {
-        const pet = petsById.get(m.petId);
-        return {
-          pet,
-          matchReason: m.matchReason,
-        };
-      });
+      .map(m => ({
+        pet: petsById.get(m.petId),
+        matchReason: m.matchReason,
+      }));
 
     res.json({ matches: enrichedMatches, explanation: parsed.explanation ?? "" });
   } catch (err) {
