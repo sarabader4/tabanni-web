@@ -218,7 +218,10 @@ export default function LostFound() {
                   }`}>
                     {report.reportType === "lost" ? "LOST" : "FOUND"}
                   </div>
-                  <button className="absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-400 hover:text-primary transition-all shadow-sm">
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    className="absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-400 hover:text-primary transition-all shadow-sm"
+                  >
                     <Bookmark className="w-4 h-4" />
                   </button>
                 </div>
