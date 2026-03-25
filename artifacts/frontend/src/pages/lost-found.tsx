@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useListLostFoundReports, useCreateLostFoundReport } from "@workspace/api-client-react";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
 import { Search, Loader2, ChevronLeft, ChevronRight, Bookmark } from "lucide-react";
@@ -184,9 +185,10 @@ export default function LostFound() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {reports.map((report) => (
-              <div
+              <Link
                 key={report.id}
-                className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                href={`/lost-found/${report.id}`}
+                className="block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group"
               >
                 <div className="relative overflow-hidden" style={{ height: "180px" }}>
                   <img
@@ -242,14 +244,14 @@ export default function LostFound() {
                     )}
                   </div>
                   <div className="mt-auto">
-                    <button className={`w-full py-2.5 rounded-xl font-bold text-sm transition-colors text-white ${
+                    <span className={`block w-full text-center py-2.5 rounded-xl font-bold text-sm transition-colors text-white ${
                       report.reportType === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#00B8A0] hover:bg-[#00B8A0]/90"
                     }`}>
                       {report.reportType === "lost" ? "Help Me!" : "Help This Pet"}
-                    </button>
+                    </span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

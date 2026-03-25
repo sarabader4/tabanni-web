@@ -8,6 +8,7 @@ import Adopt from "@/pages/adopt";
 import Foster from "@/pages/foster";
 import PetDetail from "@/pages/pet-detail";
 import LostFound from "@/pages/lost-found";
+import LostFoundDetail from "@/pages/lost-found-detail";
 import Donate from "@/pages/donate";
 import Gallery from "@/pages/gallery";
 import GalleryDetail from "@/pages/gallery-detail";
@@ -39,6 +40,7 @@ function AppRoutes() {
             <Route path="/adopt" component={Adopt} />
             <Route path="/foster" component={Foster} />
             <Route path="/pets/:id" component={PetDetail} />
+            <Route path="/lost-found/:id" component={LostFoundDetail} />
             <Route path="/lost-found" component={LostFound} />
             <Route path="/donate" component={Donate} />
             <Route path="/gallery/:id" component={GalleryDetail} />
