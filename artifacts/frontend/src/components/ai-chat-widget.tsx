@@ -10,10 +10,10 @@ const WELCOME_MESSAGE =
   "Hi! I'm Tabbani's AI assistant 🐾 I can help you find the perfect pet to adopt or foster, answer questions about the adoption process, or share tips on pet care in Jordan. How can I help you today?";
 
 const QUICK_REPLIES = [
-  "How do I adopt a pet?",
-  "What pets are available?",
-  "Tell me about fostering",
-  "Pet care tips for Jordan",
+  "What's the difference between adopting and fostering?",
+  "How do I prepare for a new pet?",
+  "Which pets are good for apartments?",
+  "How does the adoption process work?",
 ];
 
 export default function AIChatWidget() {
