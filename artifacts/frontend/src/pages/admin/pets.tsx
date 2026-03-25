@@ -393,6 +393,14 @@ export default function AdminPets() {
                           >
                             <Star className="w-3.5 h-3.5" />
                           </button>
+                          <button
+                            onClick={() => { if (confirm(`Reject and remove ${pet.name}?`)) deleteMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() }); }}
+                            title="Reject / Remove"
+                            disabled={deleteMutation.isPending}
+                            className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors disabled:opacity-50"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
                         </>
                       )}
                       <button

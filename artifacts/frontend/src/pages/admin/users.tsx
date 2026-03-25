@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useListAdminUsers } from "@workspace/api-client-react";
-import { Search, Mail, Phone, MapPin, Calendar, Shield, UserX, ChevronDown } from "lucide-react";
+import { Search, Mail, Phone, MapPin, Calendar, Shield, UserX, ChevronDown, ExternalLink } from "lucide-react";
 import { AdminLayout } from "./index";
 
 type TabRole = "all" | "adopter" | "owner" | "volunteer";
@@ -155,7 +156,16 @@ export default function AdminUsers() {
                         Actions <ChevronDown className="w-3 h-3" />
                       </button>
                       {actionMenuId === user.id && (
-                        <div className="absolute right-0 top-8 z-20 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-1">
+                        <div className="absolute right-0 top-8 z-20 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1">
+                          <Link href={`/profile`}>
+                            <button
+                              onClick={() => setActionMenuId(null)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
+                              View Profile
+                            </button>
+                          </Link>
                           <button
                             onClick={() => handleToggleAdmin(user.id, user.role)}
                             className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"

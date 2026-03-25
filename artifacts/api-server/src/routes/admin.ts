@@ -9,6 +9,15 @@ router.get("/admin/stats", async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const months = Array.from({ length: 10 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 9 + i, 1);
+      return {
+        name: d.toLocaleString("en", { month: "short" }),
+        start: new Date(d.getFullYear(), d.getMonth(), 1),
+        end: new Date(d.getFullYear(), d.getMonth() + 1, 1),
+      };
+    });
 
     const [
       totalPetsResult,
@@ -19,6 +28,8 @@ router.get("/admin/stats", async (req, res) => {
       donationsResult,
       newUsersTodayResult,
       totalUsersResult,
+      petsByType,
+      topCities,
     ] = await Promise.all([
       db.select({ count: sql<number>`count(*)::int` }).from(petsTable),
       db.select({ count: sql<number>`count(*)::int` }).from(petsTable).where(eq(petsTable.approved, false)),
@@ -31,7 +42,46 @@ router.get("/admin/stats", async (req, res) => {
       )),
       db.select({ count: sql<number>`count(*)::int` }).from(usersTable).where(gte(usersTable.createdAt, today)),
       db.select({ count: sql<number>`count(*)::int` }).from(usersTable),
+      db.select({ type: petsTable.type, count: sql<number>`count(*)::int` }).from(petsTable).groupBy(petsTable.type),
+      db.select({ city: petsTable.city, count: sql<number>`count(*)::int` })
+        .from(petsTable)
+        .where(sql`${petsTable.city} is not null`)
+        .groupBy(petsTable.city)
+        .orderBy(desc(sql`count(*)`))
+        .limit(5),
     ]);
+
+    const adoptionsByMonth = await Promise.all(
+      months.map(async (m) => ({
+        month: m.name,
+        count: (
+          await db.select({ count: sql<number>`count(*)::int` })
+            .from(adoptionRequestsTable)
+            .where(and(
+              eq(adoptionRequestsTable.status, "approved"),
+              gte(adoptionRequestsTable.createdAt, m.start),
+              lte(adoptionRequestsTable.createdAt, m.end),
+            ))
+        )[0]?.count ?? 0,
+      }))
+    );
+
+    const donationsByMonth = await Promise.all(
+      months.map(async (m) => ({
+        month: m.name,
+        total: parseFloat(
+          (
+            await db.select({ total: sql<string>`coalesce(sum(amount::numeric), 0)::text` })
+              .from(donationsTable)
+              .where(and(
+                eq(donationsTable.type, "monetary"),
+                gte(donationsTable.createdAt, m.start),
+                lte(donationsTable.createdAt, m.end),
+              ))
+          )[0]?.total ?? "0"
+        ),
+      }))
+    );
 
     res.json({
       totalPets: totalPetsResult[0]?.count ?? 0,
@@ -42,6 +92,10 @@ router.get("/admin/stats", async (req, res) => {
       totalDonationsThisMonth: donationsResult[0]?.total ?? "0",
       newUsersToday: newUsersTodayResult[0]?.count ?? 0,
       totalUsers: totalUsersResult[0]?.count ?? 0,
+      adoptionsByMonth,
+      donationsByMonth,
+      petsByType,
+      topCities,
     });
   } catch (err) {
     req.log.error({ err }, "Error getting admin stats");

@@ -29,7 +29,7 @@ export default function AdminAnalytics() {
 
   useEffect(() => {
     const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-    fetch(`${base}/api/admin/analytics`)
+    fetch(`${base}/api/admin/stats`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
