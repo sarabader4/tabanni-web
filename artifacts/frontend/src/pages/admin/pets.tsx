@@ -65,6 +65,7 @@ function PetModal({
   const createMutation = useCreatePet();
   const updateMutation = useUpdatePet();
   const [generatingDesc, setGeneratingDesc] = useState(false);
+  const [descError, setDescError] = useState<string | null>(null);
 
   const [form, setForm] = useState<PetFormData>({
     name: pet?.name ?? "",
@@ -154,6 +155,7 @@ function PetModal({
 
   async function generateDescription() {
     setGeneratingDesc(true);
+    setDescError(null);
     try {
       const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       const response = await fetch(`${base}/api/ai/generate-description`, {
@@ -172,9 +174,13 @@ function PetModal({
         }),
       });
       if (response.ok) {
-        const data = await response.json() as { story: string };
-        setForm(prev => ({ ...prev, story: data.story }));
+        const data = await response.json() as { description: string; story: string };
+        setForm(prev => ({ ...prev, story: data.description ?? data.story }));
+      } else {
+        setDescError("Failed to generate description. Please try again.");
       }
+    } catch {
+      setDescError("Could not connect to AI. Please try again.");
     } finally {
       setGeneratingDesc(false);
     }
@@ -290,6 +296,7 @@ function PetModal({
               </button>
             </div>
             <textarea value={form.story} onChange={f("story")} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none" />
+            {descError && <p className="text-red-500 text-xs mt-1">{descError}</p>}
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Cancel</button>

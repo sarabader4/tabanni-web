@@ -96,8 +96,11 @@ router.post("/ai/recommend", async (req, res) => {
     if (body.excludePetId) {
       whereClause = and(whereClause, ne(petsTable.id, body.excludePetId));
     }
+    if (Array.isArray(body.petIds) && body.petIds.length > 0) {
+      whereClause = and(whereClause, inArray(petsTable.id, body.petIds));
+    }
 
-    let query = db
+    const availablePets = await db
       .select({
         id: petsTable.id,
         name: petsTable.name,
@@ -117,8 +120,6 @@ router.post("/ai/recommend", async (req, res) => {
       .from(petsTable)
       .where(whereClause)
       .limit(30);
-
-    const availablePets = await query;
 
     if (availablePets.length === 0) {
       return res.json({ matches: [], explanation: "No pets are currently available for adoption." });
@@ -218,8 +219,8 @@ Write a warm, engaging story/description for a pet listing. Write in first perso
       ],
     });
 
-    const story = completion.choices[0]?.message?.content ?? "";
-    res.json({ story });
+    const description = completion.choices[0]?.message?.content ?? "";
+    res.json({ description, story: description });
   } catch (err) {
     req.log.error({ err }, "AI generate-description error");
     res.status(500).json({ error: "ai_error", message: "AI service unavailable" });
