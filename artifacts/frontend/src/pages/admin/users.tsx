@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useListAdminUsers } from "@workspace/api-client-react";
-import { Search, Mail, Phone, MapPin, Calendar, Shield, UserX, ChevronDown, ExternalLink } from "lucide-react";
+import { Search, Mail, Phone, MapPin, Calendar, Shield, UserX, ChevronDown, ExternalLink, PawPrint } from "lucide-react";
 import { AdminLayout } from "./index";
 
 type TabRole = "all" | "adopter" | "owner" | "volunteer";
@@ -19,21 +19,41 @@ const ROLE_COLORS: Record<string, string> = {
   user: "bg-gray-100 text-gray-700",
 };
 
+interface EnrichedUser {
+  id: number;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  country?: string | null;
+  city?: string | null;
+  avatarUrl?: string | null;
+  role: string;
+  isActive?: boolean;
+  createdAt: string;
+  totalAdoptionRequests?: number;
+  totalFosterRequests?: number;
+  totalPetsOwned?: number;
+}
+
 export default function AdminUsers() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<TabRole>("all");
   const [actionMenuId, setActionMenuId] = useState<number | null>(null);
 
-  const roleFilter = activeTab === "all" ? undefined
-    : activeTab === "adopter" ? "user"
-    : activeTab === "owner" ? "user"
-    : activeTab === "volunteer" ? "volunteer"
-    : undefined;
+  const roleFilter = activeTab === "volunteer" ? "volunteer" : undefined;
 
-  const { data: users, refetch } = useListAdminUsers({
+  const { data: rawUsers, refetch } = useListAdminUsers({
     search: search || undefined,
     role: roleFilter,
-    limit: 50,
+    limit: 100,
+  });
+
+  const users = ((rawUsers ?? []) as EnrichedUser[]).filter((u) => {
+    if (activeTab === "all") return true;
+    if (activeTab === "volunteer") return u.role === "volunteer";
+    if (activeTab === "adopter") return (u.totalAdoptionRequests ?? 0) > 0 || (u.totalFosterRequests ?? 0) > 0;
+    if (activeTab === "owner") return (u.totalPetsOwned ?? 0) > 0;
+    return true;
   });
 
   function formatDate(d: string) {
@@ -86,7 +106,7 @@ export default function AdminUsers() {
               className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
             />
           </div>
-          <span className="text-xs text-gray-400 ml-4">{(users ?? []).length} users</span>
+          <span className="text-xs text-gray-400 ml-4">{users.length} users</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -96,15 +116,15 @@ export default function AdminUsers() {
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">User</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Contact</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Location</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Requests</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Activity</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Role</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Joined</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {(users ?? []).map((user) => (
-                <tr key={user.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              {users.map((user) => (
+                <tr key={user.id} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${user.isActive === false ? "opacity-60" : ""}`}>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
                       {user.avatarUrl ? (
@@ -115,7 +135,12 @@ export default function AdminUsers() {
                         </div>
                       )}
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm">{user.fullName}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-semibold text-gray-900 text-sm">{user.fullName}</p>
+                          {user.isActive === false && (
+                            <span className="px-1.5 py-0.5 rounded text-xs bg-red-100 text-red-600 font-medium">Deactivated</span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-400">ID #{user.id}</p>
                       </div>
                     </div>
@@ -142,8 +167,16 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="text-xs text-gray-600 space-y-0.5">
-                      <div>{(user as Record<string, unknown>).totalAdoptionRequests as number ?? 0} adoptions</div>
-                      <div>{(user as Record<string, unknown>).totalFosterRequests as number ?? 0} fosters</div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-orange-500 font-medium">{user.totalAdoptionRequests ?? 0}</span> adoptions
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-teal-500 font-medium">{user.totalFosterRequests ?? 0}</span> fosters
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <PawPrint className="w-3 h-3 text-gray-400" />
+                        <span className="text-gray-500 font-medium">{user.totalPetsOwned ?? 0}</span> pets owned
+                      </div>
                     </div>
                   </td>
                   <td className="px-5 py-3.5">
@@ -183,20 +216,22 @@ export default function AdminUsers() {
                             <Shield className="w-3.5 h-3.5 text-purple-500" />
                             {user.role === "admin" ? "Remove Admin" : "Make Admin"}
                           </button>
-                          <button
-                            onClick={() => handleDeactivate(user.id)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            <UserX className="w-3.5 h-3.5" />
-                            Deactivate
-                          </button>
+                          {user.isActive !== false && (
+                            <button
+                              onClick={() => handleDeactivate(user.id)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              <UserX className="w-3.5 h-3.5" />
+                              Deactivate
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
                   </td>
                 </tr>
               ))}
-              {(users ?? []).length === 0 && (
+              {users.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center text-gray-400">No users found</td>
                 </tr>
@@ -206,7 +241,7 @@ export default function AdminUsers() {
         </div>
 
         <div className="px-5 py-3.5 border-t border-gray-100">
-          <p className="text-xs text-gray-400">Showing {(users ?? []).length} users</p>
+          <p className="text-xs text-gray-400">Showing {users.length} users</p>
         </div>
       </div>
     </AdminLayout>

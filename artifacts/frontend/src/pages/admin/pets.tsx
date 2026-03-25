@@ -78,6 +78,7 @@ function PetModal({
     e.preventDefault();
     const imageUrlsArr = form.imageUrls ? form.imageUrls.split(",").map(s => s.trim()).filter(Boolean) : [];
 
+    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     if (mode === "add") {
       createMutation.mutate(
         {
@@ -95,10 +96,19 @@ function PetModal({
             ownerId: form.ownerId ? parseInt(form.ownerId) : undefined,
           },
         },
-        { onSuccess: () => { onSuccess(); onClose(); } }
+        {
+          onSuccess: async (created) => {
+            await fetch(`${base}/api/admin/pets/${created.id}/settings`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: form.status, featured: form.featured, approved: true }),
+            });
+            onSuccess();
+            onClose();
+          },
+        }
       );
     } else if (pet) {
-      const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       updateMutation.mutate(
         {
           id: pet.id,

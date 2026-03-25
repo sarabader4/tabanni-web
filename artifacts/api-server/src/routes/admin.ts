@@ -161,9 +161,9 @@ router.put("/admin/users/:id/deactivate", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+    const [user] = await db.update(usersTable).set({ isActive: false }).where(eq(usersTable.id, id)).returning();
     if (!user) return res.status(404).json({ error: "not_found", message: "User not found" });
-    res.json({ message: "User deactivated", userId: id });
+    res.json(user);
   } catch (err) {
     req.log.error({ err }, "Error deactivating user");
     res.status(500).json({ error: "internal_error", message: "Failed to deactivate user" });
