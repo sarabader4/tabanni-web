@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useListAdoptionRequests, useUpdateAdoptionRequestStatus } from "@workspace/api-client-react";
-import { Heart, CheckCircle, XCircle, Clock, Eye, X } from "lucide-react";
+import { Heart, CheckCircle, XCircle, Clock, Eye, X, MapPin } from "lucide-react";
 import { AdminLayout } from "./index";
 
 function MessageModal({ message, petName, onClose }: { message: string; petName: string; onClose: () => void }) {
@@ -40,8 +40,8 @@ export default function AdminAdoptions() {
       )}
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-        <div className="p-4 border-b border-gray-100 flex items-center gap-3">
-          <p className="text-sm font-semibold text-gray-700 mr-2">Filter by status:</p>
+        <div className="p-4 border-b border-gray-100 flex flex-wrap items-center gap-2">
+          <p className="text-sm font-semibold text-gray-700 mr-1">Filter:</p>
           {["", "pending", "approved", "rejected"].map(s => (
             <button
               key={s}
@@ -51,6 +51,7 @@ export default function AdminAdoptions() {
               {s || "All"}
             </button>
           ))}
+          <span className="ml-auto text-xs text-gray-400">{(requests ?? []).length} requests</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -59,6 +60,7 @@ export default function AdminAdoptions() {
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Pet</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Requester</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">City</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Message</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
@@ -88,8 +90,15 @@ export default function AdminAdoptions() {
                     <p className="text-xs text-gray-400">ID #{req.requesterId}</p>
                   </td>
                   <td className="px-5 py-3.5">
+                    {req.requesterCity ? (
+                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <MapPin className="w-3 h-3 text-gray-400" /> {req.requesterCity}
+                      </div>
+                    ) : <span className="text-xs text-gray-400">—</span>}
+                  </td>
+                  <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
-                      <p className="text-xs text-gray-500 max-w-[140px] truncate">{req.message ?? "—"}</p>
+                      <p className="text-xs text-gray-500 max-w-[120px] truncate">{req.message ?? "—"}</p>
                       {req.message && (
                         <button
                           onClick={() => setViewMessage({ text: req.message ?? "", pet: req.petName ?? `Pet #${req.petId}` })}
@@ -120,13 +129,15 @@ export default function AdminAdoptions() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleStatus(req.id, "approved")}
-                          className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold transition-colors"
+                          disabled={updateStatus.isPending}
+                          className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold transition-colors disabled:opacity-50"
                         >
                           Approve
                         </button>
                         <button
                           onClick={() => handleStatus(req.id, "rejected")}
-                          className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors"
+                          disabled={updateStatus.isPending}
+                          className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-50"
                         >
                           Reject
                         </button>
@@ -137,7 +148,7 @@ export default function AdminAdoptions() {
               ))}
               {(requests ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-gray-400">No adoption requests found</td>
+                  <td colSpan={7} className="px-5 py-12 text-center text-gray-400">No adoption requests found</td>
                 </tr>
               )}
             </tbody>

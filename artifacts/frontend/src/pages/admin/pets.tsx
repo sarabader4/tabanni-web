@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, Link } from "wouter";
+import { Link } from "wouter";
 import {
   useListPets,
   useApprovePet,
@@ -7,6 +7,7 @@ import {
   useDeletePet,
   useUpdatePet,
   useCreatePet,
+  type Pet,
 } from "@workspace/api-client-react";
 import { PawPrint, Star, CheckCircle, Trash2, Eye, Search, Plus, X, Edit2 } from "lucide-react";
 import { AdminLayout } from "./index";
@@ -27,42 +28,106 @@ const PURPOSE_COLORS: Record<string, string> = {
   lost_found: "bg-red-100 text-red-700",
 };
 
-function AddPetModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+interface PetFormData {
+  name: string;
+  type: string;
+  breed: string;
+  gender: string;
+  ageMonths: string;
+  size: string;
+  city: string;
+  purpose: string;
+  status: string;
+  featured: boolean;
+  story: string;
+  imageUrls: string;
+  ownerId: string;
+}
+
+function PetModal({
+  mode,
+  pet,
+  onClose,
+  onSuccess,
+}: {
+  mode: "add" | "edit";
+  pet?: Pet;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
   const createMutation = useCreatePet();
-  const [form, setForm] = useState({
-    name: "", type: "dog", breed: "", gender: "male", ageMonths: "0",
-    size: "medium", city: "Amman", purpose: "adopt", status: "available",
-    story: "", imageUrls: "",
+  const updateMutation = useUpdatePet();
+
+  const [form, setForm] = useState<PetFormData>({
+    name: pet?.name ?? "",
+    type: pet?.type ?? "dog",
+    breed: pet?.breed ?? "",
+    gender: pet?.gender ?? "male",
+    ageMonths: String(pet?.ageMonths ?? "0"),
+    size: pet?.size ?? "medium",
+    city: pet?.city ?? "Amman",
+    purpose: pet?.purpose ?? "adopt",
+    status: pet?.status ?? "available",
+    featured: pet?.featured ?? false,
+    story: pet?.story ?? "",
+    imageUrls: (pet?.imageUrls ?? []).join(", "),
+    ownerId: String(pet?.ownerId ?? ""),
   });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    createMutation.mutate({
-      data: {
-        name: form.name,
-        type: form.type as "dog" | "cat" | "rabbit" | "bird" | "other",
-        breed: form.breed || undefined,
-        gender: form.gender as "male" | "female",
-        ageMonths: parseInt(form.ageMonths) || 0,
-        size: form.size as "small" | "medium" | "large",
-        city: form.city,
-        purpose: form.purpose as "adopt" | "foster" | "both" | "lost_found",
-        imageUrls: form.imageUrls ? form.imageUrls.split(",").map(s => s.trim()).filter(Boolean) : [],
-        story: form.story || undefined,
-      },
-    }, {
-      onSuccess: () => { onSuccess(); onClose(); },
-    });
+    const imageUrlsArr = form.imageUrls ? form.imageUrls.split(",").map(s => s.trim()).filter(Boolean) : [];
+
+    if (mode === "add") {
+      createMutation.mutate(
+        {
+          data: {
+            name: form.name,
+            type: form.type as Pet["type"],
+            breed: form.breed || undefined,
+            gender: form.gender as "male" | "female",
+            ageMonths: parseInt(form.ageMonths) || 0,
+            size: form.size as "small" | "medium" | "large",
+            city: form.city,
+            purpose: form.purpose as Pet["purpose"],
+            imageUrls: imageUrlsArr,
+            story: form.story || undefined,
+            ownerId: form.ownerId ? parseInt(form.ownerId) : undefined,
+          },
+        },
+        { onSuccess: () => { onSuccess(); onClose(); } }
+      );
+    } else if (pet) {
+      updateMutation.mutate(
+        {
+          id: pet.id,
+          data: {
+            name: form.name,
+            breed: form.breed || undefined,
+            gender: form.gender as "male" | "female",
+            ageMonths: parseInt(form.ageMonths) || 0,
+            size: form.size,
+            city: form.city,
+            story: form.story || undefined,
+            imageUrls: imageUrlsArr,
+          },
+        },
+        { onSuccess: () => { onSuccess(); onClose(); } }
+      );
+    }
   }
 
-  const f = (key: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-    setForm(prev => ({ ...prev, [key]: e.target.value }));
+  const f = (key: keyof PetFormData) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => setForm(prev => ({ ...prev, [key]: e.target.value }));
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">Add New Pet</h2>
+          <h2 className="text-lg font-bold text-gray-900">{mode === "add" ? "Add New Pet" : "Edit Pet"}</h2>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100"><X className="w-5 h-5" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -73,7 +138,7 @@ function AddPetModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1.5">Type</label>
-              <select value={form.type} onChange={f("type")} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200">
+              <select value={form.type} onChange={f("type")} disabled={mode === "edit"} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 disabled:bg-gray-50">
                 {["dog", "cat", "rabbit", "bird", "other"].map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
               </select>
             </div>
@@ -104,15 +169,23 @@ function AddPetModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
               <label className="block text-xs font-semibold text-gray-500 mb-1.5">City</label>
               <input value={form.city} onChange={f("city")} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200" />
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Purpose</label>
-              <select value={form.purpose} onChange={f("purpose")} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200">
-                <option value="adopt">Adopt</option>
-                <option value="foster">Foster</option>
-                <option value="both">Both</option>
-                <option value="lost_found">Lost/Found</option>
-              </select>
-            </div>
+            {mode === "add" && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Purpose</label>
+                <select value={form.purpose} onChange={f("purpose")} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200">
+                  <option value="adopt">Adopt</option>
+                  <option value="foster">Foster</option>
+                  <option value="both">Both</option>
+                  <option value="lost_found">Lost/Found</option>
+                </select>
+              </div>
+            )}
+            {mode === "add" && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Owner ID</label>
+                <input type="number" value={form.ownerId} onChange={f("ownerId")} placeholder="User ID (optional)" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200" />
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5">Image URLs (comma-separated)</label>
@@ -126,10 +199,10 @@ function AddPetModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Cancel</button>
             <button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={isPending}
               className="px-5 py-2 rounded-xl bg-[#FF6B35] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors disabled:opacity-50"
             >
-              {createMutation.isPending ? "Adding..." : "Add Pet"}
+              {isPending ? (mode === "add" ? "Adding..." : "Saving...") : (mode === "add" ? "Add Pet" : "Save Changes")}
             </button>
           </div>
         </form>
@@ -139,16 +212,10 @@ function AddPetModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
 }
 
 export default function AdminPets() {
-  const [location] = useLocation();
-  const isPendingView = location.includes("status=pending") || location.includes("add");
-  const isAddView = location.includes("add");
-
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState(isPendingView && !isAddView ? "pending" : "");
-  const [activeTab, setActiveTab] = useState<"all" | "pending" | "add">(
-    isAddView ? "add" : isPendingView ? "pending" : "all"
-  );
-  const [showAddModal, setShowAddModal] = useState(isAddView);
+  const [activeTab, setActiveTab] = useState<"all" | "pending">("all");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [modal, setModal] = useState<{ mode: "add" | "edit"; pet?: Pet } | null>(null);
 
   const { data, refetch } = useListPets({
     search: search || undefined,
@@ -168,27 +235,32 @@ export default function AdminPets() {
 
   return (
     <AdminLayout title="Pets Management">
+      {modal && (
+        <PetModal
+          mode={modal.mode}
+          pet={modal.pet}
+          onClose={() => setModal(null)}
+          onSuccess={() => refetch()}
+        />
+      )}
+
       <div className="flex items-center gap-3 mb-6">
-        {(["all", "pending", "add"] as const).map((tab) => (
+        {(["all", "pending"] as const).map((tab) => (
           <button
             key={tab}
-            onClick={() => { setActiveTab(tab); if (tab === "add") setShowAddModal(true); }}
+            onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors capitalize ${activeTab === tab ? "bg-[#FF6B35] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"}`}
           >
-            {tab === "add" ? "Add pet" : tab === "pending" ? "Pending approval" : "All pets"}
+            {tab === "pending" ? "Pending Approval" : "All Pets"}
           </button>
         ))}
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => setModal({ mode: "add" })}
           className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6B35] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors"
         >
           <Plus className="w-4 h-4" /> Add Pet
         </button>
       </div>
-
-      {showAddModal && (
-        <AddPetModal onClose={() => { setShowAddModal(false); setActiveTab("all"); }} onSuccess={() => refetch()} />
-      )}
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="p-4 border-b border-gray-100 flex items-center gap-3">
@@ -221,6 +293,9 @@ export default function AdminPets() {
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Pet</th>
+                {activeTab === "pending" && (
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Owner</th>
+                )}
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Type / Breed</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">City</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Purpose</th>
@@ -247,6 +322,15 @@ export default function AdminPets() {
                       </div>
                     </div>
                   </td>
+                  {activeTab === "pending" && (
+                    <td className="px-5 py-3.5">
+                      {pet.ownerId ? (
+                        <p className="text-sm text-gray-600">User #{pet.ownerId}</p>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                  )}
                   <td className="px-5 py-3.5">
                     <p className="text-sm text-gray-700 capitalize">{pet.type}</p>
                     <p className="text-xs text-gray-400">{pet.breed || "Mixed"}</p>
@@ -273,13 +357,15 @@ export default function AdminPets() {
                         <>
                           <button
                             onClick={() => approveMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })}
-                            disabled={pet.approved}
+                            disabled={pet.approved || approveMutation.isPending}
                             className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold transition-colors disabled:opacity-40"
                           >
                             Approve
                           </button>
                           <button
-                            className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors"
+                            onClick={() => deleteMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })}
+                            disabled={deleteMutation.isPending}
+                            className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-50"
                           >
                             Reject
                           </button>
@@ -302,6 +388,13 @@ export default function AdminPets() {
                           </button>
                         </>
                       )}
+                      <button
+                        onClick={() => setModal({ mode: "edit", pet })}
+                        title="Edit"
+                        className="p-1.5 rounded-lg bg-blue-50 text-blue-400 hover:bg-blue-100 transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
                       <Link href={`/pets/${pet.id}`}>
                         <button title="View" className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
                           <Eye className="w-3.5 h-3.5" />
@@ -320,7 +413,7 @@ export default function AdminPets() {
               ))}
               {pets.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-gray-400">
+                  <td colSpan={8} className="px-5 py-12 text-center text-gray-400">
                     {activeTab === "pending" ? "No pending pets" : "No pets found"}
                   </td>
                 </tr>

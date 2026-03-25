@@ -38,6 +38,7 @@ router.get("/foster-requests", async (req, res) => {
       petName: petsTable.name,
       petImageUrl: petsTable.imageUrls,
       requesterName: usersTable.fullName,
+      requesterCity: usersTable.city,
       createdAt: fosterRequestsTable.createdAt,
     })
       .from(fosterRequestsTable)

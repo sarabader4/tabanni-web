@@ -81,6 +81,30 @@ router.get("/gallery/:id", async (req, res) => {
   }
 });
 
+router.put("/gallery/:id", async (req, res) => {
+  try {
+    const paramsParsed = GetGalleryPostParams.safeParse(req.params);
+    if (!paramsParsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid id", details: paramsParsed.error.issues });
+    }
+    const id = paramsParsed.data.id;
+    const { title, content, imageUrl } = req.body;
+    const updates: Partial<{ title: string; content: string; imageUrl: string }> = {};
+    if (typeof title === "string") updates.title = title;
+    if (typeof content === "string") updates.content = content;
+    if (typeof imageUrl === "string") updates.imageUrl = imageUrl;
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "validation_error", message: "No valid fields to update" });
+    }
+    const [post] = await db.update(galleryPostsTable).set(updates).where(eq(galleryPostsTable.id, id)).returning();
+    if (!post) return res.status(404).json({ error: "not_found", message: "Post not found" });
+    res.json(post);
+  } catch (err) {
+    req.log.error({ err }, "Error updating gallery post");
+    res.status(500).json({ error: "internal_error", message: "Failed to update gallery post" });
+  }
+});
+
 router.delete("/gallery/:id", async (req, res) => {
   try {
     const paramsParsed = GetGalleryPostParams.safeParse(req.params);

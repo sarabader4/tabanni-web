@@ -1084,6 +1084,9 @@ components:
         requesterName:
           type: string
           nullable: true
+        requesterCity:
+          type: string
+          nullable: true
         createdAt:
           type: string
       required:
@@ -1128,6 +1131,9 @@ components:
           type: string
           nullable: true
         requesterName:
+          type: string
+          nullable: true
+        requesterCity:
           type: string
           nullable: true
         createdAt:

@@ -1,8 +1,9 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
+import { useGetMyProfile } from "@workspace/api-client-react";
 import Home from "@/pages/home";
 import Adopt from "@/pages/adopt";
 import Foster from "@/pages/foster";
@@ -27,16 +28,45 @@ import AIChatWidget from "@/components/ai-chat-widget";
 
 const queryClient = new QueryClient();
 
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  const { data: profile, isLoading } = useGetMyProfile();
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "#1E2A3A" }}>
+        <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
+  if (!profile || profile.role !== "admin") {
+    return <Redirect to="/" />;
+  }
+  return <>{children}</>;
+}
+
 function AppRoutes() {
   return (
     <Switch>
-      <Route path="/admin" component={AdminDashboard} />
-      <Route path="/admin/pets" component={AdminPets} />
-      <Route path="/admin/users" component={AdminUsers} />
-      <Route path="/admin/adoptions" component={AdminAdoptions} />
-      <Route path="/admin/fosters" component={AdminFosters} />
-      <Route path="/admin/gallery" component={AdminGallery} />
-      <Route path="/admin/analytics" component={AdminAnalytics} />
+      <Route path="/admin">
+        {() => <AdminGuard><AdminDashboard /></AdminGuard>}
+      </Route>
+      <Route path="/admin/pets">
+        {() => <AdminGuard><AdminPets /></AdminGuard>}
+      </Route>
+      <Route path="/admin/users">
+        {() => <AdminGuard><AdminUsers /></AdminGuard>}
+      </Route>
+      <Route path="/admin/adoptions">
+        {() => <AdminGuard><AdminAdoptions /></AdminGuard>}
+      </Route>
+      <Route path="/admin/fosters">
+        {() => <AdminGuard><AdminFosters /></AdminGuard>}
+      </Route>
+      <Route path="/admin/gallery">
+        {() => <AdminGuard><AdminGallery /></AdminGuard>}
+      </Route>
+      <Route path="/admin/analytics">
+        {() => <AdminGuard><AdminAnalytics /></AdminGuard>}
+      </Route>
       <Route>
         <Layout>
           <Switch>

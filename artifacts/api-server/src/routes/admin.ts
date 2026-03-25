@@ -121,6 +121,23 @@ router.put("/admin/pets/:id/featured", async (req, res) => {
   }
 });
 
+router.put("/admin/users/:id/role", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    const { role } = req.body;
+    if (!["user", "admin", "volunteer"].includes(role)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid role" });
+    }
+    const [user] = await db.update(usersTable).set({ role }).where(eq(usersTable.id, id)).returning();
+    if (!user) return res.status(404).json({ error: "not_found", message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    req.log.error({ err }, "Error updating user role");
+    res.status(500).json({ error: "internal_error", message: "Failed to update user role" });
+  }
+});
+
 router.get("/admin/analytics", async (req, res) => {
   try {
     const now = new Date();
