@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import {
   useListPets,
@@ -216,6 +216,13 @@ export default function AdminPets() {
   const [activeTab, setActiveTab] = useState<"all" | "pending">("all");
   const [filterStatus, setFilterStatus] = useState("");
   const [modal, setModal] = useState<{ mode: "add" | "edit"; pet?: Pet } | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("addPet") === "true") {
+      setModal({ mode: "add" });
+    }
+  }, []);
 
   const { data, refetch } = useListPets({
     search: search || undefined,

@@ -3,13 +3,13 @@ import { useListAdminUsers } from "@workspace/api-client-react";
 import { Search, Mail, Phone, MapPin, Calendar, Shield, UserX, ChevronDown } from "lucide-react";
 import { AdminLayout } from "./index";
 
-type TabRole = "all" | "user" | "volunteer" | "admin";
+type TabRole = "all" | "adopter" | "owner" | "volunteer";
 
 const TABS: { label: string; value: TabRole }[] = [
   { label: "All Users", value: "all" },
-  { label: "Adopters", value: "user" },
+  { label: "Adopters", value: "adopter" },
+  { label: "Pet owners", value: "owner" },
   { label: "Volunteers", value: "volunteer" },
-  { label: "Admins", value: "admin" },
 ];
 
 const ROLE_COLORS: Record<string, string> = {
@@ -23,9 +23,15 @@ export default function AdminUsers() {
   const [activeTab, setActiveTab] = useState<TabRole>("all");
   const [actionMenuId, setActionMenuId] = useState<number | null>(null);
 
+  const roleFilter = activeTab === "all" ? undefined
+    : activeTab === "adopter" ? "user"
+    : activeTab === "owner" ? "user"
+    : activeTab === "volunteer" ? "volunteer"
+    : undefined;
+
   const { data: users, refetch } = useListAdminUsers({
     search: search || undefined,
-    role: activeTab === "all" ? undefined : activeTab,
+    role: roleFilter,
     limit: 50,
   });
 

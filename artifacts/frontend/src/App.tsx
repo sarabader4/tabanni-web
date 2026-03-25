@@ -23,6 +23,8 @@ import AdminAdoptions from "@/pages/admin/adoptions";
 import AdminFosters from "@/pages/admin/fosters";
 import AdminGallery from "@/pages/admin/gallery";
 import AdminAnalytics from "@/pages/admin/analytics";
+import AdminContentHome from "@/pages/admin/content-home";
+import AdminContentAbout from "@/pages/admin/content-about";
 import NotFound from "@/pages/not-found";
 import AIChatWidget from "@/components/ai-chat-widget";
 
@@ -66,6 +68,12 @@ function AppRoutes() {
       </Route>
       <Route path="/admin/analytics">
         {() => <AdminGuard><AdminAnalytics /></AdminGuard>}
+      </Route>
+      <Route path="/admin/content/home">
+        {() => <AdminGuard><AdminContentHome /></AdminGuard>}
+      </Route>
+      <Route path="/admin/content/about">
+        {() => <AdminGuard><AdminContentAbout /></AdminGuard>}
       </Route>
       <Route>
         <Layout>

@@ -42,7 +42,7 @@ const SIDEBAR_NAV = [
     children: [
       { label: "All pets", href: "/admin/pets" },
       { label: "Pending approval", href: "/admin/pets?status=pending" },
-      { label: "Add pet", href: "/admin/pets/add" },
+      { label: "Add pet", href: "/admin/pets?addPet=true" },
     ],
   },
   { label: "Adoption Requests", href: "/admin/adoptions", icon: Heart },
@@ -51,7 +51,7 @@ const SIDEBAR_NAV = [
     label: "Users",
     icon: Users,
     children: [
-      { label: "Adopters", href: "/admin/users?role=user" },
+      { label: "Adopters", href: "/admin/users?role=adopter" },
       { label: "Pet owners", href: "/admin/users?role=owner" },
       { label: "Volunteers", href: "/admin/users?role=volunteer" },
     ],
@@ -61,6 +61,8 @@ const SIDEBAR_NAV = [
     icon: Image,
     children: [
       { label: "Gallery", href: "/admin/gallery" },
+      { label: "Home page", href: "/admin/content/home" },
+      { label: "About us", href: "/admin/content/about" },
     ],
   },
   { label: "Reports & Analytics", href: "/admin/analytics", icon: BarChart2 },
