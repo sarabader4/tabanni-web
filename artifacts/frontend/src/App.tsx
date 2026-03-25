@@ -20,6 +20,8 @@ import AdminPets from "@/pages/admin/pets";
 import AdminUsers from "@/pages/admin/users";
 import AdminAdoptions from "@/pages/admin/adoptions";
 import AdminFosters from "@/pages/admin/fosters";
+import AdminGallery from "@/pages/admin/gallery";
+import AdminAnalytics from "@/pages/admin/analytics";
 import NotFound from "@/pages/not-found";
 import AIChatWidget from "@/components/ai-chat-widget";
 
@@ -33,6 +35,8 @@ function AppRoutes() {
       <Route path="/admin/users" component={AdminUsers} />
       <Route path="/admin/adoptions" component={AdminAdoptions} />
       <Route path="/admin/fosters" component={AdminFosters} />
+      <Route path="/admin/gallery" component={AdminGallery} />
+      <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route>
         <Layout>
           <Switch>

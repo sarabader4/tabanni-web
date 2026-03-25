@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable } from "@workspace/db";
-import { eq, and, ilike, desc, sql, gte } from "drizzle-orm";
+import { eq, and, ilike, desc, sql, gte, lte } from "drizzle-orm";
 import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -118,6 +118,69 @@ router.put("/admin/pets/:id/featured", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Error toggling pet featured");
     res.status(500).json({ error: "internal_error", message: "Failed to toggle featured" });
+  }
+});
+
+router.get("/admin/analytics", async (req, res) => {
+  try {
+    const now = new Date();
+    const months = Array.from({ length: 10 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 9 + i, 1);
+      return {
+        name: d.toLocaleString("en", { month: "short" }),
+        year: d.getFullYear(),
+        month: d.getMonth() + 1,
+        start: new Date(d.getFullYear(), d.getMonth(), 1),
+        end: new Date(d.getFullYear(), d.getMonth() + 1, 1),
+      };
+    });
+
+    const [adoptionsByMonth, donationsByMonth, petsByType, topCities] = await Promise.all([
+      Promise.all(
+        months.map(async (m) => ({
+          month: m.name,
+          count: (
+            await db.select({ count: sql<number>`count(*)::int` })
+              .from(adoptionRequestsTable)
+              .where(and(
+                eq(adoptionRequestsTable.status, "approved"),
+                gte(adoptionRequestsTable.createdAt, m.start),
+                lte(adoptionRequestsTable.createdAt, m.end),
+              ))
+          )[0]?.count ?? 0,
+        }))
+      ),
+      Promise.all(
+        months.map(async (m) => ({
+          month: m.name,
+          total: parseFloat(
+            (
+              await db.select({ total: sql<string>`coalesce(sum(amount::numeric), 0)::text` })
+                .from(donationsTable)
+                .where(and(
+                  eq(donationsTable.type, "monetary"),
+                  gte(donationsTable.createdAt, m.start),
+                  lte(donationsTable.createdAt, m.end),
+                ))
+            )[0]?.total ?? "0"
+          ),
+        }))
+      ),
+      db.select({ type: petsTable.type, count: sql<number>`count(*)::int` })
+        .from(petsTable)
+        .groupBy(petsTable.type),
+      db.select({ city: petsTable.city, count: sql<number>`count(*)::int` })
+        .from(petsTable)
+        .where(sql`${petsTable.city} is not null`)
+        .groupBy(petsTable.city)
+        .orderBy(desc(sql`count(*)`))
+        .limit(5),
+    ]);
+
+    res.json({ adoptionsByMonth, donationsByMonth, petsByType, topCities });
+  } catch (err) {
+    req.log.error({ err }, "Error getting admin analytics");
+    res.status(500).json({ error: "internal_error", message: "Failed to get analytics" });
   }
 });
 

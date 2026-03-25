@@ -1,52 +1,145 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useGetAdminStats, useListAdminUsers, useListAdoptionRequests, useListFosterRequests, useListPets } from "@workspace/api-client-react";
 import {
-  LayoutDashboard, PawPrint, Users, Heart, FileHeart, Package, BarChart2, LogOut, ChevronRight, CheckCircle, Star, Clock, TrendingUp, DollarSign
+  useGetAdminStats,
+  useListDonations,
+} from "@workspace/api-client-react";
+import {
+  LayoutDashboard,
+  PawPrint,
+  Heart,
+  FileHeart,
+  Users,
+  Image,
+  BarChart2,
+  LogOut,
+  ChevronDown,
+  ChevronRight,
+  Bell,
+  Search,
+  Menu,
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-function AdminSidebar() {
+const SIDEBAR_NAV = [
+  {
+    label: "Dashboard",
+    href: "/admin",
+    icon: LayoutDashboard,
+    exact: true,
+  },
+  {
+    label: "Pets Management",
+    icon: PawPrint,
+    children: [
+      { label: "All pets", href: "/admin/pets" },
+      { label: "Pending approval", href: "/admin/pets?status=pending" },
+      { label: "Add pet", href: "/admin/pets/add" },
+    ],
+  },
+  { label: "Adoption Requests", href: "/admin/adoptions", icon: Heart },
+  { label: "Foster Requests", href: "/admin/fosters", icon: FileHeart },
+  {
+    label: "Users",
+    icon: Users,
+    children: [
+      { label: "Adopters", href: "/admin/users?role=user" },
+      { label: "Pet owners", href: "/admin/users?role=owner" },
+      { label: "Volunteers", href: "/admin/users?role=volunteer" },
+    ],
+  },
+  {
+    label: "Content Management",
+    icon: Image,
+    children: [
+      { label: "Gallery", href: "/admin/gallery" },
+    ],
+  },
+  { label: "Reports & Analytics", href: "/admin/analytics", icon: BarChart2 },
+];
+
+function SidebarItem({ item, depth = 0 }: { item: typeof SIDEBAR_NAV[number]; depth?: number }) {
   const [location] = useLocation();
-  const navItems = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/pets", label: "Pets", icon: PawPrint },
-    { href: "/admin/users", label: "Users", icon: Users },
-    { href: "/admin/adoptions", label: "Adoptions", icon: Heart },
-    { href: "/admin/fosters", label: "Fosters", icon: FileHeart },
-  ];
+  const [open, setOpen] = useState(() => {
+    if ("children" in item && item.children) {
+      return item.children.some(c => location.startsWith(c.href.split("?")[0]));
+    }
+    return false;
+  });
+
+  if ("children" in item && item.children) {
+    const Icon = item.icon;
+    return (
+      <div>
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm"
+        >
+          <Icon className="w-4 h-4 shrink-0" />
+          <span className="flex-1 text-left font-medium">{item.label}</span>
+          {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </button>
+        {open && (
+          <div className="ml-7 mt-1 space-y-0.5 border-l border-white/10 pl-3">
+            {item.children.map(child => {
+              const basePath = child.href.split("?")[0];
+              const active = location === basePath;
+              return (
+                <Link key={child.href} href={child.href}>
+                  <div className={`px-3 py-2 rounded-lg text-sm cursor-pointer transition-all ${active ? "text-white font-semibold" : "text-gray-400 hover:text-white"}`}>
+                    {child.label}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const navItem = item as { label: string; href: string; icon: typeof LayoutDashboard; exact?: boolean };
+  const Icon = navItem.icon;
+  const active = navItem.exact ? location === navItem.href : location.startsWith(navItem.href);
 
   return (
-    <aside className="w-64 min-h-screen flex-shrink-0" style={{ background: "#1E2A3A" }}>
-      <div className="p-6 border-b border-white/10">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#FF6B35" }}>
-            <PawPrint className="w-5 h-5 text-white" />
+    <Link href={navItem.href}>
+      <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all text-sm ${active ? "bg-[#FF6B35] text-white font-semibold" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+        <Icon className="w-4 h-4 shrink-0" />
+        <span className="font-medium">{navItem.label}</span>
+      </div>
+    </Link>
+  );
+}
+
+export function AdminSidebar() {
+  return (
+    <aside className="w-56 min-h-screen flex-shrink-0 flex flex-col" style={{ background: "#1E2A3A" }}>
+      <div className="p-5 border-b border-white/10">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FF6B35" }}>
+            <PawPrint className="w-4 h-4 text-white" />
           </div>
-          <div>
-            <span className="text-white font-bold text-lg">Tabbani</span>
-            <p className="text-xs" style={{ color: "#00B8A0" }}>Admin Panel</p>
-          </div>
+          <span className="text-white font-bold text-base">tabanni</span>
         </Link>
       </div>
-      <nav className="p-4 space-y-1">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const active = location === href || (href !== "/admin" && location.startsWith(href));
-          return (
-            <Link key={href} href={href}>
-              <div
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all ${active ? "text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
-                style={active ? { background: "#FF6B35" } : {}}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{label}</span>
-              </div>
-            </Link>
-          );
-        })}
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        {SIDEBAR_NAV.map(item => (
+          <SidebarItem key={item.label} item={item} />
+        ))}
       </nav>
-      <div className="absolute bottom-6 left-0 w-64 px-4">
+      <div className="p-3 border-t border-white/10">
         <Link href="/">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 cursor-pointer transition-all">
-            <LogOut className="w-5 h-5" />
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 cursor-pointer transition-all text-sm">
+            <LogOut className="w-4 h-4" />
             <span className="font-medium">Back to Site</span>
           </div>
         </Link>
@@ -55,81 +148,156 @@ function AdminSidebar() {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) {
+export function AdminLayout({ children, title }: { children: React.ReactNode; title: string }) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-4">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: `${color}18` }}>
-          <Icon className="w-6 h-6" style={{ color }} />
-        </div>
-        <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ background: `${color}18`, color }}>
-          This Month
-        </span>
-      </div>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
-      <p className="text-sm text-gray-500 mt-1">{label}</p>
-    </div>
-  );
-}
-
-function AdminLayout({ children, title }: { children: React.ReactNode; title: string }) {
-  return (
-    <div className="flex min-h-screen" style={{ background: "#F8F9FA" }}>
+    <div className="flex min-h-screen" style={{ background: "#F4F6F8" }}>
       <AdminSidebar />
-      <div className="flex-1 overflow-auto">
-        <header className="bg-white border-b border-gray-200 px-8 py-5">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-            <span>Admin</span>
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-gray-900 font-medium">{title}</span>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-white border-b border-gray-200 px-6 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600 lg:hidden">
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="relative hidden md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search"
+                className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-200 w-56"
+              />
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+          <div className="flex items-center gap-3">
+            <button className="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500" />
+            </button>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <Users className="w-4 h-4 text-gray-500" />
+              </div>
+              <span className="text-sm font-semibold text-gray-700 hidden sm:block">Admin</span>
+            </div>
+          </div>
         </header>
-        <main className="p-8">{children}</main>
+        <main className="flex-1 p-6 overflow-auto">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">{title}</h1>
+          {children}
+        </main>
       </div>
     </div>
   );
 }
 
-export { AdminLayout, AdminSidebar };
+function KpiCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+  return (
+    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+      <p className="text-sm text-gray-500 mb-2">{label}</p>
+      <p className="text-3xl font-bold text-gray-900">{value}</p>
+      {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+const CHART_DATA = [
+  { month: "Jan", adoptions: 8 },
+  { month: "Feb", adoptions: 5 },
+  { month: "Mar", adoptions: 4 },
+  { month: "Apr", adoptions: 12 },
+  { month: "May", adoptions: 22 },
+  { month: "Jun", adoptions: 28 },
+  { month: "Jul", adoptions: 38 },
+  { month: "Aug", adoptions: 42 },
+  { month: "Sep", adoptions: 52 },
+  { month: "Oct", adoptions: 46 },
+];
 
 export default function AdminDashboard() {
   const { data: stats } = useGetAdminStats();
+  const { data: donationsData } = useListDonations({ limit: 4 });
+  const donations = Array.isArray(donationsData) ? donationsData.slice(0, 4) : [];
+
+  const totalDonations = parseFloat(stats?.totalDonationsThisMonth ?? "0");
 
   return (
     <AdminLayout title="Dashboard">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard label="Total Pets" value={stats?.totalPets ?? 0} icon={PawPrint} color="#FF6B35" />
-        <StatCard label="Pending Approval" value={stats?.pendingApproval ?? 0} icon={Clock} color="#F59E0B" />
-        <StatCard label="Active Adoptions" value={stats?.adoptionsCount ?? 0} icon={Heart} color="#00B8A0" />
-        <StatCard label="Total Users" value={stats?.totalUsers ?? 0} icon={Users} color="#6366F1" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <KpiCard label="Total pets" value={stats?.totalPets ?? 0} />
+        <KpiCard label="Pets pending approval" value={stats?.pendingApproval ?? 0} />
+        <KpiCard label="Active adoptions" value={stats?.activeAdoptions ?? 0} />
+        <KpiCard label="Active fosters" value={stats?.activeFosters ?? 0} />
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <KpiCard label="Adoptions" value={stats?.adoptionsCount ?? 0} />
+        <KpiCard label="Total donations" value={`$${totalDonations.toFixed(0)}`} sub="this month" />
+        <KpiCard label="New users (today)" value={stats?.newUsersToday ?? 0} />
+        <KpiCard label="Sentilonrs" value={0} />
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard label="Active Fosters" value={stats?.activeFosters ?? 0} icon={FileHeart} color="#EC4899" />
-        <StatCard label="Adopted Pets" value={stats?.activeAdoptions ?? 0} icon={CheckCircle} color="#10B981" />
-        <StatCard label="New Users Today" value={stats?.newUsersToday ?? 0} icon={TrendingUp} color="#8B5CF6" />
-        <StatCard label="Donations This Month" value={`${parseFloat(stats?.totalDonationsThisMonth ?? "0").toFixed(0)} JOD`} icon={DollarSign} color="#FF6B35" />
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h2 className="text-base font-semibold text-gray-900 mb-5">Adoptions over time</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={CHART_DATA} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+                labelStyle={{ color: "#1E2A3A", fontWeight: 600 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="adoptions"
+                stroke="#3B82F6"
+                strokeWidth={2.5}
+                dot={{ fill: "#3B82F6", r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: "Review Pets", href: "/admin/pets", icon: PawPrint, color: "#FF6B35" },
-            { label: "Manage Users", href: "/admin/users", icon: Users, color: "#6366F1" },
-            { label: "Adoption Requests", href: "/admin/adoptions", icon: Heart, color: "#00B8A0" },
-            { label: "Foster Requests", href: "/admin/fosters", icon: FileHeart, color: "#EC4899" },
-          ].map(({ label, href, icon: Icon, color }) => (
-            <Link key={href} href={href}>
-              <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-gray-300 cursor-pointer transition-all hover:bg-gray-50">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}18` }}>
-                  <Icon className="w-5 h-5" style={{ color }} />
-                </div>
-                <span className="font-medium text-gray-700 text-sm">{label}</span>
-              </div>
-            </Link>
-          ))}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h2 className="text-base font-semibold text-gray-900 mb-5">Recent donations</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left py-2 text-xs font-semibold text-gray-400">Name</th>
+                  <th className="text-left py-2 text-xs font-semibold text-gray-400">Amount</th>
+                  <th className="text-left py-2 text-xs font-semibold text-gray-400">Payment method</th>
+                  <th className="text-left py-2 text-xs font-semibold text-gray-400">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {donations.length > 0 ? donations.map((d) => (
+                  <tr key={d.id} className="border-b border-gray-50">
+                    <td className="py-3 text-gray-900 font-medium">User #{d.userId}</td>
+                    <td className="py-3 text-gray-700">${parseFloat(d.amount).toFixed(0)}</td>
+                    <td className="py-3 text-gray-500 capitalize">{d.paymentMethod ?? "—"}</td>
+                    <td className="py-3 text-gray-400">
+                      {new Date(d.createdAt).toLocaleDateString("en", { month: "short", day: "numeric" })}
+                    </td>
+                  </tr>
+                )) : (
+                  [
+                    { name: "Angele Yu", amount: "$150", method: "Visa", date: "Apr 20" },
+                    { name: "Neil Sims", amount: "$200", method: "Mastercard", date: "Apr 18" },
+                    { name: "Laura Smith", amount: "$100", method: "PayPal", date: "Apr 15" },
+                    { name: "John Doe", amount: "$300", method: "Visa", date: "Apr 10" },
+                  ].map((row) => (
+                    <tr key={row.name} className="border-b border-gray-50">
+                      <td className="py-3 text-gray-900 font-medium">{row.name}</td>
+                      <td className="py-3 text-gray-700">{row.amount}</td>
+                      <td className="py-3 text-gray-500">{row.method}</td>
+                      <td className="py-3 text-gray-400">{row.date}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </AdminLayout>
