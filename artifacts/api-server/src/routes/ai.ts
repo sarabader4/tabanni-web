@@ -169,7 +169,8 @@ Return between 3 and 5 of the best matching pet IDs from the provided list. Only
       .map(m => ({
         pet: petsById.get(m.petId),
         matchReason: m.matchReason,
-      }));
+      }))
+      .slice(0, 5);
 
     res.json({ matches: enrichedMatches, explanation: parsed.explanation ?? "" });
   } catch (err) {

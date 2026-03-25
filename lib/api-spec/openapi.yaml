@@ -784,6 +784,147 @@ paths:
               schema:
                 $ref: "#/components/schemas/Pet"
 
+  /ai/chat:
+    post:
+      summary: Chat with the AI pet adoption assistant
+      operationId: aiChat
+      tags:
+        - ai
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant]
+                      content:
+                        type: string
+                    required: [role, content]
+                message:
+                  type: string
+                history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      content:
+                        type: string
+      responses:
+        "200":
+          description: AI reply
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reply:
+                    type: string
+                required: [reply]
+
+  /ai/recommend:
+    post:
+      summary: Get AI-powered pet match recommendations
+      operationId: aiRecommend
+      tags:
+        - ai
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preferences:
+                  oneOf:
+                    - type: string
+                    - type: object
+                petIds:
+                  type: array
+                  items:
+                    type: integer
+                  description: Optional list of pet IDs to scope the search
+                excludePetId:
+                  type: integer
+                  description: Pet ID to exclude (for similar-pet matching on detail page)
+      responses:
+        "200":
+          description: AI match results (3-5 ranked pets with reasons)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matches:
+                    type: array
+                    maxItems: 5
+                    items:
+                      type: object
+                      properties:
+                        pet:
+                          $ref: "#/components/schemas/Pet"
+                        matchReason:
+                          type: string
+                      required: [pet, matchReason]
+                  explanation:
+                    type: string
+                required: [matches, explanation]
+
+  /ai/generate-description:
+    post:
+      summary: Generate an AI adoption story for a pet
+      operationId: aiGenerateDescription
+      tags:
+        - ai
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pet:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    type:
+                      type: string
+                    breed:
+                      type: string
+                    gender:
+                      type: string
+                    ageMonths:
+                      type: integer
+                    size:
+                      type: string
+                    city:
+                      type: string
+                  required: [name, type, gender]
+              required: [pet]
+      responses:
+        "200":
+          description: AI-generated pet description/story
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  description:
+                    type: string
+                  story:
+                    type: string
+                required: [description, story]
+
 components:
   schemas:
     HealthStatus:
