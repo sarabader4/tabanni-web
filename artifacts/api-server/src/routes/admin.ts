@@ -128,10 +128,69 @@ router.get("/admin/users", async (req, res) => {
       .limit(limitNum)
       .offset(offset);
 
-    res.json(users);
+    const adoptionMap = new Map<number, number>();
+    const fosterMap = new Map<number, number>();
+    const petsMap = new Map<number, number>();
+
+    for (const u of users) {
+      const [ar, fr, po] = await Promise.all([
+        db.select({ cnt: sql<number>`count(*)::int` }).from(adoptionRequestsTable).where(eq(adoptionRequestsTable.requesterId, u.id)),
+        db.select({ cnt: sql<number>`count(*)::int` }).from(fosterRequestsTable).where(eq(fosterRequestsTable.requesterId, u.id)),
+        db.select({ cnt: sql<number>`count(*)::int` }).from(petsTable).where(eq(petsTable.ownerId, u.id)),
+      ]);
+      adoptionMap.set(u.id, ar[0]?.cnt ?? 0);
+      fosterMap.set(u.id, fr[0]?.cnt ?? 0);
+      petsMap.set(u.id, po[0]?.cnt ?? 0);
+    }
+
+    const enriched = users.map(u => ({
+      ...u,
+      totalAdoptionRequests: adoptionMap.get(u.id) ?? 0,
+      totalFosterRequests: fosterMap.get(u.id) ?? 0,
+      totalPetsOwned: petsMap.get(u.id) ?? 0,
+    }));
+
+    res.json(enriched);
   } catch (err) {
     req.log.error({ err }, "Error listing admin users");
     res.status(500).json({ error: "internal_error", message: "Failed to list users" });
+  }
+});
+
+router.put("/admin/users/:id/deactivate", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+    if (!user) return res.status(404).json({ error: "not_found", message: "User not found" });
+    res.json({ message: "User deactivated", userId: id });
+  } catch (err) {
+    req.log.error({ err }, "Error deactivating user");
+    res.status(500).json({ error: "internal_error", message: "Failed to deactivate user" });
+  }
+});
+
+router.put("/admin/pets/:id/settings", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    const { status, featured, approved } = req.body;
+    const updates: Partial<{ status: "available" | "adopted" | "fostered" | "pending" | "lost" | "found"; featured: boolean; approved: boolean }> = {};
+    const validStatuses = ["available", "adopted", "fostered", "pending", "lost", "found"] as const;
+    if (typeof status === "string" && validStatuses.includes(status as typeof validStatuses[number])) {
+      updates.status = status as typeof validStatuses[number];
+    }
+    if (typeof featured === "boolean") updates.featured = featured;
+    if (typeof approved === "boolean") updates.approved = approved;
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "validation_error", message: "No valid fields to update" });
+    }
+    const [pet] = await db.update(petsTable).set(updates).where(eq(petsTable.id, id)).returning();
+    if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
+    res.json(pet);
+  } catch (err) {
+    req.log.error({ err }, "Error updating pet settings");
+    res.status(500).json({ error: "internal_error", message: "Failed to update pet settings" });
   }
 });
 

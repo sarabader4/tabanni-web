@@ -53,8 +53,11 @@ export default function AdminUsers() {
   }
 
   async function handleDeactivate(userId: number) {
-    if (!confirm("Deactivate this user? This will prevent them from logging in.")) return;
+    if (!confirm("Deactivate this user? They will lose access to the platform.")) return;
+    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+    await fetch(`${base}/api/admin/users/${userId}/deactivate`, { method: "PUT" });
     setActionMenuId(null);
+    refetch();
   }
 
   return (
@@ -93,6 +96,7 @@ export default function AdminUsers() {
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">User</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Contact</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Location</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Requests</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Role</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Joined</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
@@ -135,6 +139,12 @@ export default function AdminUsers() {
                         {user.city}{user.country ? `, ${user.country}` : ""}
                       </div>
                     ) : <span className="text-xs text-gray-400">—</span>}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div className="text-xs text-gray-600 space-y-0.5">
+                      <div>{(user as Record<string, unknown>).totalAdoptionRequests as number ?? 0} adoptions</div>
+                      <div>{(user as Record<string, unknown>).totalFosterRequests as number ?? 0} fosters</div>
+                    </div>
                   </td>
                   <td className="px-5 py-3.5">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${ROLE_COLORS[user.role] ?? "bg-gray-100 text-gray-600"}`}>
@@ -188,7 +198,7 @@ export default function AdminUsers() {
               ))}
               {(users ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-gray-400">No users found</td>
+                  <td colSpan={7} className="px-5 py-12 text-center text-gray-400">No users found</td>
                 </tr>
               )}
             </tbody>

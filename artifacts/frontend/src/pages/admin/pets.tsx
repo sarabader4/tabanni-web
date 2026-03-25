@@ -98,6 +98,7 @@ function PetModal({
         { onSuccess: () => { onSuccess(); onClose(); } }
       );
     } else if (pet) {
+      const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       updateMutation.mutate(
         {
           id: pet.id,
@@ -112,7 +113,17 @@ function PetModal({
             imageUrls: imageUrlsArr,
           },
         },
-        { onSuccess: () => { onSuccess(); onClose(); } }
+        {
+          onSuccess: async () => {
+            await fetch(`${base}/api/admin/pets/${pet.id}/settings`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: form.status, featured: form.featured }),
+            });
+            onSuccess();
+            onClose();
+          },
+        }
       );
     }
   }
@@ -186,6 +197,28 @@ function PetModal({
                 <input type="number" value={form.ownerId} onChange={f("ownerId")} placeholder="User ID (optional)" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200" />
               </div>
             )}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Status</label>
+              <select value={form.status} onChange={f("status")} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200">
+                <option value="available">Available</option>
+                <option value="pending">Pending</option>
+                <option value="adopted">Adopted</option>
+                <option value="fostered">Fostered</option>
+                <option value="lost">Lost</option>
+                <option value="found">Found</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.featured}
+                  onChange={(e) => setForm(prev => ({ ...prev, featured: e.target.checked }))}
+                  className="w-4 h-4 rounded accent-orange-500"
+                />
+                <span className="text-xs font-semibold text-gray-500">Featured (show on home page)</span>
+              </label>
+            </div>
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5">Image URLs (comma-separated)</label>
