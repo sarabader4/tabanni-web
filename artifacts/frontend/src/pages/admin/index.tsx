@@ -60,9 +60,9 @@ const SIDEBAR_NAV = [
     label: "Content Management",
     icon: Image,
     children: [
-      { label: "Gallery", href: "/admin/gallery" },
       { label: "Home page", href: "/admin/content/home" },
       { label: "About us", href: "/admin/content/about" },
+      { label: "Gallery", href: "/admin/gallery" },
     ],
   },
   { label: "Reports & Analytics", href: "/admin/analytics", icon: BarChart2 },

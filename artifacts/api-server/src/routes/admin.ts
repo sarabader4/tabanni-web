@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable } from "@workspace/db";
-import { eq, and, ilike, desc, sql, gte, lte } from "drizzle-orm";
+import { eq, and, ilike, desc, sql, gte, lte, lt } from "drizzle-orm";
 import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -60,7 +60,7 @@ router.get("/admin/stats", async (req, res) => {
             .where(and(
               eq(adoptionRequestsTable.status, "approved"),
               gte(adoptionRequestsTable.createdAt, m.start),
-              lte(adoptionRequestsTable.createdAt, m.end),
+              lt(adoptionRequestsTable.createdAt, m.end),
             ))
         )[0]?.count ?? 0,
       }))
@@ -76,7 +76,7 @@ router.get("/admin/stats", async (req, res) => {
               .where(and(
                 eq(donationsTable.type, "monetary"),
                 gte(donationsTable.createdAt, m.start),
-                lte(donationsTable.createdAt, m.end),
+                lt(donationsTable.createdAt, m.end),
               ))
           )[0]?.total ?? "0"
         ),
@@ -292,7 +292,7 @@ router.get("/admin/analytics", async (req, res) => {
               .where(and(
                 eq(adoptionRequestsTable.status, "approved"),
                 gte(adoptionRequestsTable.createdAt, m.start),
-                lte(adoptionRequestsTable.createdAt, m.end),
+                lt(adoptionRequestsTable.createdAt, m.end),
               ))
           )[0]?.count ?? 0,
         }))
@@ -307,7 +307,7 @@ router.get("/admin/analytics", async (req, res) => {
                 .where(and(
                   eq(donationsTable.type, "monetary"),
                   gte(donationsTable.createdAt, m.start),
-                  lte(donationsTable.createdAt, m.end),
+                  lt(donationsTable.createdAt, m.end),
                 ))
             )[0]?.total ?? "0"
           ),
@@ -328,6 +328,35 @@ router.get("/admin/analytics", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Error getting admin analytics");
     res.status(500).json({ error: "internal_error", message: "Failed to get analytics" });
+  }
+});
+
+router.get("/admin/content", async (req, res) => {
+  try {
+    const result = await db.execute(sql`SELECT key, value, updated_at FROM site_content ORDER BY key`);
+    const content: Record<string, string> = {};
+    for (const row of result.rows as { key: string; value: string }[]) {
+      content[row.key] = row.value;
+    }
+    res.json(content);
+  } catch (err) {
+    req.log.error({ err }, "Error getting site content");
+    res.status(500).json({ error: "internal_error", message: "Failed to get content" });
+  }
+});
+
+router.put("/admin/content/:key", async (req, res) => {
+  try {
+    const key = req.params.key;
+    const { value } = req.body;
+    if (typeof value !== "string") {
+      return res.status(400).json({ error: "validation_error", message: "Value must be a string" });
+    }
+    await db.execute(sql`INSERT INTO site_content (key, value, updated_at) VALUES (${key}, ${value}, NOW()) ON CONFLICT (key) DO UPDATE SET value = ${value}, updated_at = NOW()`);
+    res.json({ key, value });
+  } catch (err) {
+    req.log.error({ err }, "Error updating site content");
+    res.status(500).json({ error: "internal_error", message: "Failed to update content" });
   }
 });
 
