@@ -93,7 +93,8 @@ export default function LostFound() {
     const matchesMonth = !filters.month || (() => {
       const monthIdx = MONTH_NAMES.indexOf(filters.month.toLowerCase());
       if (monthIdx === -1) return true;
-      const d = new Date(r.createdAt);
+      const eventDateStr = r.lostDate || r.foundDate || r.createdAt;
+      const d = new Date(eventDateStr);
       return d.getMonth() === monthIdx;
     })();
     const age = r.ageMonths ?? null;
