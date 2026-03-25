@@ -33,7 +33,7 @@ export default function LostFound() {
   const { toast } = useToast();
   const pageSize = 20;
 
-  const isClientFiltering = !!(search || filters.month || filters.minAge || filters.maxAge);
+  const isClientFiltering = !!(search || filters.month || filters.minAge);
   const { data, isLoading, isError, refetch } = useListLostFoundReports({
     reportType: tab,
     type: filters.type || undefined,
@@ -97,10 +97,17 @@ export default function LostFound() {
       return d.getMonth() === monthIdx;
     })();
     const age = r.ageMonths ?? null;
-    const minAge = filters.minAge ? Number(filters.minAge) : null;
-    const maxAge = filters.maxAge ? Number(filters.maxAge) : null;
-    const matchesMinAge = minAge === null || age === null || age >= minAge;
-    const matchesMaxAge = maxAge === null || age === null || age <= maxAge;
+    const parsedAge = (() => {
+      const s = filters.minAge;
+      if (!s) return { min: null, max: null };
+      if (s === "< 1 year") return { min: null, max: 12 };
+      if (s === "1–3 years") return { min: 12, max: 36 };
+      if (s === "3–5 years") return { min: 36, max: 60 };
+      if (s === "5+ years") return { min: 60, max: null };
+      return { min: null, max: null };
+    })();
+    const matchesMinAge = parsedAge.min === null || age === null || age >= parsedAge.min;
+    const matchesMaxAge = parsedAge.max === null || age === null || age <= parsedAge.max;
     return matchesSearch && matchesMonth && matchesMinAge && matchesMaxAge;
   });
   const total = data?.total ?? 0;
