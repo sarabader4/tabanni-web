@@ -158,17 +158,22 @@ Return between 3 and 5 of the best matching pet IDs from the provided list. Only
       return res.json({ matches: [], explanation: "Could not process your request." });
     }
 
-    const parsed = JSON.parse(jsonMatch[0]) as {
-      matches?: { petId: number; matchReason: string }[];
-      explanation?: string;
-    };
+    let parsed: { matches?: { petId: number; matchReason: string }[]; explanation?: string };
+    try {
+      parsed = JSON.parse(jsonMatch[0]) as typeof parsed;
+    } catch {
+      return res.json({ matches: [], explanation: "Could not process your request." });
+    }
+
     const petsById = new Map(availablePets.map(p => [p.id, p]));
 
     const enrichedMatches = (parsed.matches ?? [])
       .filter(m => petsById.has(m.petId))
-      .map(m => ({
+      .map((m, idx) => ({
         pet: petsById.get(m.petId),
+        petName: petsById.get(m.petId)?.name ?? "",
         matchReason: m.matchReason,
+        score: 1 - idx * 0.1,
       }))
       .slice(0, 5);
 

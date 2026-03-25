@@ -872,9 +872,15 @@ paths:
                       properties:
                         pet:
                           $ref: "#/components/schemas/Pet"
+                        petName:
+                          type: string
                         matchReason:
                           type: string
-                      required: [pet, matchReason]
+                        score:
+                          type: number
+                          minimum: 0
+                          maximum: 1
+                      required: [pet, petName, matchReason, score]
                   explanation:
                     type: string
                 required: [matches, explanation]
