@@ -101,22 +101,7 @@ router.post("/ai/recommend", async (req, res) => {
     }
 
     const availablePets = await db
-      .select({
-        id: petsTable.id,
-        name: petsTable.name,
-        type: petsTable.type,
-        breed: petsTable.breed,
-        ageMonths: petsTable.ageMonths,
-        gender: petsTable.gender,
-        size: petsTable.size,
-        story: petsTable.story,
-        imageUrls: petsTable.imageUrls,
-        purpose: petsTable.purpose,
-        status: petsTable.status,
-        approved: petsTable.approved,
-        featured: petsTable.featured,
-        city: petsTable.city,
-      })
+      .select()
       .from(petsTable)
       .where(whereClause)
       .limit(30);
