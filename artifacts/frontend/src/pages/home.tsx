@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Heart, Shield, Clock, Search } from "lucide-react";
 import { useGetFeaturedPets, useGetAdminStats, useListGalleryPosts } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
+import AIPetMatchWidget from "@/components/ai-pet-match-widget";
 
 export default function Home() {
   const { data: featuredPets, isLoading: petsLoading } = useGetFeaturedPets();
@@ -94,6 +95,9 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* AI Pet Match */}
+      <AIPetMatchWidget />
 
       {/* Stats Section */}
       <section className="bg-foreground py-20 mt-10">

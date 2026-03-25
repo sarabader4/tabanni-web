@@ -29,7 +29,7 @@ export default function AIChatWidget() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/ai/chat", {
+      const response = await fetch(`${import.meta.env.BASE_URL}api/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -3,6 +3,7 @@ import { PawPrint, Bell, Menu, X, Instagram, Twitter, Facebook } from "lucide-re
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import AIChatWidget from "@/components/ai-chat-widget";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -158,6 +159,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className="flex-1 pt-20">{children}</main>
+
+      {/* AI Chat Widget */}
+      <AIChatWidget />
 
       {/* Footer */}
       <footer className="bg-[#1E2A3A] text-white mt-16" style={{ borderRadius: "2rem 2rem 0 0" }}>

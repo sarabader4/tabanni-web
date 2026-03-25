@@ -9,7 +9,7 @@ import {
   useCreatePet,
   type Pet,
 } from "@workspace/api-client-react";
-import { PawPrint, Star, CheckCircle, Trash2, Eye, Search, Plus, X, Edit2 } from "lucide-react";
+import { PawPrint, Star, CheckCircle, Trash2, Eye, Search, Plus, X, Edit2, Sparkles, Loader2 } from "lucide-react";
 import { AdminLayout } from "./index";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -64,6 +64,7 @@ function PetModal({
 }) {
   const createMutation = useCreatePet();
   const updateMutation = useUpdatePet();
+  const [generatingDesc, setGeneratingDesc] = useState(false);
 
   const [form, setForm] = useState<PetFormData>({
     name: pet?.name ?? "",
@@ -150,6 +151,34 @@ function PetModal({
   ) => setForm(prev => ({ ...prev, [key]: e.target.value }));
 
   const isPending = createMutation.isPending || updateMutation.isPending;
+
+  async function generateDescription() {
+    setGeneratingDesc(true);
+    try {
+      const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+      const response = await fetch(`${base}/api/ai/generate-description`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pet: {
+            name: form.name || "this pet",
+            type: form.type,
+            breed: form.breed,
+            gender: form.gender,
+            ageMonths: parseInt(form.ageMonths) || 0,
+            size: form.size,
+            city: form.city,
+          },
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json() as { story: string };
+        setForm(prev => ({ ...prev, story: data.story }));
+      }
+    } finally {
+      setGeneratingDesc(false);
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -242,7 +271,24 @@ function PetModal({
             <input value={form.imageUrls} onChange={f("imageUrls")} placeholder="https://..." className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200" />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Story</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-gray-500">Story</label>
+              <button
+                type="button"
+                onClick={generateDescription}
+                disabled={generatingDesc}
+                data-testid="generate-desc-btn"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                style={{ background: "#FF6B35" }}
+              >
+                {generatingDesc ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
+                Generate with AI ✨
+              </button>
+            </div>
             <textarea value={form.story} onChange={f("story")} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none" />
           </div>
           <div className="flex justify-end gap-3 pt-2">

@@ -1,10 +1,11 @@
 import { Router, type IRouter } from "express";
 import type OpenAI from "openai";
+import { db, petsTable } from "@workspace/db";
+import { eq, and } from "drizzle-orm";
 
 let openai: InstanceType<typeof import("openai").default> | null = null;
 const AI_ENABLED = !!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
 if (AI_ENABLED) {
-  // Lazy import to avoid crashing when the integration is not configured
   import("@workspace/integrations-openai-ai-server").then(m => { openai = m.openai; });
 }
 
@@ -53,47 +54,109 @@ router.post("/ai/chat", async (req, res) => {
   }
 });
 
-router.post("/ai/match", async (req, res) => {
+router.post("/ai/recommend", async (req, res) => {
   try {
     if (!openai) {
       return res.status(503).json({ error: "ai_unavailable", message: "AI service not configured" });
     }
-    const { preferences } = req.body as { preferences: Record<string, unknown> };
-    if (!preferences) {
-      return res.status(400).json({ error: "validation_error", message: "preferences required" });
+    const { description } = req.body as { description: string };
+    if (!description || typeof description !== "string" || !description.trim()) {
+      return res.status(400).json({ error: "validation_error", message: "description required" });
     }
+
+    const availablePets = await db
+      .select({
+        id: petsTable.id,
+        name: petsTable.name,
+        type: petsTable.type,
+        breed: petsTable.breed,
+        ageMonths: petsTable.ageMonths,
+        gender: petsTable.gender,
+        size: petsTable.size,
+        story: petsTable.story,
+        imageUrls: petsTable.imageUrls,
+        purpose: petsTable.purpose,
+        status: petsTable.status,
+        approved: petsTable.approved,
+        featured: petsTable.featured,
+        city: petsTable.city,
+      })
+      .from(petsTable)
+      .where(and(eq(petsTable.status, "available"), eq(petsTable.approved, true)))
+      .limit(30);
+
+    if (availablePets.length === 0) {
+      return res.json({ matches: [], explanation: "No pets are currently available for adoption." });
+    }
+
+    const petsJson = availablePets.map(p => ({
+      id: p.id,
+      name: p.name,
+      type: p.type,
+      breed: p.breed,
+      ageMonths: p.ageMonths,
+      gender: p.gender,
+      size: p.size,
+      city: p.city,
+      story: (p.story ?? "").slice(0, 200),
+      purpose: p.purpose,
+    }));
 
     const completion = await openai.chat.completions.create({
       model: "gpt-5.2",
-      max_completion_tokens: 512,
+      max_completion_tokens: 600,
       messages: [
         {
           role: "system",
-          content: `You are a pet matching expert for Tabbani (Jordan's pet adoption platform). 
-Based on user preferences, recommend what type of pet and specific characteristics would be the best match.
-Return ONLY a JSON object with: { petType: string, size: string, ageRange: string, characteristics: string[], explanation: string }`,
+          content: `You are a pet matching expert for Tabbani (Jordan's pet adoption platform).
+You will be given a list of available pets and a description of what the user is looking for.
+Return ONLY valid JSON in this exact format (no markdown, no explanation outside the JSON):
+{
+  "matches": [
+    { "petId": <number>, "matchReason": "<1-2 sentence reason why this pet matches>" },
+    ...
+  ],
+  "explanation": "<1 sentence general advice>"
+}
+Return between 3 and 5 of the best matching pet IDs from the provided list. Only include IDs from the given list.`,
         },
         {
           role: "user",
-          content: `Find me a perfect pet match: ${JSON.stringify(preferences)}`,
+          content: `Available pets:\n${JSON.stringify(petsJson, null, 2)}\n\nUser is looking for: ${description}`,
         },
       ],
     });
 
     const content = completion.choices[0]?.message?.content ?? "{}";
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      res.json(JSON.parse(jsonMatch[0]));
-    } else {
-      res.json({ explanation: content });
+    if (!jsonMatch) {
+      return res.json({ matches: [], explanation: "Could not process your request." });
     }
+
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      matches?: { petId: number; matchReason: string }[];
+      explanation?: string;
+    };
+    const petsById = new Map(availablePets.map(p => [p.id, p]));
+
+    const enrichedMatches = (parsed.matches ?? [])
+      .filter(m => petsById.has(m.petId))
+      .map(m => {
+        const pet = petsById.get(m.petId);
+        return {
+          pet,
+          matchReason: m.matchReason,
+        };
+      });
+
+    res.json({ matches: enrichedMatches, explanation: parsed.explanation ?? "" });
   } catch (err) {
-    req.log.error({ err }, "AI match error");
+    req.log.error({ err }, "AI recommend error");
     res.status(500).json({ error: "ai_error", message: "AI service unavailable" });
   }
 });
 
-router.post("/ai/describe", async (req, res) => {
+router.post("/ai/generate-description", async (req, res) => {
   try {
     if (!openai) {
       return res.status(503).json({ error: "ai_unavailable", message: "AI service not configured" });
@@ -122,9 +185,17 @@ Write a warm, engaging story/description for a pet listing. Write in first perso
     const story = completion.choices[0]?.message?.content ?? "";
     res.json({ story });
   } catch (err) {
-    req.log.error({ err }, "AI describe error");
+    req.log.error({ err }, "AI generate-description error");
     res.status(500).json({ error: "ai_error", message: "AI service unavailable" });
   }
+});
+
+router.post("/ai/match", async (req, res) => {
+  return res.redirect(307, "/api/ai/recommend");
+});
+
+router.post("/ai/describe", async (req, res) => {
+  return res.redirect(307, "/api/ai/generate-description");
 });
 
 export default router;
