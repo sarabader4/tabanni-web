@@ -33,7 +33,7 @@ export default function LostFound() {
   const { toast } = useToast();
   const pageSize = 20;
 
-  const isClientFiltering = !!(search || filters.month);
+  const isClientFiltering = !!(search || filters.month || filters.minAge || filters.maxAge);
   const { data, isLoading, isError, refetch } = useListLostFoundReports({
     reportType: tab,
     type: filters.type || undefined,
@@ -96,7 +96,12 @@ export default function LostFound() {
       const d = new Date(r.createdAt);
       return d.getMonth() === monthIdx;
     })();
-    return matchesSearch && matchesMonth;
+    const age = r.ageMonths ?? null;
+    const minAge = filters.minAge ? Number(filters.minAge) : null;
+    const maxAge = filters.maxAge ? Number(filters.maxAge) : null;
+    const matchesMinAge = minAge === null || age === null || age >= minAge;
+    const matchesMaxAge = maxAge === null || age === null || age <= maxAge;
+    return matchesSearch && matchesMonth && matchesMinAge && matchesMaxAge;
   });
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / pageSize) || 1;
@@ -112,7 +117,7 @@ export default function LostFound() {
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Search for friend to adopt..."
+              placeholder="Search by name, breed, city..."
               className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
           </div>
