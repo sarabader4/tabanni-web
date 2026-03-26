@@ -511,30 +511,6 @@ export type ListLostFoundReportsParams = {
   limit?: number;
 };
 
-export type GetMyProfileParams = {
-  userId: number;
-};
-
-export type UpdateMyProfileParams = {
-  userId: number;
-};
-
-export type GetMyPetsParams = {
-  userId: number;
-};
-
-export type GetMyApplicationsParams = {
-  userId: number;
-};
-
-export type GetMyFavouritesParams = {
-  userId: number;
-};
-
-export type GetMyDonationsParams = {
-  userId: number;
-};
-
 export type ListAdminUsersParams = {
   role?: string;
   search?: string;

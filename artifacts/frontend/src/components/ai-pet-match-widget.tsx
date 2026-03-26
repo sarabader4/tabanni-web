@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Sparkles, Search, Loader2, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
-import type { Pet } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { Pet } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 
 interface MatchedPet {

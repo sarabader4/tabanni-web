@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Bookmark } from "lucide-react";
-import type { Pet } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { Pet } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 
 interface PetCardProps {

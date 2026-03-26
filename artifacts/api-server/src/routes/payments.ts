@@ -129,7 +129,7 @@ router.post("/payments/paypal/create-order", async (req, res) => {
     const paypalClient = getPayPalClient();
     const ordersController = new OrdersController(paypalClient);
 
-    const { body: order } = await ordersController.createOrder({
+    const { result: order } = await ordersController.createOrder({
       body: {
         intent: CheckoutPaymentIntent.Capture,
         purchaseUnits: [
@@ -177,7 +177,7 @@ router.post("/payments/paypal/capture-order", async (req, res) => {
     const paypalClient = getPayPalClient();
     const ordersController = new OrdersController(paypalClient);
 
-    const { body: capture } = await ordersController.captureOrder({
+    const { result: capture } = await ordersController.captureOrder({
       id: orderId,
       prefer: "return=representation",
     });

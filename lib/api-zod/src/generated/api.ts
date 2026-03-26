@@ -573,10 +573,6 @@ export const SendMessageBody = zod.object({
 /**
  * @summary Get current user profile
  */
-export const GetMyProfileQueryParams = zod.object({
-  userId: zod.coerce.number(),
-});
-
 export const GetMyProfileResponse = zod.object({
   id: zod.number(),
   fullName: zod.string(),
@@ -592,10 +588,6 @@ export const GetMyProfileResponse = zod.object({
 /**
  * @summary Update current user profile
  */
-export const UpdateMyProfileQueryParams = zod.object({
-  userId: zod.coerce.number(),
-});
-
 export const UpdateMyProfileBody = zod.object({
   fullName: zod.string().optional(),
   email: zod.string().optional(),
@@ -620,10 +612,6 @@ export const UpdateMyProfileResponse = zod.object({
 /**
  * @summary Get current user's listed pets
  */
-export const GetMyPetsQueryParams = zod.object({
-  userId: zod.coerce.number(),
-});
-
 export const GetMyPetsResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
@@ -661,10 +649,6 @@ export const GetMyPetsResponse = zod.array(GetMyPetsResponseItem);
 /**
  * @summary Get current user's adoption and foster applications
  */
-export const GetMyApplicationsQueryParams = zod.object({
-  userId: zod.coerce.number(),
-});
-
 export const GetMyApplicationsResponse = zod.object({
   adoptionRequests: zod.array(
     zod.object({
@@ -699,10 +683,6 @@ export const GetMyApplicationsResponse = zod.object({
 /**
  * @summary Get current user's favourited pets
  */
-export const GetMyFavouritesQueryParams = zod.object({
-  userId: zod.coerce.number(),
-});
-
 export const GetMyFavouritesResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
@@ -740,10 +720,6 @@ export const GetMyFavouritesResponse = zod.array(GetMyFavouritesResponseItem);
 /**
  * @summary Get current user's donation history
  */
-export const GetMyDonationsQueryParams = zod.object({
-  userId: zod.coerce.number(),
-});
-
 export const GetMyDonationsResponseItem = zod.object({
   id: zod.number(),
   donorName: zod.string(),

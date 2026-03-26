@@ -48,10 +48,7 @@ export default function Profile() {
   const { data: applications, isLoading: appLoading } = useGetMyApplications();
   const { data: favourites, isLoading: favLoading } = useGetMyFavourites();
   const { data: donations, isLoading: donLoading } = useGetMyDonations();
-  const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports(
-    { limit: 20, reporterId: userId ?? undefined },
-    { query: { enabled: !!userId } },
-  );
+  const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports({ limit: 20 });
 
   const [form, setForm] = useState({
     fullName: "",

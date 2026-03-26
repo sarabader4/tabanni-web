@@ -582,12 +582,6 @@ paths:
       operationId: getMyProfile
       tags: [users]
       summary: Get current user profile
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: number
       responses:
         "200":
           description: User profile
@@ -599,12 +593,6 @@ paths:
       operationId: updateMyProfile
       tags: [users]
       summary: Update current user profile
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: number
       requestBody:
         required: true
         content:
@@ -624,12 +612,6 @@ paths:
       operationId: getMyPets
       tags: [users]
       summary: Get current user's listed pets
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: number
       responses:
         "200":
           description: My pets
@@ -645,12 +627,6 @@ paths:
       operationId: getMyApplications
       tags: [users]
       summary: Get current user's adoption and foster applications
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: number
       responses:
         "200":
           description: My applications
@@ -664,12 +640,6 @@ paths:
       operationId: getMyFavourites
       tags: [users]
       summary: Get current user's favourited pets
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: number
       responses:
         "200":
           description: My favourites
@@ -685,12 +655,6 @@ paths:
       operationId: getMyDonations
       tags: [users]
       summary: Get current user's donation history
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: number
       responses:
         "200":
           description: My donations

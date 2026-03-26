@@ -45,11 +45,6 @@ import type {
   ErrorResponse,
   FosterRequest,
   GalleryPost,
-  GetMyApplicationsParams,
-  GetMyDonationsParams,
-  GetMyFavouritesParams,
-  GetMyPetsParams,
-  GetMyProfileParams,
   GetPaymentConfig200,
   HealthStatus,
   ListAdminUsersParams,
@@ -67,7 +62,6 @@ import type {
   PetListResponse,
   SuccessResponse,
   ToggleFavouriteInput,
-  UpdateMyProfileParams,
   UpdatePetInput,
   UpdateRequestStatusInput,
   UpdateUserInput,
@@ -2109,57 +2103,39 @@ export const useSendMessage = <
 /**
  * @summary Get current user profile
  */
-export const getGetMyProfileUrl = (params: GetMyProfileParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/users/me?${stringifiedParams}`
-    : `/api/users/me`;
+export const getGetMyProfileUrl = () => {
+  return `/api/users/me`;
 };
 
-export const getMyProfile = async (
-  params: GetMyProfileParams,
-  options?: RequestInit,
-): Promise<User> => {
-  return customFetch<User>(getGetMyProfileUrl(params), {
+export const getMyProfile = async (options?: RequestInit): Promise<User> => {
+  return customFetch<User>(getGetMyProfileUrl(), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyProfileQueryKey = (params?: GetMyProfileParams) => {
-  return [`/api/users/me`, ...(params ? [params] : [])] as const;
+export const getGetMyProfileQueryKey = () => {
+  return [`/api/users/me`] as const;
 };
 
 export const getGetMyProfileQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyProfile>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyProfileParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyProfile>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-) => {
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyProfile>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetMyProfileQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getGetMyProfileQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyProfile>>> = ({
     signal,
-  }) => getMyProfile(params, { signal, ...requestOptions });
+  }) => getMyProfile({ signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyProfile>>,
@@ -2180,18 +2156,15 @@ export type GetMyProfileQueryError = ErrorType<unknown>;
 export function useGetMyProfile<
   TData = Awaited<ReturnType<typeof getMyProfile>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyProfileParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyProfile>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyProfileQueryOptions(params, options);
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyProfile>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyProfileQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -2203,28 +2176,15 @@ export function useGetMyProfile<
 /**
  * @summary Update current user profile
  */
-export const getUpdateMyProfileUrl = (params: UpdateMyProfileParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/users/me?${stringifiedParams}`
-    : `/api/users/me`;
+export const getUpdateMyProfileUrl = () => {
+  return `/api/users/me`;
 };
 
 export const updateMyProfile = async (
   updateUserInput: UpdateUserInput,
-  params: UpdateMyProfileParams,
   options?: RequestInit,
 ): Promise<User> => {
-  return customFetch<User>(getUpdateMyProfileUrl(params), {
+  return customFetch<User>(getUpdateMyProfileUrl(), {
     ...options,
     method: "PUT",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -2239,14 +2199,14 @@ export const getUpdateMyProfileMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateMyProfile>>,
     TError,
-    { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams },
+    { data: BodyType<UpdateUserInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateMyProfile>>,
   TError,
-  { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams },
+  { data: BodyType<UpdateUserInput> },
   TContext
 > => {
   const mutationKey = ["updateMyProfile"];
@@ -2260,11 +2220,11 @@ export const getUpdateMyProfileMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateMyProfile>>,
-    { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams }
+    { data: BodyType<UpdateUserInput> }
   > = (props) => {
-    const { data, params } = props ?? {};
+    const { data } = props ?? {};
 
-    return updateMyProfile(data, params, requestOptions);
+    return updateMyProfile(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -2286,14 +2246,14 @@ export const useUpdateMyProfile = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateMyProfile>>,
     TError,
-    { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams },
+    { data: BodyType<UpdateUserInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof updateMyProfile>>,
   TError,
-  { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams },
+  { data: BodyType<UpdateUserInput> },
   TContext
 > => {
   return useMutation(getUpdateMyProfileMutationOptions(options));
@@ -2302,57 +2262,35 @@ export const useUpdateMyProfile = <
 /**
  * @summary Get current user's listed pets
  */
-export const getGetMyPetsUrl = (params: GetMyPetsParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/users/me/pets?${stringifiedParams}`
-    : `/api/users/me/pets`;
+export const getGetMyPetsUrl = () => {
+  return `/api/users/me/pets`;
 };
 
-export const getMyPets = async (
-  params: GetMyPetsParams,
-  options?: RequestInit,
-): Promise<Pet[]> => {
-  return customFetch<Pet[]>(getGetMyPetsUrl(params), {
+export const getMyPets = async (options?: RequestInit): Promise<Pet[]> => {
+  return customFetch<Pet[]>(getGetMyPetsUrl(), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyPetsQueryKey = (params?: GetMyPetsParams) => {
-  return [`/api/users/me/pets`, ...(params ? [params] : [])] as const;
+export const getGetMyPetsQueryKey = () => {
+  return [`/api/users/me/pets`] as const;
 };
 
 export const getGetMyPetsQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyPets>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyPetsParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyPets>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-) => {
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getMyPets>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetMyPetsQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getGetMyPetsQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyPets>>> = ({
     signal,
-  }) => getMyPets(params, { signal, ...requestOptions });
+  }) => getMyPets({ signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyPets>>,
@@ -2373,18 +2311,11 @@ export type GetMyPetsQueryError = ErrorType<unknown>;
 export function useGetMyPets<
   TData = Awaited<ReturnType<typeof getMyPets>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyPetsParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyPets>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyPetsQueryOptions(params, options);
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getMyPets>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyPetsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -2396,60 +2327,41 @@ export function useGetMyPets<
 /**
  * @summary Get current user's adoption and foster applications
  */
-export const getGetMyApplicationsUrl = (params: GetMyApplicationsParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/users/me/applications?${stringifiedParams}`
-    : `/api/users/me/applications`;
+export const getGetMyApplicationsUrl = () => {
+  return `/api/users/me/applications`;
 };
 
 export const getMyApplications = async (
-  params: GetMyApplicationsParams,
   options?: RequestInit,
 ): Promise<MyApplicationsResponse> => {
-  return customFetch<MyApplicationsResponse>(getGetMyApplicationsUrl(params), {
+  return customFetch<MyApplicationsResponse>(getGetMyApplicationsUrl(), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyApplicationsQueryKey = (
-  params?: GetMyApplicationsParams,
-) => {
-  return [`/api/users/me/applications`, ...(params ? [params] : [])] as const;
+export const getGetMyApplicationsQueryKey = () => {
+  return [`/api/users/me/applications`] as const;
 };
 
 export const getGetMyApplicationsQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyApplications>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyApplicationsParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyApplications>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-) => {
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyApplications>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getGetMyApplicationsQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getGetMyApplicationsQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getMyApplications>>
-  > = ({ signal }) => getMyApplications(params, { signal, ...requestOptions });
+  > = ({ signal }) => getMyApplications({ signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyApplications>>,
@@ -2470,18 +2382,15 @@ export type GetMyApplicationsQueryError = ErrorType<unknown>;
 export function useGetMyApplications<
   TData = Awaited<ReturnType<typeof getMyApplications>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyApplicationsParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyApplications>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyApplicationsQueryOptions(params, options);
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyApplications>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyApplicationsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -2493,57 +2402,41 @@ export function useGetMyApplications<
 /**
  * @summary Get current user's favourited pets
  */
-export const getGetMyFavouritesUrl = (params: GetMyFavouritesParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/users/me/favourites?${stringifiedParams}`
-    : `/api/users/me/favourites`;
+export const getGetMyFavouritesUrl = () => {
+  return `/api/users/me/favourites`;
 };
 
 export const getMyFavourites = async (
-  params: GetMyFavouritesParams,
   options?: RequestInit,
 ): Promise<Pet[]> => {
-  return customFetch<Pet[]>(getGetMyFavouritesUrl(params), {
+  return customFetch<Pet[]>(getGetMyFavouritesUrl(), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyFavouritesQueryKey = (params?: GetMyFavouritesParams) => {
-  return [`/api/users/me/favourites`, ...(params ? [params] : [])] as const;
+export const getGetMyFavouritesQueryKey = () => {
+  return [`/api/users/me/favourites`] as const;
 };
 
 export const getGetMyFavouritesQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyFavourites>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyFavouritesParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyFavourites>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-) => {
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyFavourites>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetMyFavouritesQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getGetMyFavouritesQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyFavourites>>> = ({
     signal,
-  }) => getMyFavourites(params, { signal, ...requestOptions });
+  }) => getMyFavourites({ signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyFavourites>>,
@@ -2564,18 +2457,15 @@ export type GetMyFavouritesQueryError = ErrorType<unknown>;
 export function useGetMyFavourites<
   TData = Awaited<ReturnType<typeof getMyFavourites>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyFavouritesParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyFavourites>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyFavouritesQueryOptions(params, options);
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyFavourites>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyFavouritesQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -2587,57 +2477,41 @@ export function useGetMyFavourites<
 /**
  * @summary Get current user's donation history
  */
-export const getGetMyDonationsUrl = (params: GetMyDonationsParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/users/me/donations?${stringifiedParams}`
-    : `/api/users/me/donations`;
+export const getGetMyDonationsUrl = () => {
+  return `/api/users/me/donations`;
 };
 
 export const getMyDonations = async (
-  params: GetMyDonationsParams,
   options?: RequestInit,
 ): Promise<Donation[]> => {
-  return customFetch<Donation[]>(getGetMyDonationsUrl(params), {
+  return customFetch<Donation[]>(getGetMyDonationsUrl(), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyDonationsQueryKey = (params?: GetMyDonationsParams) => {
-  return [`/api/users/me/donations`, ...(params ? [params] : [])] as const;
+export const getGetMyDonationsQueryKey = () => {
+  return [`/api/users/me/donations`] as const;
 };
 
 export const getGetMyDonationsQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyDonations>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyDonationsParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyDonations>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-) => {
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyDonations>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetMyDonationsQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getGetMyDonationsQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyDonations>>> = ({
     signal,
-  }) => getMyDonations(params, { signal, ...requestOptions });
+  }) => getMyDonations({ signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyDonations>>,
@@ -2658,18 +2532,15 @@ export type GetMyDonationsQueryError = ErrorType<unknown>;
 export function useGetMyDonations<
   TData = Awaited<ReturnType<typeof getMyDonations>>,
   TError = ErrorType<unknown>,
->(
-  params: GetMyDonationsParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getMyDonations>>,
-      TError,
-      TData
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyDonationsQueryOptions(params, options);
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyDonations>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyDonationsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

@@ -93,7 +93,7 @@ function StripeCardForm({
         await fetch(apiUrl("payments/stripe/confirm"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentIntentId: result.paymentIntent?.id, status: "failed" }),
+          body: JSON.stringify({ paymentIntentId: undefined, status: "failed" }),
         });
         onError(result.error.message ?? "Payment declined");
       } else if (result.paymentIntent?.status === "succeeded") {

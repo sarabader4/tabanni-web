@@ -275,11 +275,11 @@ export default function AdminDashboard() {
               <tbody>
                 {donations.length > 0 ? donations.map((d) => (
                   <tr key={d.id} className="border-b border-gray-50">
-                    <td className="py-3 text-gray-900 font-medium">User #{d.userId}</td>
-                    <td className="py-3 text-gray-700">${parseFloat(d.amount).toFixed(0)}</td>
+                    <td className="py-3 text-gray-900 font-medium">{d.donorName ?? `Donor #${d.id}`}</td>
+                    <td className="py-3 text-gray-700">${parseFloat(d.amount ?? "0").toFixed(0)}</td>
                     <td className="py-3 text-gray-500 capitalize">{d.paymentMethod ?? "—"}</td>
                     <td className="py-3 text-gray-400">
-                      {new Date(d.createdAt).toLocaleDateString("en", { month: "short", day: "numeric" })}
+                      {d.createdAt ? new Date(d.createdAt).toLocaleDateString("en", { month: "short", day: "numeric" }) : "—"}
                     </td>
                   </tr>
                 )) : (
