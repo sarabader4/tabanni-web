@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import OnboardingModal from "@/components/onboarding-modal";
 import Home from "@/pages/home";
 import Adopt from "@/pages/adopt";
 import Foster from "@/pages/foster";
@@ -45,8 +46,16 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function OnboardingGate() {
+  const { onboardingVisible, skipOnboarding } = useAuth();
+  if (!onboardingVisible) return null;
+  return <OnboardingModal onClose={skipOnboarding} />;
+}
+
 function AppRoutes() {
   return (
+    <>
+    <OnboardingGate />
     <Switch>
       {/* Auth pages — no layout wrapper */}
       <Route path="/login" component={Login} />
@@ -97,6 +106,7 @@ function AppRoutes() {
         </Layout>
       </Route>
     </Switch>
+    </>
   );
 }
 

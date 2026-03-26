@@ -642,6 +642,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/Message"
 
+  /user/onboarding:
+    post:
+      operationId: submitOnboarding
+      tags: [users]
+      summary: Submit adoption readiness onboarding form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserOnboardingInput"
+      responses:
+        "200":
+          description: Onboarding submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Onboarding already submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /users/me:
     get:
       operationId: getMyProfile
@@ -1907,6 +1938,68 @@ components:
       required:
         - adoptionRequests
         - fosterRequests
+
+    UserOnboardingInput:
+      type: object
+      properties:
+        areaOfResidence: { type: string }
+        homeAddress: { type: string }
+        occupation: { type: string }
+        age: { type: number }
+        mainCaregiver: { type: string }
+        adoptionReason: { type: string }
+        financialResponsibility: { type: string }
+        childrenCount: { type: number }
+        yardType: { type: string }
+        dayLocation: { type: string }
+        nightLocation: { type: string }
+        allergies: { type: string }
+        currentPets: { type: string }
+        householdObjection: { type: string }
+        homeType: { type: string }
+        ownershipType: { type: string }
+        previousPetExperience: { type: string }
+        exerciseHours: { type: number }
+        monthlyCostEstimation: { type: number }
+        breedingIntention: { type: string }
+        spayNeuterCommitment: { type: boolean }
+        behaviorTolerance: { type: string }
+        traumaHandlingComfort: { type: string }
+        dailyCarePlan: { type: string }
+        travelPlan: { type: string }
+        activities:
+          type: array
+          items: { type: string }
+        petPreferences:
+          type: array
+          items: { type: string }
+        trainingExpectations:
+          type: array
+          items: { type: string }
+        confirmed: { type: boolean }
+      required:
+        - areaOfResidence
+        - homeAddress
+        - occupation
+        - age
+        - mainCaregiver
+        - adoptionReason
+        - financialResponsibility
+        - yardType
+        - dayLocation
+        - nightLocation
+        - householdObjection
+        - homeType
+        - ownershipType
+        - exerciseHours
+        - monthlyCostEstimation
+        - breedingIntention
+        - spayNeuterCommitment
+        - dailyCarePlan
+        - activities
+        - petPreferences
+        - trainingExpectations
+        - confirmed
 
     AdminStats:
       type: object

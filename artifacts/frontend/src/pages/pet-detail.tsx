@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AIPetMatchWidget from "@/components/ai-pet-match-widget";
 import { useFavourites } from "@/hooks/use-favourites";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function PetDetail() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ export default function PetDetail() {
   const { data: pet, isLoading } = useGetPet(Number(id));
   const { toast } = useToast();
   const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
+  const { user, requireOnboarding } = useAuth();
 
   const petId = Number(id);
   const favourited = isFavourited(petId);
@@ -50,22 +52,32 @@ export default function PetDetail() {
     }
   };
 
-  const handleAdopt = async () => {
+  const doAdopt = async () => {
     try {
-      await adoptMutation.mutateAsync({ data: { petId: Number(id), requesterId: 1, message: "I would love to adopt this pet." } });
+      await adoptMutation.mutateAsync({ data: { petId: Number(id), message: "I would love to adopt this pet." } });
       toast({ title: "Adoption request sent!", description: "The owner will contact you soon." });
     } catch {
       toast({ title: "Error", description: "Failed to send request. Please try again.", variant: "destructive" });
     }
   };
 
-  const handleFoster = async () => {
+  const doFoster = async () => {
     try {
-      await fosterMutation.mutateAsync({ data: { petId: Number(id), requesterId: 1, message: "I would love to foster this pet." } });
+      await fosterMutation.mutateAsync({ data: { petId: Number(id), message: "I would love to foster this pet." } });
       toast({ title: "Foster request sent!", description: "The owner will contact you soon." });
     } catch {
       toast({ title: "Error", description: "Failed to send request. Please try again.", variant: "destructive" });
     }
+  };
+
+  const handleAdopt = () => {
+    if (!user) { navigate("/login"); toast({ title: "Please log in first." }); return; }
+    requireOnboarding(doAdopt);
+  };
+
+  const handleFoster = () => {
+    if (!user) { navigate("/login"); toast({ title: "Please log in first." }); return; }
+    requireOnboarding(doFoster);
   };
 
   if (isLoading) {

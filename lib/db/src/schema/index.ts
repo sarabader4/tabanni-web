@@ -5,3 +5,4 @@ export * from "./donations";
 export * from "./gallery";
 export * from "./lost_found";
 export * from "./social";
+export * from "./userProfiles";
