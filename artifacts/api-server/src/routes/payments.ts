@@ -2,29 +2,22 @@ import { Router, type IRouter } from "express";
 import { db, donationsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { getUncachableStripeClient, getStripePublishableKey } from "../stripeClient";
+import { Client, Environment, OrdersController, CheckoutPaymentIntent } from "@paypal/paypal-server-sdk";
 
 const router: IRouter = Router();
 
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID ?? "";
 const PAYPAL_SECRET = process.env.PAYPAL_SECRET ?? "";
-const PAYPAL_BASE =
-  process.env.PAYPAL_SANDBOX === "false"
-    ? "https://api-m.paypal.com"
-    : "https://api-m.sandbox.paypal.com";
+const USE_SANDBOX = process.env.PAYPAL_SANDBOX !== "false";
 
-async function getPayPalAccessToken(): Promise<string> {
-  const credentials = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`).toString("base64");
-  const resp = await fetch(`${PAYPAL_BASE}/v1/oauth2/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${credentials}`,
-      "Content-Type": "application/x-www-form-urlencoded",
+function getPayPalClient(): Client {
+  return new Client({
+    clientCredentialsAuthCredentials: {
+      oAuthClientId: PAYPAL_CLIENT_ID,
+      oAuthClientSecret: PAYPAL_SECRET,
     },
-    body: "grant_type=client_credentials",
+    environment: USE_SANDBOX ? Environment.Sandbox : Environment.Production,
   });
-  if (!resp.ok) throw new Error("PayPal auth failed");
-  const data = await resp.json() as { access_token: string };
-  return data.access_token;
 }
 
 router.get("/payments/config", async (req, res) => {
@@ -123,29 +116,29 @@ router.post("/payments/paypal/create-order", async (req, res) => {
       return res.status(400).json({ error: "validation_error", message: "Invalid amount" });
     }
 
-    const token = await getPayPalAccessToken();
-    const resp = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        intent: "CAPTURE",
-        purchase_units: [
+    // PayPal does not support JOD (ISO 4217). We use USD as the billing currency.
+    // 1 JOD ≈ 1.41 USD (approximate exchange rate used for PayPal billing only).
+    const JOD_TO_USD = 1.41;
+    const amountUSD = (amountJOD * JOD_TO_USD).toFixed(2);
+
+    const paypalClient = getPayPalClient();
+    const ordersController = new OrdersController(paypalClient);
+
+    const { body: order } = await ordersController.createOrder({
+      body: {
+        intent: CheckoutPaymentIntent.Capture,
+        purchaseUnits: [
           {
-            amount: { currency_code: "USD", value: amountJOD.toFixed(2) },
-            description: `Tabbani donation from ${donorName}`,
+            amount: {
+              currencyCode: "USD",
+              value: amountUSD,
+            },
+            description: `Tabbani donation from ${donorName} (${amountJOD} JOD)`,
           },
         ],
-      }),
+      },
+      prefer: "return=representation",
     });
-    if (!resp.ok) {
-      const err = await resp.text();
-      req.log.error({ err }, "PayPal create order error");
-      return res.status(502).json({ error: "paypal_error", message: "Could not create PayPal order" });
-    }
-    const order = await resp.json() as { id: string };
 
     const [donation] = await db.insert(donationsTable).values({
       donorName,
@@ -172,16 +165,14 @@ router.post("/payments/paypal/capture-order", async (req, res) => {
       return res.status(400).json({ error: "validation_error", message: "orderId required" });
     }
 
-    const token = await getPayPalAccessToken();
-    const resp = await fetch(`${PAYPAL_BASE}/v2/checkout/orders/${orderId}/capture`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+    const paypalClient = getPayPalClient();
+    const ordersController = new OrdersController(paypalClient);
+
+    const { body: capture } = await ordersController.captureOrder({
+      id: orderId,
+      prefer: "return=representation",
     });
 
-    const capture = await resp.json() as { status?: string };
     const success = capture.status === "COMPLETED";
 
     await db
