@@ -145,6 +145,10 @@ router.post("/payments/paypal/create-order", async (req, res) => {
       prefer: "return=representation",
     });
 
+    if (!order.id) {
+      throw new Error("PayPal order creation returned no ID");
+    }
+
     const [donation] = await db.insert(donationsTable).values({
       donorName,
       donorPhone: donorPhone ?? null,
@@ -178,14 +182,15 @@ router.post("/payments/paypal/capture-order", async (req, res) => {
       prefer: "return=representation",
     });
 
-    const success = capture.status === "COMPLETED";
+    const captureStatus = capture.status ?? "UNKNOWN";
+    const success = captureStatus === "COMPLETED";
 
     await db
       .update(donationsTable)
       .set({ status: success ? "success" : "failed" })
       .where(eq(donationsTable.paypalOrderId, orderId));
 
-    res.json({ success, status: capture.status });
+    res.json({ success, status: captureStatus });
   } catch (err) {
     req.log.error({ err }, "PayPal capture error");
     res.status(500).json({ error: "payment_error", message: "Could not capture PayPal order" });

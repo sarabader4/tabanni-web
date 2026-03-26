@@ -18,14 +18,11 @@ export class WebhookHandlers {
     const stripe = await getUncachableStripeClient();
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    let event: Stripe.Event;
-
-    if (webhookSecret) {
-      event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-    } else {
-      event = JSON.parse(payload.toString()) as Stripe.Event;
-      logger.warn("STRIPE_WEBHOOK_SECRET not set — skipping signature verification");
+    if (!webhookSecret) {
+      throw new Error("STRIPE_WEBHOOK_SECRET is not set — refusing to process unsigned webhook");
     }
+
+    const event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
 
     await WebhookHandlers.handleEvent(event);
   }

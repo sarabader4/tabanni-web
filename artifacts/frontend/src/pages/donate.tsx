@@ -50,6 +50,7 @@ function StripeCardForm({
   donorPhone,
   amount,
   frequency,
+  paymentMethodLabel,
   onSuccess,
   onError,
 }: {
@@ -57,6 +58,7 @@ function StripeCardForm({
   donorPhone: string;
   amount: string;
   frequency: string;
+  paymentMethodLabel: string;
   onSuccess: () => void;
   onError: (msg: string) => void;
 }) {
@@ -132,7 +134,7 @@ function StripeCardForm({
         {processing ? (
           <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
         ) : (
-          `Donate ${amount || 0} JOD via Card`
+          `Donate ${amount || 0} JOD via ${paymentMethodLabel}`
         )}
       </button>
     </form>
@@ -571,6 +573,7 @@ export default function Donate() {
                             donorPhone={watchedPhone}
                             amount={watchedAmount}
                             frequency={watchedFrequency}
+                            paymentMethodLabel={watchedMethod}
                             onSuccess={handleSuccess}
                             onError={handleError}
                           />
