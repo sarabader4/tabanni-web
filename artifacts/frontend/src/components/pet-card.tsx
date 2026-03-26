@@ -7,10 +7,11 @@ interface PetCardProps {
   pet: Pet;
   onFavorite?: (id: number) => void;
   isFavorited?: boolean;
+  isFavoritePending?: boolean;
   variant?: "adopt" | "lost";
 }
 
-export function PetCard({ pet, onFavorite, isFavorited, variant = "adopt" }: PetCardProps) {
+export function PetCard({ pet, onFavorite, isFavorited, isFavoritePending, variant = "adopt" }: PetCardProps) {
   const [, navigate] = useLocation();
 
   const imageUrl =
@@ -68,11 +69,20 @@ export function PetCard({ pet, onFavorite, isFavorited, variant = "adopt" }: Pet
               e.stopPropagation();
               onFavorite?.(pet.id);
             }}
-            className="p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-400 hover:text-red-500 transition-all shadow-sm"
+            disabled={isFavoritePending}
+            className={cn(
+              "p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-all shadow-sm disabled:opacity-60",
+              isFavorited
+                ? "text-red-500 scale-110"
+                : "text-gray-400 hover:text-red-500",
+            )}
             aria-label="Favourite"
           >
             <Heart
-              className={cn("w-4 h-4", isFavorited && "fill-red-500 text-red-500")}
+              className={cn(
+                "w-4 h-4 transition-all duration-200",
+                isFavorited && "fill-red-500 text-red-500",
+              )}
             />
           </button>
           <button

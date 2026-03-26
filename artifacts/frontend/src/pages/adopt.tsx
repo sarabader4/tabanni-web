@@ -4,6 +4,8 @@ import { useListPets } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
 import { Search, Loader2, Plus, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { useFavourites } from "@/hooks/use-favourites";
+import { useToast } from "@/hooks/use-toast";
 
 type PurposeFilter = "adopt" | "foster" | "both";
 
@@ -12,6 +14,23 @@ export default function Adopt() {
   const [purpose, setPurpose] = useState<PurposeFilter>("adopt");
   const [page, setPage] = useState(1);
   const pageSize = 20;
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
+
+  const handleFavorite = async (petId: number) => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      toast({ title: "Please log in to save favourites." });
+      return;
+    }
+    if (isPendingFor(petId)) return;
+    const wasAdded = !isFavourited(petId);
+    await toggleFavourite(petId);
+    toast({
+      title: wasAdded ? "Added to favourites!" : "Removed from favourites.",
+    });
+  };
   const [filters, setFilters] = useState<FilterBarState>({
     type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
   });
@@ -132,7 +151,14 @@ export default function Adopt() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {data?.pets?.map((pet) => (
-              <PetCard key={pet.id} pet={pet} variant="adopt" />
+              <PetCard
+                key={pet.id}
+                pet={pet}
+                variant="adopt"
+                isFavorited={isFavourited(pet.id)}
+                isFavoritePending={isPendingFor(pet.id)}
+                onFavorite={handleFavorite}
+              />
             ))}
           </div>
         )}

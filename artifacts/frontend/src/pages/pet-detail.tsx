@@ -1,14 +1,34 @@
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { useGetPet, useCreateAdoptionRequest, useCreateFosterRequest } from "@workspace/api-client-react";
 import { ArrowLeft, Loader2, Heart, Share2, CheckCircle2, Phone, User, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AIPetMatchWidget from "@/components/ai-pet-match-widget";
+import { useFavourites } from "@/hooks/use-favourites";
 
 export default function PetDetail() {
   const { id } = useParams();
+  const [, navigate] = useLocation();
   const { data: pet, isLoading } = useGetPet(Number(id));
   const { toast } = useToast();
+  const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
+
+  const petId = Number(id);
+  const favourited = isFavourited(petId);
+  const isPending = isPendingFor(petId);
+
+  const handleFavourite = async () => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      toast({ title: "Please log in to save favourites." });
+      return;
+    }
+    const wasAdded = !favourited;
+    await toggleFavourite(petId);
+    toast({
+      title: wasAdded ? "Added to favourites!" : "Removed from favourites.",
+    });
+  };
 
   const adoptMutation = useCreateAdoptionRequest();
   const fosterMutation = useCreateFosterRequest();
@@ -152,10 +172,22 @@ export default function PetDetail() {
                 <Share2 className="w-6 h-6" />
               </button>
               <button
-                className="p-3 rounded-full bg-muted/50 hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors"
-                aria-label="Favorite"
+                onClick={handleFavourite}
+                disabled={isPending}
+                className={cn(
+                  "p-3 rounded-full transition-all duration-200 disabled:opacity-60",
+                  favourited
+                    ? "bg-red-50 text-red-500 scale-110"
+                    : "bg-muted/50 hover:bg-red-50 text-muted-foreground hover:text-red-500",
+                )}
+                aria-label="Favourite"
               >
-                <Heart className="w-6 h-6" />
+                <Heart
+                  className={cn(
+                    "w-6 h-6 transition-all duration-200",
+                    favourited && "fill-red-500 text-red-500",
+                  )}
+                />
               </button>
             </div>
           </div>
