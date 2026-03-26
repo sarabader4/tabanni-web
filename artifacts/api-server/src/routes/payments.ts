@@ -21,13 +21,18 @@ function getPayPalClient(): Client {
 }
 
 router.get("/payments/config", async (req, res) => {
+  let publishableKey = "";
   try {
-    const publishableKey = await getStripePublishableKey();
-    res.json({ publishableKey, paypalClientId: PAYPAL_CLIENT_ID });
+    publishableKey = await getStripePublishableKey();
   } catch (err) {
-    req.log.error({ err }, "Error fetching payment config");
-    res.status(503).json({ error: "payment_unavailable", message: "Payment provider not configured" });
+    req.log.warn({ err }, "Stripe not configured — Stripe payments unavailable");
   }
+  res.json({
+    publishableKey,
+    paypalClientId: PAYPAL_CLIENT_ID,
+    stripeAvailable: Boolean(publishableKey),
+    paypalAvailable: Boolean(PAYPAL_CLIENT_ID && PAYPAL_SECRET),
+  });
 });
 
 router.post("/payments/stripe/create-intent", async (req, res) => {
