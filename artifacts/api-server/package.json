@@ -14,6 +14,8 @@
     "@workspace/db": "workspace:*",
     "@workspace/integrations-openai-ai-server": "workspace:*",
     "cookie-parser": "^1.4.7",
+    "stripe": "^20.0.0",
+    "stripe-replit-sync": "^1.0.0",
     "cors": "^2",
     "drizzle-orm": "catalog:",
     "express": "^5",

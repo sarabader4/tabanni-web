@@ -6,6 +6,7 @@ import { usersTable } from "./users";
 
 export const donationTypeEnum = pgEnum("donation_type", ["monetary", "supplies"]);
 export const donationFrequencyEnum = pgEnum("donation_frequency", ["one_time", "monthly"]);
+export const donationStatusEnum = pgEnum("donation_status", ["pending", "success", "failed"]);
 
 export const donationsTable = pgTable("donations", {
   id: serial("id").primaryKey(),
@@ -19,6 +20,9 @@ export const donationsTable = pgTable("donations", {
   paymentMethod: text("payment_method"),
   frequency: donationFrequencyEnum("frequency").notNull().default("one_time"),
   petId: integer("pet_id").references(() => petsTable.id),
+  status: donationStatusEnum("status").notNull().default("pending"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  paypalOrderId: text("paypal_order_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
