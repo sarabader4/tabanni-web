@@ -4,12 +4,11 @@ import { useListAdminUsers } from "@workspace/api-client-react";
 import { Search, Mail, Phone, MapPin, Calendar, Shield, UserX, ChevronDown, ExternalLink, PawPrint } from "lucide-react";
 import { AdminLayout } from "./index";
 
-type TabRole = "all" | "adopter" | "owner" | "volunteer";
+type TabRole = "all" | "adopter" | "volunteer";
 
 const TABS: { label: string; value: TabRole }[] = [
   { label: "All Users", value: "all" },
   { label: "Adopters", value: "adopter" },
-  { label: "Pet owners", value: "owner" },
   { label: "Volunteers", value: "volunteer" },
 ];
 
@@ -52,7 +51,6 @@ export default function AdminUsers() {
     if (activeTab === "all") return true;
     if (activeTab === "volunteer") return u.role === "volunteer";
     if (activeTab === "adopter") return (u.totalAdoptionRequests ?? 0) > 0 || (u.totalFosterRequests ?? 0) > 0;
-    if (activeTab === "owner") return (u.totalPetsOwned ?? 0) > 0;
     return true;
   });
 
