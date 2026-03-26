@@ -1,0 +1,104 @@
+our task is to upgrade the donation system to be fully functional, secure, and production-ready.
+
+🎯 Requirements
+1. Implement Real Payment Processing (CRITICAL)
+
+The current donation form is only UI. I need you to convert it into a real working payment system.
+
+Supported Payment Methods:
+Visa
+Mastercard
+PayPal
+CliQ (Jordan payment system)
+💳 Payment Integration Details
+✅ For Cards (Visa & Mastercard):
+Use Stripe (preferred) or equivalent secure provider
+Implement:
+Card input fields (card number, expiry, CVC)
+Secure payment flow (Stripe Elements or similar)
+Tokenization (NO sensitive data stored on our server)
+Payment confirmation handling
+✅ For PayPal:
+Integrate PayPal Checkout
+Redirect or popup flow
+Handle:
+Success
+Cancel
+Error
+✅ For CliQ:
+Simulate or integrate (if possible)
+At minimum:
+Show instructions (phone / IBAN)
+Allow user to confirm payment
+Bonus: design it as a modern payment option
+🔐 Security Requirements
+NEVER store card data in backend
+Use HTTPS-based APIs
+Validate all inputs
+Handle failed payments properly
+Show user feedback (success / error states)
+2. Backend Implementation (.NET)
+
+Use ASP.NET Core Web API
+
+Create:
+Donation Controller
+Payment Service
+Endpoints:
+POST /donation/create
+POST /payment/confirm
+GET /donation/history
+Store:
+Donation amount
+Payment method
+Status (pending / success / failed)
+User info
+3. Frontend Behavior
+
+Update the donation UI to:
+
+When user selects:
+Visa / Mastercard → show card form (Stripe)
+PayPal → trigger PayPal flow
+CliQ → show instructions UI
+Update button:
+Dynamic text (e.g. "Donate 50 JOD")
+Add:
+Loading state
+Success screen
+Error handling
+4. GoFundMe Campaign Section (NEW FEATURE)
+
+Add a new section below the donation form:
+
+UI Component:
+Card with:
+Campaign image
+Title
+Short description
+Progress (optional)
+CTA button: "Donate on GoFundMe"
+Behavior:
+On click → redirect user to GoFundMe campaign link
+Design:
+Match the website theme (orange / cyan or pastel)
+Slight 3D card or hover animation
+5. Code Quality
+Clean, modular code
+Reusable components
+Clear folder structure
+Comments where necessary
+6. Execution Instructions
+First:
+Explain your implementation plan
+Then:
+Implement step by step:
+Payment UI logic
+Stripe integration
+PayPal integration
+Backend APIs
+GoFundMe section
+⚠️ Notes
+Do NOT change the UI design drastically
+Keep the same layout and structure
+Focus on functionality + security
