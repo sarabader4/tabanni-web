@@ -1,0 +1,183 @@
+our task is to implement a complete, production-ready system including authentication, role-based access, onboarding form (FULLY implemented), and admin dashboard.
+
+🎯 Main Requirements
+1. Authentication System
+
+Implement:
+
+Register (Sign Up)
+Login
+Logout
+Requirements:
+JWT or cookie-based authentication
+Password hashing (e.g., BCrypt)
+Input validation
+Error handling
+Store users in database
+2. Role-Based Access Control
+
+Implement a database-driven role system:
+
+Roles:
+User
+Admin
+Database:
+Add Role field in Users table
+Authorization:
+Protect routes:
+/admin/* → Admin only
+3. Admin Account (Database-Based)
+
+Create an admin user in DB:
+
+Email: sarabader4b@gmail.com
+Password: sara1234 (hashed)
+Role: Admin
+🧠 4. Onboarding Form (FULL IMPLEMENTATION – VERY IMPORTANT)
+
+You MUST fully implement the onboarding form based on the attached UI.
+
+🔹 A. Frontend (UI Implementation)
+
+Recreate the form exactly as shown in the design:
+
+Include ALL fields:
+Area of residence
+Home address
+Occupation
+Age
+Main caregiver
+Reason for adoption
+Financial responsibility
+Number of children
+Type of yard
+Where pet stays (day/night)
+Allergies
+Current pets
+Objections in household
+Type of home
+Own or rent
+Previous pet experience
+Exercise hours
+Monthly cost estimation
+Breeding intention
+Spay/neuter commitment
+Behavior tolerance
+Trauma handling comfort
+Daily care plan (textarea)
+Travel plan (textarea)
+Activities (checkboxes)
+Pet feature preferences (checkboxes)
+Training expectations (checkboxes)
+Final confirmation checkbox
+UI Requirements:
+Clean layout (2 columns like design)
+Inputs, selects, textareas, checkboxes
+"Skip for now" button
+Submit button
+Validation messages
+Responsive design
+🔹 B. Form Logic (CRITICAL)
+First Login:
+After user logs in for the first time:
+Show onboarding form (modal or page)
+Skip Behavior:
+If user clicks Skip:
+Allow browsing
+BUT:
+When user tries to:
+Adopt
+Foster
+→ FORCE showing the form again
+Submission:
+Form can be submitted ONLY ONCE
+After submit:
+Set IsOnboardingCompleted = true
+🔹 C. Backend Implementation (.NET)
+
+Create:
+
+Endpoint:
+POST /user/onboarding
+Responsibilities:
+Validate all fields
+Save data in database
+Link to user via UserId
+🔹 D. Database Design
+Users Table:
+Id
+Name
+Email
+PasswordHash
+Role
+IsOnboardingCompleted
+UserProfiles Table (Onboarding Form):
+Id
+UserId (FK)
+
+Include ALL form fields as columns:
+
+AreaOfResidence
+HomeAddress
+Occupation
+Age
+Caregiver
+AdoptionReason
+FinancialResponsibility
+ChildrenCount
+YardType
+NightLocation
+DayLocation
+Allergies
+CurrentPets
+HouseholdObjection
+HomeType
+OwnershipType
+PreviousPets
+ExerciseHours
+MonthlyCost
+BreedingIntent
+SpayNeuterCommitment
+BehaviorTolerance
+TraumaComfortLevel
+DailyCarePlan
+TravelPlan
+Activities (JSON or string)
+PetPreferences (JSON or string)
+TrainingExpectations (JSON or string)
+Confirmation (boolean)
+🔹 E. Validation
+Required fields must be enforced
+Prevent duplicate submission
+Handle incomplete data
+5. Navbar Behavior
+Before login:
+Show: Sign Up
+After login:
+Show: Hi, {User Name}
+Dropdown:
+Profile
+Requests
+Logout
+6. Frontend Behavior
+Role-based routing
+Admin → Dashboard
+User → Homepage
+Loading + error handling
+7. Backend (.NET Architecture)
+Controllers / Services / Repositories
+DTOs
+Clean architecture
+🚀 Execution Instructions
+Step 1: Explain architecture
+Step 2: Implement:
+Database
+Auth
+Roles
+FULL onboarding form (UI + logic + backend)
+UI behavior
+⚠️ Notes
+The onboarding form is CRITICAL
+Do NOT simplify it
+Must match the UI provided
+Must be fully functional (not static)
