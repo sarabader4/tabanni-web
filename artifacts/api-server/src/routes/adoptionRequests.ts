@@ -26,7 +26,13 @@ router.get("/adoption-requests", requireAuth, async (req, res) => {
     const reqStatus = status ? ADOPTION_STATUSES.find(s => s === status) : undefined;
     if (reqStatus) conditions.push(eq(adoptionRequestsTable.status, reqStatus));
     if (petId !== undefined) conditions.push(eq(adoptionRequestsTable.petId, petId));
-    if (requesterId !== undefined) conditions.push(eq(adoptionRequestsTable.requesterId, requesterId));
+
+    // Non-admin users can only view their own requests; admins can see all (and filter by requesterId)
+    if (req.userRole !== "admin") {
+      conditions.push(eq(adoptionRequestsTable.requesterId, req.userId));
+    } else if (requesterId !== undefined) {
+      conditions.push(eq(adoptionRequestsTable.requesterId, requesterId));
+    }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
