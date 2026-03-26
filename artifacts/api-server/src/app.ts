@@ -29,7 +29,7 @@ app.use(
 );
 
 app.post(
-  "/api/stripe/webhook",
+  "/api/payments/stripe/webhook",
   express.raw({ type: "application/json" }),
   async (req, res) => {
     const signature = req.headers["stripe-signature"];

@@ -931,6 +931,200 @@ paths:
                     type: string
                 required: [description, story]
 
+  /payments/config:
+    get:
+      summary: Get payment provider configuration (publishable keys)
+      operationId: getPaymentConfig
+      tags:
+        - payments
+      responses:
+        "200":
+          description: Payment configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publishableKey:
+                    type: string
+                  paypalClientId:
+                    type: string
+                required: [publishableKey, paypalClientId]
+
+  /payments/stripe/create-intent:
+    post:
+      summary: Create a Stripe PaymentIntent for a donation
+      operationId: createStripePaymentIntent
+      tags:
+        - payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: string
+                donorName:
+                  type: string
+                donorPhone:
+                  type: string
+                frequency:
+                  type: string
+                  enum: [one_time, monthly]
+              required: [amount, donorName]
+      responses:
+        "200":
+          description: PaymentIntent created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clientSecret:
+                    type: string
+                  donationId:
+                    type: number
+                required: [clientSecret, donationId]
+
+  /payments/stripe/confirm:
+    post:
+      summary: Confirm a Stripe payment by verifying server-side with Stripe
+      operationId: confirmStripePayment
+      tags:
+        - payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paymentIntentId:
+                  type: string
+              required: [paymentIntentId]
+      responses:
+        "200":
+          description: Payment status confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  status:
+                    type: string
+                    enum: [success, failed]
+                required: [ok, status]
+
+  /payments/stripe/webhook:
+    post:
+      summary: Stripe webhook endpoint
+      operationId: stripeWebhook
+      tags:
+        - payments
+      responses:
+        "200":
+          description: Webhook received
+
+  /payments/paypal/create-order:
+    post:
+      summary: Create a PayPal order for a donation
+      operationId: createPaypalOrder
+      tags:
+        - payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: string
+                donorName:
+                  type: string
+                donorPhone:
+                  type: string
+                frequency:
+                  type: string
+              required: [amount, donorName]
+      responses:
+        "200":
+          description: PayPal order created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: string
+                  donationId:
+                    type: number
+                required: [orderId, donationId]
+
+  /payments/paypal/capture-order:
+    post:
+      summary: Capture a PayPal order after approval
+      operationId: capturePaypalOrder
+      tags:
+        - payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderId:
+                  type: string
+              required: [orderId]
+      responses:
+        "200":
+          description: PayPal capture result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  status:
+                    type: string
+                required: [success, status]
+
+  /payments/cliq/confirm:
+    post:
+      summary: Record a CliQ bank transfer donation
+      operationId: confirmCliqDonation
+      tags:
+        - payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: string
+                donorName:
+                  type: string
+                donorPhone:
+                  type: string
+                frequency:
+                  type: string
+              required: [amount, donorName]
+      responses:
+        "201":
+          description: CliQ donation recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Donation"
+
 components:
   schemas:
     HealthStatus:
@@ -1342,6 +1536,16 @@ components:
         frequency:
           type: string
           enum: [one_time, monthly]
+        status:
+          type: string
+          enum: [pending, success, failed]
+          nullable: true
+        stripePaymentIntentId:
+          type: string
+          nullable: true
+        paypalOrderId:
+          type: string
+          nullable: true
         petId:
           type: number
           nullable: true

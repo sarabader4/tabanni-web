@@ -16,5 +16,6 @@ export interface AdoptionRequest {
   petName?: string | null;
   petImageUrl?: string | null;
   requesterName?: string | null;
+  requesterCity?: string | null;
   createdAt: string;
 }

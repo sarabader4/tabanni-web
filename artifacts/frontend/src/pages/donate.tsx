@@ -132,7 +132,7 @@ function StripeCardForm({
         {processing ? (
           <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
         ) : (
-          `Donate ${amount || 0} JOD`
+          `Donate ${amount || 0} JOD via Card`
         )}
       </button>
     </form>

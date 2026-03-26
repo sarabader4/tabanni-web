@@ -80,6 +80,8 @@ export const PetStatus = {
   adopted: "adopted",
   fostered: "fostered",
   pending: "pending",
+  lost: "lost",
+  found: "found",
 } as const;
 
 export type PetPurpose = (typeof PetPurpose)[keyof typeof PetPurpose];
@@ -88,6 +90,7 @@ export const PetPurpose = {
   adopt: "adopt",
   foster: "foster",
   both: "both",
+  lost_found: "lost_found",
 } as const;
 
 export interface Pet {
@@ -151,6 +154,7 @@ export const CreatePetInputPurpose = {
   adopt: "adopt",
   foster: "foster",
   both: "both",
+  lost_found: "lost_found",
 } as const;
 
 export interface CreatePetInput {
@@ -286,6 +290,16 @@ export const DonationFrequency = {
   monthly: "monthly",
 } as const;
 
+export type DonationStatus =
+  | (typeof DonationStatus)[keyof typeof DonationStatus]
+  | null;
+
+export const DonationStatus = {
+  pending: "pending",
+  success: "success",
+  failed: "failed",
+} as const;
+
 export interface Donation {
   id: number;
   donorName: string;
@@ -296,6 +310,9 @@ export interface Donation {
   description?: string | null;
   paymentMethod?: string | null;
   frequency: DonationFrequency;
+  status?: DonationStatus;
+  stripePaymentIntentId?: string | null;
+  paypalOrderId?: string | null;
   petId?: number | null;
   createdAt: string;
 }
@@ -356,6 +373,7 @@ export const LostFoundReportReportType = {
 export interface LostFoundReport {
   id: number;
   reportType: LostFoundReportReportType;
+  petId?: number | null;
   name: string;
   type: string;
   breed?: string | null;
@@ -384,6 +402,7 @@ export const CreateLostFoundReportInputReportType = {
 
 export interface CreateLostFoundReportInput {
   reportType: CreateLostFoundReportInputReportType;
+  petId?: number;
   name: string;
   type: string;
   breed?: string;
@@ -490,7 +509,30 @@ export type ListLostFoundReportsParams = {
   breed?: string;
   page?: number;
   limit?: number;
-  reporterId?: number;
+};
+
+export type GetMyProfileParams = {
+  userId: number;
+};
+
+export type UpdateMyProfileParams = {
+  userId: number;
+};
+
+export type GetMyPetsParams = {
+  userId: number;
+};
+
+export type GetMyApplicationsParams = {
+  userId: number;
+};
+
+export type GetMyFavouritesParams = {
+  userId: number;
+};
+
+export type GetMyDonationsParams = {
+  userId: number;
 };
 
 export type ListAdminUsersParams = {
@@ -498,4 +540,148 @@ export type ListAdminUsersParams = {
   search?: string;
   page?: number;
   limit?: number;
+};
+
+export type AiChatBodyMessagesItemRole =
+  (typeof AiChatBodyMessagesItemRole)[keyof typeof AiChatBodyMessagesItemRole];
+
+export const AiChatBodyMessagesItemRole = {
+  user: "user",
+  assistant: "assistant",
+} as const;
+
+export type AiChatBodyMessagesItem = {
+  role: AiChatBodyMessagesItemRole;
+  content: string;
+};
+
+export type AiChatBodyHistoryItem = {
+  role?: string;
+  content?: string;
+};
+
+export type AiChatBody = {
+  messages?: AiChatBodyMessagesItem[];
+  message?: string;
+  history?: AiChatBodyHistoryItem[];
+};
+
+export type AiChat200 = {
+  reply: string;
+};
+
+export type AiRecommendBodyPreferences = string | { [key: string]: unknown };
+
+export type AiRecommendBody = {
+  preferences?: AiRecommendBodyPreferences;
+  /** Optional list of pet IDs to scope the search */
+  petIds?: number[];
+  /** Pet ID to exclude (for similar-pet matching on detail page) */
+  excludePetId?: number;
+};
+
+export type AiRecommend200MatchesItem = {
+  pet: Pet;
+  petName: string;
+  matchReason: string;
+  /**
+   * @minimum 0
+   * @maximum 1
+   */
+  score: number;
+};
+
+export type AiRecommend200 = {
+  /** @maxItems 5 */
+  matches: AiRecommend200MatchesItem[];
+  explanation: string;
+};
+
+export type AiGenerateDescriptionBodyPet = {
+  name: string;
+  type: string;
+  breed?: string;
+  gender: string;
+  ageMonths?: number;
+  size?: string;
+  city?: string;
+};
+
+export type AiGenerateDescriptionBody = {
+  pet: AiGenerateDescriptionBodyPet;
+};
+
+export type AiGenerateDescription200 = {
+  description: string;
+  story: string;
+};
+
+export type GetPaymentConfig200 = {
+  publishableKey: string;
+  paypalClientId: string;
+};
+
+export type CreateStripePaymentIntentBodyFrequency =
+  (typeof CreateStripePaymentIntentBodyFrequency)[keyof typeof CreateStripePaymentIntentBodyFrequency];
+
+export const CreateStripePaymentIntentBodyFrequency = {
+  one_time: "one_time",
+  monthly: "monthly",
+} as const;
+
+export type CreateStripePaymentIntentBody = {
+  amount: string;
+  donorName: string;
+  donorPhone?: string;
+  frequency?: CreateStripePaymentIntentBodyFrequency;
+};
+
+export type CreateStripePaymentIntent200 = {
+  clientSecret: string;
+  donationId: number;
+};
+
+export type ConfirmStripePaymentBody = {
+  paymentIntentId: string;
+};
+
+export type ConfirmStripePayment200Status =
+  (typeof ConfirmStripePayment200Status)[keyof typeof ConfirmStripePayment200Status];
+
+export const ConfirmStripePayment200Status = {
+  success: "success",
+  failed: "failed",
+} as const;
+
+export type ConfirmStripePayment200 = {
+  ok: boolean;
+  status: ConfirmStripePayment200Status;
+};
+
+export type CreatePaypalOrderBody = {
+  amount: string;
+  donorName: string;
+  donorPhone?: string;
+  frequency?: string;
+};
+
+export type CreatePaypalOrder200 = {
+  orderId: string;
+  donationId: number;
+};
+
+export type CapturePaypalOrderBody = {
+  orderId: string;
+};
+
+export type CapturePaypalOrder200 = {
+  success: boolean;
+  status: string;
+};
+
+export type ConfirmCliqDonationBody = {
+  amount: string;
+  donorName: string;
+  donorPhone?: string;
+  frequency?: string;
 };

@@ -19,17 +19,38 @@ import type {
 import type {
   AdminStats,
   AdoptionRequest,
+  AiChat200,
+  AiChatBody,
+  AiGenerateDescription200,
+  AiGenerateDescriptionBody,
+  AiRecommend200,
+  AiRecommendBody,
+  CapturePaypalOrder200,
+  CapturePaypalOrderBody,
+  ConfirmCliqDonationBody,
+  ConfirmStripePayment200,
+  ConfirmStripePaymentBody,
   CreateAdoptionRequestInput,
   CreateDonationInput,
   CreateFosterRequestInput,
   CreateGalleryPostInput,
   CreateLostFoundReportInput,
   CreateMessageInput,
+  CreatePaypalOrder200,
+  CreatePaypalOrderBody,
   CreatePetInput,
+  CreateStripePaymentIntent200,
+  CreateStripePaymentIntentBody,
   Donation,
   ErrorResponse,
   FosterRequest,
   GalleryPost,
+  GetMyApplicationsParams,
+  GetMyDonationsParams,
+  GetMyFavouritesParams,
+  GetMyPetsParams,
+  GetMyProfileParams,
+  GetPaymentConfig200,
   HealthStatus,
   ListAdminUsersParams,
   ListAdoptionRequestsParams,
@@ -46,6 +67,7 @@ import type {
   PetListResponse,
   SuccessResponse,
   ToggleFavouriteInput,
+  UpdateMyProfileParams,
   UpdatePetInput,
   UpdateRequestStatusInput,
   UpdateUserInput,
@@ -2087,39 +2109,57 @@ export const useSendMessage = <
 /**
  * @summary Get current user profile
  */
-export const getGetMyProfileUrl = () => {
-  return `/api/users/me`;
+export const getGetMyProfileUrl = (params: GetMyProfileParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/users/me?${stringifiedParams}`
+    : `/api/users/me`;
 };
 
-export const getMyProfile = async (options?: RequestInit): Promise<User> => {
-  return customFetch<User>(getGetMyProfileUrl(), {
+export const getMyProfile = async (
+  params: GetMyProfileParams,
+  options?: RequestInit,
+): Promise<User> => {
+  return customFetch<User>(getGetMyProfileUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyProfileQueryKey = () => {
-  return [`/api/users/me`] as const;
+export const getGetMyProfileQueryKey = (params?: GetMyProfileParams) => {
+  return [`/api/users/me`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetMyProfileQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyProfile>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getMyProfile>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  params: GetMyProfileParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyProfile>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetMyProfileQueryKey();
+  const queryKey = queryOptions?.queryKey ?? getGetMyProfileQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyProfile>>> = ({
     signal,
-  }) => getMyProfile({ signal, ...requestOptions });
+  }) => getMyProfile(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyProfile>>,
@@ -2140,15 +2180,18 @@ export type GetMyProfileQueryError = ErrorType<unknown>;
 export function useGetMyProfile<
   TData = Awaited<ReturnType<typeof getMyProfile>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getMyProfile>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyProfileQueryOptions(options);
+>(
+  params: GetMyProfileParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyProfile>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyProfileQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -2160,15 +2203,28 @@ export function useGetMyProfile<
 /**
  * @summary Update current user profile
  */
-export const getUpdateMyProfileUrl = () => {
-  return `/api/users/me`;
+export const getUpdateMyProfileUrl = (params: UpdateMyProfileParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/users/me?${stringifiedParams}`
+    : `/api/users/me`;
 };
 
 export const updateMyProfile = async (
   updateUserInput: UpdateUserInput,
+  params: UpdateMyProfileParams,
   options?: RequestInit,
 ): Promise<User> => {
-  return customFetch<User>(getUpdateMyProfileUrl(), {
+  return customFetch<User>(getUpdateMyProfileUrl(params), {
     ...options,
     method: "PUT",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -2183,14 +2239,14 @@ export const getUpdateMyProfileMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateMyProfile>>,
     TError,
-    { data: BodyType<UpdateUserInput> },
+    { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateMyProfile>>,
   TError,
-  { data: BodyType<UpdateUserInput> },
+  { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams },
   TContext
 > => {
   const mutationKey = ["updateMyProfile"];
@@ -2204,11 +2260,11 @@ export const getUpdateMyProfileMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateMyProfile>>,
-    { data: BodyType<UpdateUserInput> }
+    { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams }
   > = (props) => {
-    const { data } = props ?? {};
+    const { data, params } = props ?? {};
 
-    return updateMyProfile(data, requestOptions);
+    return updateMyProfile(data, params, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -2230,14 +2286,14 @@ export const useUpdateMyProfile = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateMyProfile>>,
     TError,
-    { data: BodyType<UpdateUserInput> },
+    { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof updateMyProfile>>,
   TError,
-  { data: BodyType<UpdateUserInput> },
+  { data: BodyType<UpdateUserInput>; params: UpdateMyProfileParams },
   TContext
 > => {
   return useMutation(getUpdateMyProfileMutationOptions(options));
@@ -2246,35 +2302,57 @@ export const useUpdateMyProfile = <
 /**
  * @summary Get current user's listed pets
  */
-export const getGetMyPetsUrl = () => {
-  return `/api/users/me/pets`;
+export const getGetMyPetsUrl = (params: GetMyPetsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/users/me/pets?${stringifiedParams}`
+    : `/api/users/me/pets`;
 };
 
-export const getMyPets = async (options?: RequestInit): Promise<Pet[]> => {
-  return customFetch<Pet[]>(getGetMyPetsUrl(), {
+export const getMyPets = async (
+  params: GetMyPetsParams,
+  options?: RequestInit,
+): Promise<Pet[]> => {
+  return customFetch<Pet[]>(getGetMyPetsUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyPetsQueryKey = () => {
-  return [`/api/users/me/pets`] as const;
+export const getGetMyPetsQueryKey = (params?: GetMyPetsParams) => {
+  return [`/api/users/me/pets`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetMyPetsQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyPets>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof getMyPets>>, TError, TData>;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  params: GetMyPetsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyPets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetMyPetsQueryKey();
+  const queryKey = queryOptions?.queryKey ?? getGetMyPetsQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyPets>>> = ({
     signal,
-  }) => getMyPets({ signal, ...requestOptions });
+  }) => getMyPets(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyPets>>,
@@ -2295,11 +2373,18 @@ export type GetMyPetsQueryError = ErrorType<unknown>;
 export function useGetMyPets<
   TData = Awaited<ReturnType<typeof getMyPets>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof getMyPets>>, TError, TData>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyPetsQueryOptions(options);
+>(
+  params: GetMyPetsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyPets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyPetsQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -2311,41 +2396,60 @@ export function useGetMyPets<
 /**
  * @summary Get current user's adoption and foster applications
  */
-export const getGetMyApplicationsUrl = () => {
-  return `/api/users/me/applications`;
+export const getGetMyApplicationsUrl = (params: GetMyApplicationsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/users/me/applications?${stringifiedParams}`
+    : `/api/users/me/applications`;
 };
 
 export const getMyApplications = async (
+  params: GetMyApplicationsParams,
   options?: RequestInit,
 ): Promise<MyApplicationsResponse> => {
-  return customFetch<MyApplicationsResponse>(getGetMyApplicationsUrl(), {
+  return customFetch<MyApplicationsResponse>(getGetMyApplicationsUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyApplicationsQueryKey = () => {
-  return [`/api/users/me/applications`] as const;
+export const getGetMyApplicationsQueryKey = (
+  params?: GetMyApplicationsParams,
+) => {
+  return [`/api/users/me/applications`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetMyApplicationsQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyApplications>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getMyApplications>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  params: GetMyApplicationsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyApplications>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetMyApplicationsQueryKey();
+  const queryKey =
+    queryOptions?.queryKey ?? getGetMyApplicationsQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getMyApplications>>
-  > = ({ signal }) => getMyApplications({ signal, ...requestOptions });
+  > = ({ signal }) => getMyApplications(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyApplications>>,
@@ -2366,15 +2470,18 @@ export type GetMyApplicationsQueryError = ErrorType<unknown>;
 export function useGetMyApplications<
   TData = Awaited<ReturnType<typeof getMyApplications>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getMyApplications>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyApplicationsQueryOptions(options);
+>(
+  params: GetMyApplicationsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyApplications>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyApplicationsQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -2386,41 +2493,57 @@ export function useGetMyApplications<
 /**
  * @summary Get current user's favourited pets
  */
-export const getGetMyFavouritesUrl = () => {
-  return `/api/users/me/favourites`;
+export const getGetMyFavouritesUrl = (params: GetMyFavouritesParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/users/me/favourites?${stringifiedParams}`
+    : `/api/users/me/favourites`;
 };
 
 export const getMyFavourites = async (
+  params: GetMyFavouritesParams,
   options?: RequestInit,
 ): Promise<Pet[]> => {
-  return customFetch<Pet[]>(getGetMyFavouritesUrl(), {
+  return customFetch<Pet[]>(getGetMyFavouritesUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyFavouritesQueryKey = () => {
-  return [`/api/users/me/favourites`] as const;
+export const getGetMyFavouritesQueryKey = (params?: GetMyFavouritesParams) => {
+  return [`/api/users/me/favourites`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetMyFavouritesQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyFavourites>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getMyFavourites>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  params: GetMyFavouritesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyFavourites>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetMyFavouritesQueryKey();
+  const queryKey = queryOptions?.queryKey ?? getGetMyFavouritesQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyFavourites>>> = ({
     signal,
-  }) => getMyFavourites({ signal, ...requestOptions });
+  }) => getMyFavourites(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyFavourites>>,
@@ -2441,15 +2564,18 @@ export type GetMyFavouritesQueryError = ErrorType<unknown>;
 export function useGetMyFavourites<
   TData = Awaited<ReturnType<typeof getMyFavourites>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getMyFavourites>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyFavouritesQueryOptions(options);
+>(
+  params: GetMyFavouritesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyFavourites>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyFavouritesQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -2461,41 +2587,57 @@ export function useGetMyFavourites<
 /**
  * @summary Get current user's donation history
  */
-export const getGetMyDonationsUrl = () => {
-  return `/api/users/me/donations`;
+export const getGetMyDonationsUrl = (params: GetMyDonationsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/users/me/donations?${stringifiedParams}`
+    : `/api/users/me/donations`;
 };
 
 export const getMyDonations = async (
+  params: GetMyDonationsParams,
   options?: RequestInit,
 ): Promise<Donation[]> => {
-  return customFetch<Donation[]>(getGetMyDonationsUrl(), {
+  return customFetch<Donation[]>(getGetMyDonationsUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetMyDonationsQueryKey = () => {
-  return [`/api/users/me/donations`] as const;
+export const getGetMyDonationsQueryKey = (params?: GetMyDonationsParams) => {
+  return [`/api/users/me/donations`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetMyDonationsQueryOptions = <
   TData = Awaited<ReturnType<typeof getMyDonations>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getMyDonations>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  params: GetMyDonationsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyDonations>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetMyDonationsQueryKey();
+  const queryKey = queryOptions?.queryKey ?? getGetMyDonationsQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyDonations>>> = ({
     signal,
-  }) => getMyDonations({ signal, ...requestOptions });
+  }) => getMyDonations(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getMyDonations>>,
@@ -2516,15 +2658,18 @@ export type GetMyDonationsQueryError = ErrorType<unknown>;
 export function useGetMyDonations<
   TData = Awaited<ReturnType<typeof getMyDonations>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getMyDonations>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetMyDonationsQueryOptions(options);
+>(
+  params: GetMyDonationsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMyDonations>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyDonationsQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -2868,4 +3013,852 @@ export const useTogglePetFeatured = <
   TContext
 > => {
   return useMutation(getTogglePetFeaturedMutationOptions(options));
+};
+
+/**
+ * @summary Chat with the AI pet adoption assistant
+ */
+export const getAiChatUrl = () => {
+  return `/api/ai/chat`;
+};
+
+export const aiChat = async (
+  aiChatBody: AiChatBody,
+  options?: RequestInit,
+): Promise<AiChat200> => {
+  return customFetch<AiChat200>(getAiChatUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(aiChatBody),
+  });
+};
+
+export const getAiChatMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof aiChat>>,
+    TError,
+    { data: BodyType<AiChatBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof aiChat>>,
+  TError,
+  { data: BodyType<AiChatBody> },
+  TContext
+> => {
+  const mutationKey = ["aiChat"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof aiChat>>,
+    { data: BodyType<AiChatBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return aiChat(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AiChatMutationResult = NonNullable<
+  Awaited<ReturnType<typeof aiChat>>
+>;
+export type AiChatMutationBody = BodyType<AiChatBody>;
+export type AiChatMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Chat with the AI pet adoption assistant
+ */
+export const useAiChat = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof aiChat>>,
+    TError,
+    { data: BodyType<AiChatBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof aiChat>>,
+  TError,
+  { data: BodyType<AiChatBody> },
+  TContext
+> => {
+  return useMutation(getAiChatMutationOptions(options));
+};
+
+/**
+ * @summary Get AI-powered pet match recommendations
+ */
+export const getAiRecommendUrl = () => {
+  return `/api/ai/recommend`;
+};
+
+export const aiRecommend = async (
+  aiRecommendBody: AiRecommendBody,
+  options?: RequestInit,
+): Promise<AiRecommend200> => {
+  return customFetch<AiRecommend200>(getAiRecommendUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(aiRecommendBody),
+  });
+};
+
+export const getAiRecommendMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof aiRecommend>>,
+    TError,
+    { data: BodyType<AiRecommendBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof aiRecommend>>,
+  TError,
+  { data: BodyType<AiRecommendBody> },
+  TContext
+> => {
+  const mutationKey = ["aiRecommend"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof aiRecommend>>,
+    { data: BodyType<AiRecommendBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return aiRecommend(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AiRecommendMutationResult = NonNullable<
+  Awaited<ReturnType<typeof aiRecommend>>
+>;
+export type AiRecommendMutationBody = BodyType<AiRecommendBody>;
+export type AiRecommendMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Get AI-powered pet match recommendations
+ */
+export const useAiRecommend = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof aiRecommend>>,
+    TError,
+    { data: BodyType<AiRecommendBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof aiRecommend>>,
+  TError,
+  { data: BodyType<AiRecommendBody> },
+  TContext
+> => {
+  return useMutation(getAiRecommendMutationOptions(options));
+};
+
+/**
+ * @summary Generate an AI adoption story for a pet
+ */
+export const getAiGenerateDescriptionUrl = () => {
+  return `/api/ai/generate-description`;
+};
+
+export const aiGenerateDescription = async (
+  aiGenerateDescriptionBody: AiGenerateDescriptionBody,
+  options?: RequestInit,
+): Promise<AiGenerateDescription200> => {
+  return customFetch<AiGenerateDescription200>(getAiGenerateDescriptionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(aiGenerateDescriptionBody),
+  });
+};
+
+export const getAiGenerateDescriptionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof aiGenerateDescription>>,
+    TError,
+    { data: BodyType<AiGenerateDescriptionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof aiGenerateDescription>>,
+  TError,
+  { data: BodyType<AiGenerateDescriptionBody> },
+  TContext
+> => {
+  const mutationKey = ["aiGenerateDescription"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof aiGenerateDescription>>,
+    { data: BodyType<AiGenerateDescriptionBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return aiGenerateDescription(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AiGenerateDescriptionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof aiGenerateDescription>>
+>;
+export type AiGenerateDescriptionMutationBody =
+  BodyType<AiGenerateDescriptionBody>;
+export type AiGenerateDescriptionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate an AI adoption story for a pet
+ */
+export const useAiGenerateDescription = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof aiGenerateDescription>>,
+    TError,
+    { data: BodyType<AiGenerateDescriptionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof aiGenerateDescription>>,
+  TError,
+  { data: BodyType<AiGenerateDescriptionBody> },
+  TContext
+> => {
+  return useMutation(getAiGenerateDescriptionMutationOptions(options));
+};
+
+/**
+ * @summary Get payment provider configuration (publishable keys)
+ */
+export const getGetPaymentConfigUrl = () => {
+  return `/api/payments/config`;
+};
+
+export const getPaymentConfig = async (
+  options?: RequestInit,
+): Promise<GetPaymentConfig200> => {
+  return customFetch<GetPaymentConfig200>(getGetPaymentConfigUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPaymentConfigQueryKey = () => {
+  return [`/api/payments/config`] as const;
+};
+
+export const getGetPaymentConfigQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPaymentConfig>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPaymentConfig>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPaymentConfigQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPaymentConfig>>
+  > = ({ signal }) => getPaymentConfig({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPaymentConfig>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPaymentConfigQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPaymentConfig>>
+>;
+export type GetPaymentConfigQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get payment provider configuration (publishable keys)
+ */
+
+export function useGetPaymentConfig<
+  TData = Awaited<ReturnType<typeof getPaymentConfig>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPaymentConfig>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPaymentConfigQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a Stripe PaymentIntent for a donation
+ */
+export const getCreateStripePaymentIntentUrl = () => {
+  return `/api/payments/stripe/create-intent`;
+};
+
+export const createStripePaymentIntent = async (
+  createStripePaymentIntentBody: CreateStripePaymentIntentBody,
+  options?: RequestInit,
+): Promise<CreateStripePaymentIntent200> => {
+  return customFetch<CreateStripePaymentIntent200>(
+    getCreateStripePaymentIntentUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createStripePaymentIntentBody),
+    },
+  );
+};
+
+export const getCreateStripePaymentIntentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createStripePaymentIntent>>,
+    TError,
+    { data: BodyType<CreateStripePaymentIntentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createStripePaymentIntent>>,
+  TError,
+  { data: BodyType<CreateStripePaymentIntentBody> },
+  TContext
+> => {
+  const mutationKey = ["createStripePaymentIntent"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createStripePaymentIntent>>,
+    { data: BodyType<CreateStripePaymentIntentBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createStripePaymentIntent(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateStripePaymentIntentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createStripePaymentIntent>>
+>;
+export type CreateStripePaymentIntentMutationBody =
+  BodyType<CreateStripePaymentIntentBody>;
+export type CreateStripePaymentIntentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a Stripe PaymentIntent for a donation
+ */
+export const useCreateStripePaymentIntent = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createStripePaymentIntent>>,
+    TError,
+    { data: BodyType<CreateStripePaymentIntentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createStripePaymentIntent>>,
+  TError,
+  { data: BodyType<CreateStripePaymentIntentBody> },
+  TContext
+> => {
+  return useMutation(getCreateStripePaymentIntentMutationOptions(options));
+};
+
+/**
+ * @summary Confirm a Stripe payment by verifying server-side with Stripe
+ */
+export const getConfirmStripePaymentUrl = () => {
+  return `/api/payments/stripe/confirm`;
+};
+
+export const confirmStripePayment = async (
+  confirmStripePaymentBody: ConfirmStripePaymentBody,
+  options?: RequestInit,
+): Promise<ConfirmStripePayment200> => {
+  return customFetch<ConfirmStripePayment200>(getConfirmStripePaymentUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(confirmStripePaymentBody),
+  });
+};
+
+export const getConfirmStripePaymentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof confirmStripePayment>>,
+    TError,
+    { data: BodyType<ConfirmStripePaymentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof confirmStripePayment>>,
+  TError,
+  { data: BodyType<ConfirmStripePaymentBody> },
+  TContext
+> => {
+  const mutationKey = ["confirmStripePayment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof confirmStripePayment>>,
+    { data: BodyType<ConfirmStripePaymentBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return confirmStripePayment(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ConfirmStripePaymentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof confirmStripePayment>>
+>;
+export type ConfirmStripePaymentMutationBody =
+  BodyType<ConfirmStripePaymentBody>;
+export type ConfirmStripePaymentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Confirm a Stripe payment by verifying server-side with Stripe
+ */
+export const useConfirmStripePayment = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof confirmStripePayment>>,
+    TError,
+    { data: BodyType<ConfirmStripePaymentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof confirmStripePayment>>,
+  TError,
+  { data: BodyType<ConfirmStripePaymentBody> },
+  TContext
+> => {
+  return useMutation(getConfirmStripePaymentMutationOptions(options));
+};
+
+/**
+ * @summary Stripe webhook endpoint
+ */
+export const getStripeWebhookUrl = () => {
+  return `/api/payments/stripe/webhook`;
+};
+
+export const stripeWebhook = async (options?: RequestInit): Promise<void> => {
+  return customFetch<void>(getStripeWebhookUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getStripeWebhookMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeWebhook>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof stripeWebhook>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["stripeWebhook"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof stripeWebhook>>,
+    void
+  > = () => {
+    return stripeWebhook(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type StripeWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof stripeWebhook>>
+>;
+
+export type StripeWebhookMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Stripe webhook endpoint
+ */
+export const useStripeWebhook = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeWebhook>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof stripeWebhook>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getStripeWebhookMutationOptions(options));
+};
+
+/**
+ * @summary Create a PayPal order for a donation
+ */
+export const getCreatePaypalOrderUrl = () => {
+  return `/api/payments/paypal/create-order`;
+};
+
+export const createPaypalOrder = async (
+  createPaypalOrderBody: CreatePaypalOrderBody,
+  options?: RequestInit,
+): Promise<CreatePaypalOrder200> => {
+  return customFetch<CreatePaypalOrder200>(getCreatePaypalOrderUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createPaypalOrderBody),
+  });
+};
+
+export const getCreatePaypalOrderMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPaypalOrder>>,
+    TError,
+    { data: BodyType<CreatePaypalOrderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPaypalOrder>>,
+  TError,
+  { data: BodyType<CreatePaypalOrderBody> },
+  TContext
+> => {
+  const mutationKey = ["createPaypalOrder"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPaypalOrder>>,
+    { data: BodyType<CreatePaypalOrderBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createPaypalOrder(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePaypalOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPaypalOrder>>
+>;
+export type CreatePaypalOrderMutationBody = BodyType<CreatePaypalOrderBody>;
+export type CreatePaypalOrderMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a PayPal order for a donation
+ */
+export const useCreatePaypalOrder = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPaypalOrder>>,
+    TError,
+    { data: BodyType<CreatePaypalOrderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPaypalOrder>>,
+  TError,
+  { data: BodyType<CreatePaypalOrderBody> },
+  TContext
+> => {
+  return useMutation(getCreatePaypalOrderMutationOptions(options));
+};
+
+/**
+ * @summary Capture a PayPal order after approval
+ */
+export const getCapturePaypalOrderUrl = () => {
+  return `/api/payments/paypal/capture-order`;
+};
+
+export const capturePaypalOrder = async (
+  capturePaypalOrderBody: CapturePaypalOrderBody,
+  options?: RequestInit,
+): Promise<CapturePaypalOrder200> => {
+  return customFetch<CapturePaypalOrder200>(getCapturePaypalOrderUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(capturePaypalOrderBody),
+  });
+};
+
+export const getCapturePaypalOrderMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof capturePaypalOrder>>,
+    TError,
+    { data: BodyType<CapturePaypalOrderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof capturePaypalOrder>>,
+  TError,
+  { data: BodyType<CapturePaypalOrderBody> },
+  TContext
+> => {
+  const mutationKey = ["capturePaypalOrder"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof capturePaypalOrder>>,
+    { data: BodyType<CapturePaypalOrderBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return capturePaypalOrder(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CapturePaypalOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof capturePaypalOrder>>
+>;
+export type CapturePaypalOrderMutationBody = BodyType<CapturePaypalOrderBody>;
+export type CapturePaypalOrderMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Capture a PayPal order after approval
+ */
+export const useCapturePaypalOrder = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof capturePaypalOrder>>,
+    TError,
+    { data: BodyType<CapturePaypalOrderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof capturePaypalOrder>>,
+  TError,
+  { data: BodyType<CapturePaypalOrderBody> },
+  TContext
+> => {
+  return useMutation(getCapturePaypalOrderMutationOptions(options));
+};
+
+/**
+ * @summary Record a CliQ bank transfer donation
+ */
+export const getConfirmCliqDonationUrl = () => {
+  return `/api/payments/cliq/confirm`;
+};
+
+export const confirmCliqDonation = async (
+  confirmCliqDonationBody: ConfirmCliqDonationBody,
+  options?: RequestInit,
+): Promise<Donation> => {
+  return customFetch<Donation>(getConfirmCliqDonationUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(confirmCliqDonationBody),
+  });
+};
+
+export const getConfirmCliqDonationMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof confirmCliqDonation>>,
+    TError,
+    { data: BodyType<ConfirmCliqDonationBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof confirmCliqDonation>>,
+  TError,
+  { data: BodyType<ConfirmCliqDonationBody> },
+  TContext
+> => {
+  const mutationKey = ["confirmCliqDonation"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof confirmCliqDonation>>,
+    { data: BodyType<ConfirmCliqDonationBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return confirmCliqDonation(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ConfirmCliqDonationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof confirmCliqDonation>>
+>;
+export type ConfirmCliqDonationMutationBody = BodyType<ConfirmCliqDonationBody>;
+export type ConfirmCliqDonationMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Record a CliQ bank transfer donation
+ */
+export const useConfirmCliqDonation = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof confirmCliqDonation>>,
+    TError,
+    { data: BodyType<ConfirmCliqDonationBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof confirmCliqDonation>>,
+  TError,
+  { data: BodyType<ConfirmCliqDonationBody> },
+  TContext
+> => {
+  return useMutation(getConfirmCliqDonationMutationOptions(options));
 };

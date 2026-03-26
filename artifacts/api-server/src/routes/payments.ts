@@ -83,18 +83,18 @@ router.post("/payments/stripe/create-intent", async (req, res) => {
 
 router.post("/payments/stripe/confirm", async (req, res) => {
   try {
-    const { paymentIntentId, status } = req.body as {
-      paymentIntentId: string;
-      status: "success" | "failed";
-    };
+    const { paymentIntentId } = req.body as { paymentIntentId: string };
     if (!paymentIntentId) {
       return res.status(400).json({ error: "validation_error", message: "paymentIntentId required" });
     }
+    const stripe = await getUncachableStripeClient();
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const status = intent.status === "succeeded" ? "success" : "failed";
     await db
       .update(donationsTable)
-      .set({ status: status === "success" ? "success" : "failed" })
+      .set({ status })
       .where(eq(donationsTable.stripePaymentIntentId, paymentIntentId));
-    res.json({ ok: true });
+    res.json({ ok: true, status });
   } catch (err) {
     req.log.error({ err }, "Stripe confirm error");
     res.status(500).json({ error: "internal_error", message: "Could not update donation status" });

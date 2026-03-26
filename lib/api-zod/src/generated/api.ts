@@ -49,7 +49,14 @@ export const ListPetsResponse = zod.object({
       yearlyVaccines: zod.boolean(),
       birthday: zod.string().nullish(),
       city: zod.string(),
-      status: zod.enum(["available", "adopted", "fostered", "pending", "lost", "found"]),
+      status: zod.enum([
+        "available",
+        "adopted",
+        "fostered",
+        "pending",
+        "lost",
+        "found",
+      ]),
       purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
       imageUrls: zod.array(zod.string()),
       story: zod.string().nullish(),
@@ -105,7 +112,14 @@ export const GetFeaturedPetsResponseItem = zod.object({
   yearlyVaccines: zod.boolean(),
   birthday: zod.string().nullish(),
   city: zod.string(),
-  status: zod.enum(["available", "adopted", "fostered", "pending", "lost", "found"]),
+  status: zod.enum([
+    "available",
+    "adopted",
+    "fostered",
+    "pending",
+    "lost",
+    "found",
+  ]),
   purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
   imageUrls: zod.array(zod.string()),
   story: zod.string().nullish(),
@@ -139,7 +153,14 @@ export const GetPetResponse = zod.object({
   yearlyVaccines: zod.boolean(),
   birthday: zod.string().nullish(),
   city: zod.string(),
-  status: zod.enum(["available", "adopted", "fostered", "pending", "lost", "found"]),
+  status: zod.enum([
+    "available",
+    "adopted",
+    "fostered",
+    "pending",
+    "lost",
+    "found",
+  ]),
   purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
   imageUrls: zod.array(zod.string()),
   story: zod.string().nullish(),
@@ -192,7 +213,14 @@ export const UpdatePetResponse = zod.object({
   yearlyVaccines: zod.boolean(),
   birthday: zod.string().nullish(),
   city: zod.string(),
-  status: zod.enum(["available", "adopted", "fostered", "pending", "lost", "found"]),
+  status: zod.enum([
+    "available",
+    "adopted",
+    "fostered",
+    "pending",
+    "lost",
+    "found",
+  ]),
   purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
   imageUrls: zod.array(zod.string()),
   story: zod.string().nullish(),
@@ -250,6 +278,7 @@ export const ListAdoptionRequestsResponseItem = zod.object({
   petName: zod.string().nullish(),
   petImageUrl: zod.string().nullish(),
   requesterName: zod.string().nullish(),
+  requesterCity: zod.string().nullish(),
   createdAt: zod.string(),
 });
 export const ListAdoptionRequestsResponse = zod.array(
@@ -285,6 +314,7 @@ export const UpdateAdoptionRequestStatusResponse = zod.object({
   petName: zod.string().nullish(),
   petImageUrl: zod.string().nullish(),
   requesterName: zod.string().nullish(),
+  requesterCity: zod.string().nullish(),
   createdAt: zod.string(),
 });
 
@@ -306,6 +336,7 @@ export const ListFosterRequestsResponseItem = zod.object({
   petName: zod.string().nullish(),
   petImageUrl: zod.string().nullish(),
   requesterName: zod.string().nullish(),
+  requesterCity: zod.string().nullish(),
   createdAt: zod.string(),
 });
 export const ListFosterRequestsResponse = zod.array(
@@ -341,6 +372,7 @@ export const UpdateFosterRequestStatusResponse = zod.object({
   petName: zod.string().nullish(),
   petImageUrl: zod.string().nullish(),
   requesterName: zod.string().nullish(),
+  requesterCity: zod.string().nullish(),
   createdAt: zod.string(),
 });
 
@@ -363,6 +395,9 @@ export const ListDonationsResponseItem = zod.object({
   description: zod.string().nullish(),
   paymentMethod: zod.string().nullish(),
   frequency: zod.enum(["one_time", "monthly"]),
+  status: zod.enum(["pending", "success", "failed"]).nullish(),
+  stripePaymentIntentId: zod.string().nullish(),
+  paypalOrderId: zod.string().nullish(),
   petId: zod.number().nullish(),
   createdAt: zod.string(),
 });
@@ -441,7 +476,6 @@ export const ListLostFoundReportsQueryParams = zod.object({
   breed: zod.coerce.string().optional(),
   page: zod.coerce.number().optional(),
   limit: zod.coerce.number().optional(),
-  reporterId: zod.coerce.number().optional(),
 });
 
 export const ListLostFoundReportsResponse = zod.object({
@@ -537,22 +571,12 @@ export const SendMessageBody = zod.object({
 });
 
 /**
- * @summary Query params for /users/me endpoints (userId identifies the caller)
+ * @summary Get current user profile
  */
-export const UserIdQueryParams = zod.object({
+export const GetMyProfileQueryParams = zod.object({
   userId: zod.coerce.number(),
 });
 
-export const GetMyProfileQueryParams = UserIdQueryParams;
-export const UpdateMyProfileQueryParams = UserIdQueryParams;
-export const GetMyPetsQueryParams = UserIdQueryParams;
-export const GetMyApplicationsQueryParams = UserIdQueryParams;
-export const GetMyFavouritesQueryParams = UserIdQueryParams;
-export const GetMyDonationsQueryParams = UserIdQueryParams;
-
-/**
- * @summary Get current user profile
- */
 export const GetMyProfileResponse = zod.object({
   id: zod.number(),
   fullName: zod.string(),
@@ -568,6 +592,10 @@ export const GetMyProfileResponse = zod.object({
 /**
  * @summary Update current user profile
  */
+export const UpdateMyProfileQueryParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
 export const UpdateMyProfileBody = zod.object({
   fullName: zod.string().optional(),
   email: zod.string().optional(),
@@ -592,6 +620,10 @@ export const UpdateMyProfileResponse = zod.object({
 /**
  * @summary Get current user's listed pets
  */
+export const GetMyPetsQueryParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
 export const GetMyPetsResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
@@ -606,7 +638,14 @@ export const GetMyPetsResponseItem = zod.object({
   yearlyVaccines: zod.boolean(),
   birthday: zod.string().nullish(),
   city: zod.string(),
-  status: zod.enum(["available", "adopted", "fostered", "pending", "lost", "found"]),
+  status: zod.enum([
+    "available",
+    "adopted",
+    "fostered",
+    "pending",
+    "lost",
+    "found",
+  ]),
   purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
   imageUrls: zod.array(zod.string()),
   story: zod.string().nullish(),
@@ -622,6 +661,10 @@ export const GetMyPetsResponse = zod.array(GetMyPetsResponseItem);
 /**
  * @summary Get current user's adoption and foster applications
  */
+export const GetMyApplicationsQueryParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
 export const GetMyApplicationsResponse = zod.object({
   adoptionRequests: zod.array(
     zod.object({
@@ -633,6 +676,7 @@ export const GetMyApplicationsResponse = zod.object({
       petName: zod.string().nullish(),
       petImageUrl: zod.string().nullish(),
       requesterName: zod.string().nullish(),
+      requesterCity: zod.string().nullish(),
       createdAt: zod.string(),
     }),
   ),
@@ -646,6 +690,7 @@ export const GetMyApplicationsResponse = zod.object({
       petName: zod.string().nullish(),
       petImageUrl: zod.string().nullish(),
       requesterName: zod.string().nullish(),
+      requesterCity: zod.string().nullish(),
       createdAt: zod.string(),
     }),
   ),
@@ -654,6 +699,10 @@ export const GetMyApplicationsResponse = zod.object({
 /**
  * @summary Get current user's favourited pets
  */
+export const GetMyFavouritesQueryParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
 export const GetMyFavouritesResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
@@ -668,7 +717,14 @@ export const GetMyFavouritesResponseItem = zod.object({
   yearlyVaccines: zod.boolean(),
   birthday: zod.string().nullish(),
   city: zod.string(),
-  status: zod.enum(["available", "adopted", "fostered", "pending", "lost", "found"]),
+  status: zod.enum([
+    "available",
+    "adopted",
+    "fostered",
+    "pending",
+    "lost",
+    "found",
+  ]),
   purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
   imageUrls: zod.array(zod.string()),
   story: zod.string().nullish(),
@@ -684,6 +740,10 @@ export const GetMyFavouritesResponse = zod.array(GetMyFavouritesResponseItem);
 /**
  * @summary Get current user's donation history
  */
+export const GetMyDonationsQueryParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
 export const GetMyDonationsResponseItem = zod.object({
   id: zod.number(),
   donorName: zod.string(),
@@ -694,6 +754,9 @@ export const GetMyDonationsResponseItem = zod.object({
   description: zod.string().nullish(),
   paymentMethod: zod.string().nullish(),
   frequency: zod.enum(["one_time", "monthly"]),
+  status: zod.enum(["pending", "success", "failed"]).nullish(),
+  stripePaymentIntentId: zod.string().nullish(),
+  paypalOrderId: zod.string().nullish(),
   petId: zod.number().nullish(),
   createdAt: zod.string(),
 });
@@ -757,7 +820,14 @@ export const ApprovePetResponse = zod.object({
   yearlyVaccines: zod.boolean(),
   birthday: zod.string().nullish(),
   city: zod.string(),
-  status: zod.enum(["available", "adopted", "fostered", "pending", "lost", "found"]),
+  status: zod.enum([
+    "available",
+    "adopted",
+    "fostered",
+    "pending",
+    "lost",
+    "found",
+  ]),
   purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
   imageUrls: zod.array(zod.string()),
   story: zod.string().nullish(),
@@ -790,7 +860,14 @@ export const TogglePetFeaturedResponse = zod.object({
   yearlyVaccines: zod.boolean(),
   birthday: zod.string().nullish(),
   city: zod.string(),
-  status: zod.enum(["available", "adopted", "fostered", "pending", "lost", "found"]),
+  status: zod.enum([
+    "available",
+    "adopted",
+    "fostered",
+    "pending",
+    "lost",
+    "found",
+  ]),
   purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
   imageUrls: zod.array(zod.string()),
   story: zod.string().nullish(),
@@ -800,4 +877,193 @@ export const TogglePetFeaturedResponse = zod.object({
   approved: zod.boolean(),
   featured: zod.boolean(),
   createdAt: zod.string(),
+});
+
+/**
+ * @summary Chat with the AI pet adoption assistant
+ */
+export const AiChatBody = zod.object({
+  messages: zod
+    .array(
+      zod.object({
+        role: zod.enum(["user", "assistant"]),
+        content: zod.string(),
+      }),
+    )
+    .optional(),
+  message: zod.string().optional(),
+  history: zod
+    .array(
+      zod.object({
+        role: zod.string().optional(),
+        content: zod.string().optional(),
+      }),
+    )
+    .optional(),
+});
+
+export const AiChatResponse = zod.object({
+  reply: zod.string(),
+});
+
+/**
+ * @summary Get AI-powered pet match recommendations
+ */
+export const AiRecommendBody = zod.object({
+  preferences: zod
+    .union([zod.string(), zod.object({}).passthrough()])
+    .optional(),
+  petIds: zod
+    .array(zod.number())
+    .optional()
+    .describe("Optional list of pet IDs to scope the search"),
+  excludePetId: zod
+    .number()
+    .optional()
+    .describe("Pet ID to exclude (for similar-pet matching on detail page)"),
+});
+
+export const aiRecommendResponseMatchesItemScoreMin = 0;
+export const aiRecommendResponseMatchesItemScoreMax = 1;
+
+export const aiRecommendResponseMatchesMax = 5;
+
+export const AiRecommendResponse = zod.object({
+  matches: zod
+    .array(
+      zod.object({
+        pet: zod.object({
+          id: zod.number(),
+          name: zod.string(),
+          type: zod.enum(["dog", "cat", "rabbit", "bird", "other"]),
+          breed: zod.string().nullish(),
+          gender: zod.enum(["male", "female"]),
+          ageMonths: zod.number(),
+          weightKg: zod.string().nullish(),
+          size: zod.enum(["small", "medium", "large"]),
+          color: zod.string().nullish(),
+          sterilized: zod.boolean(),
+          yearlyVaccines: zod.boolean(),
+          birthday: zod.string().nullish(),
+          city: zod.string(),
+          status: zod.enum([
+            "available",
+            "adopted",
+            "fostered",
+            "pending",
+            "lost",
+            "found",
+          ]),
+          purpose: zod.enum(["adopt", "foster", "both", "lost_found"]),
+          imageUrls: zod.array(zod.string()),
+          story: zod.string().nullish(),
+          ownerId: zod.number().nullish(),
+          ownerName: zod.string().nullish(),
+          ownerPhone: zod.string().nullish(),
+          approved: zod.boolean(),
+          featured: zod.boolean(),
+          createdAt: zod.string(),
+        }),
+        petName: zod.string(),
+        matchReason: zod.string(),
+        score: zod
+          .number()
+          .min(aiRecommendResponseMatchesItemScoreMin)
+          .max(aiRecommendResponseMatchesItemScoreMax),
+      }),
+    )
+    .max(aiRecommendResponseMatchesMax),
+  explanation: zod.string(),
+});
+
+/**
+ * @summary Generate an AI adoption story for a pet
+ */
+export const AiGenerateDescriptionBody = zod.object({
+  pet: zod.object({
+    name: zod.string(),
+    type: zod.string(),
+    breed: zod.string().optional(),
+    gender: zod.string(),
+    ageMonths: zod.number().optional(),
+    size: zod.string().optional(),
+    city: zod.string().optional(),
+  }),
+});
+
+export const AiGenerateDescriptionResponse = zod.object({
+  description: zod.string(),
+  story: zod.string(),
+});
+
+/**
+ * @summary Get payment provider configuration (publishable keys)
+ */
+export const GetPaymentConfigResponse = zod.object({
+  publishableKey: zod.string(),
+  paypalClientId: zod.string(),
+});
+
+/**
+ * @summary Create a Stripe PaymentIntent for a donation
+ */
+export const CreateStripePaymentIntentBody = zod.object({
+  amount: zod.string(),
+  donorName: zod.string(),
+  donorPhone: zod.string().optional(),
+  frequency: zod.enum(["one_time", "monthly"]).optional(),
+});
+
+export const CreateStripePaymentIntentResponse = zod.object({
+  clientSecret: zod.string(),
+  donationId: zod.number(),
+});
+
+/**
+ * @summary Confirm a Stripe payment by verifying server-side with Stripe
+ */
+export const ConfirmStripePaymentBody = zod.object({
+  paymentIntentId: zod.string(),
+});
+
+export const ConfirmStripePaymentResponse = zod.object({
+  ok: zod.boolean(),
+  status: zod.enum(["success", "failed"]),
+});
+
+/**
+ * @summary Create a PayPal order for a donation
+ */
+export const CreatePaypalOrderBody = zod.object({
+  amount: zod.string(),
+  donorName: zod.string(),
+  donorPhone: zod.string().optional(),
+  frequency: zod.string().optional(),
+});
+
+export const CreatePaypalOrderResponse = zod.object({
+  orderId: zod.string(),
+  donationId: zod.number(),
+});
+
+/**
+ * @summary Capture a PayPal order after approval
+ */
+export const CapturePaypalOrderBody = zod.object({
+  orderId: zod.string(),
+});
+
+export const CapturePaypalOrderResponse = zod.object({
+  success: zod.boolean(),
+  status: zod.string(),
+});
+
+/**
+ * @summary Record a CliQ bank transfer donation
+ */
+export const ConfirmCliqDonationBody = zod.object({
+  amount: zod.string(),
+  donorName: zod.string(),
+  donorPhone: zod.string().optional(),
+  frequency: zod.string().optional(),
 });

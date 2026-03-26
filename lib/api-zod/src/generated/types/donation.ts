@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { DonationFrequency } from "./donationFrequency";
+import type { DonationStatus } from "./donationStatus";
 import type { DonationType } from "./donationType";
 
 export interface Donation {
@@ -18,6 +19,9 @@ export interface Donation {
   description?: string | null;
   paymentMethod?: string | null;
   frequency: DonationFrequency;
+  status?: DonationStatus;
+  stripePaymentIntentId?: string | null;
+  paypalOrderId?: string | null;
   petId?: number | null;
   createdAt: string;
 }
