@@ -370,7 +370,7 @@ const PASSWORD_SENTINEL = "\x00\x00UNCHANGED\x00\x00";
 
 const DEFAULT_COUNTRY = findCountryByName("Jordan") ?? ALL_COUNTRIES[0];
 
-function buildInitialForm(profile: { fullName?: string; email?: string; phone?: string; country?: string; city?: string } | null): FormState {
+function buildInitialForm(profile: { fullName?: string | null; email?: string | null; phone?: string | null; country?: string | null; city?: string | null } | null): FormState {
   const countryObj = profile?.country ? (findCountryByName(profile.country) ?? DEFAULT_COUNTRY) : DEFAULT_COUNTRY;
   return {
     fullName: profile?.fullName ?? "",

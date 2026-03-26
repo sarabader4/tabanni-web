@@ -1,9 +1,10 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
-import { mockAuth } from "./middlewares/mockAuth";
+import { optionalAuth, requireAuth } from "./middlewares/requireAuth";
 import { WebhookHandlers } from "./webhookHandlers";
 
 const app: Express = express();
@@ -48,10 +49,21 @@ app.post(
   }
 );
 
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/api/users/me", mockAuth);
+app.use(cookieParser());
+
+// Populate req.userId from JWT cookie for all routes (non-blocking)
+app.use(optionalAuth);
+
+// Admin routes always require authentication
+app.use("/api/admin", requireAuth);
 
 app.use("/api", router);
 

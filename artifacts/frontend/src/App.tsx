@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
-import { useGetMyProfile } from "@workspace/api-client-react";
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import Home from "@/pages/home";
 import Adopt from "@/pages/adopt";
 import Foster from "@/pages/foster";
@@ -16,6 +16,8 @@ import GalleryDetail from "@/pages/gallery-detail";
 import About from "@/pages/about";
 import Shop from "@/pages/shop";
 import Profile from "@/pages/profile";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
 import AdminDashboard from "@/pages/admin/index";
 import AdminPets from "@/pages/admin/pets";
 import AdminUsers from "@/pages/admin/users";
@@ -29,7 +31,7 @@ import AIChatWidget from "@/components/ai-chat-widget";
 const queryClient = new QueryClient();
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { data: profile, isLoading } = useGetMyProfile();
+  const { user, isLoading } = useAuth();
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: "#1E2A3A" }}>
@@ -37,7 +39,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  if (!profile || profile.role !== "admin") {
+  if (!user || user.role !== "admin") {
     return <Redirect to="/" />;
   }
   return <>{children}</>;
@@ -46,6 +48,11 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Switch>
+      {/* Auth pages — no layout wrapper */}
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+
+      {/* Admin routes */}
       <Route path="/admin">
         {() => <AdminGuard><AdminDashboard /></AdminGuard>}
       </Route>
@@ -67,6 +74,8 @@ function AppRoutes() {
       <Route path="/admin/donors">
         {() => <AdminGuard><AdminDonors /></AdminGuard>}
       </Route>
+
+      {/* All other routes use the Layout with navbar */}
       <Route>
         <Layout>
           <Switch>
@@ -96,7 +105,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <AppRoutes />
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

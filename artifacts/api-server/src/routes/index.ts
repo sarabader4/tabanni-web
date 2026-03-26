@@ -11,10 +11,12 @@ import usersRouter from "./users";
 import adminRouter from "./admin";
 import aiRouter from "./ai";
 import paymentsRouter from "./payments";
+import authRouter from "./auth";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(authRouter);
 router.use(petsRouter);
 router.use(adoptionRequestsRouter);
 router.use(fosterRequestsRouter);

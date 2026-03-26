@@ -8,6 +8,8 @@ servers:
   - url: /api
     description: Base API path
 tags:
+  - name: auth
+    description: Authentication operations
   - name: health
     description: Health operations
   - name: pets
@@ -30,6 +32,69 @@ tags:
     description: Admin operations
 
 paths:
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: Registered and logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Log out current user
+      responses:
+        "200":
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /healthz:
     get:
       operationId: healthCheck
@@ -1143,6 +1208,8 @@ components:
         role:
           type: string
           enum: [user, admin, volunteer]
+        isOnboardingCompleted:
+          type: boolean
         createdAt:
           type: string
       required:
@@ -1150,7 +1217,68 @@ components:
         - fullName
         - email
         - role
+        - isOnboardingCompleted
         - createdAt
+
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: number
+        fullName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [user, admin, volunteer]
+        isOnboardingCompleted:
+          type: boolean
+      required:
+        - id
+        - fullName
+        - email
+        - role
+        - isOnboardingCompleted
+
+    RegisterBody:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+      required:
+        - fullName
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
 
     UpdateUserInput:
       type: object

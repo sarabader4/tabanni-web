@@ -5,9 +5,9 @@
  * Tabanni Pet Adoption Platform API
  * OpenAPI spec version: 0.1.0
  */
-import type { UserRole } from "./userRole";
+import type { AuthUserRole } from "./authUserRole";
 
-export interface User {
+export interface AuthUser {
   id: number;
   fullName: string;
   email: string;
@@ -15,7 +15,6 @@ export interface User {
   country?: string | null;
   city?: string | null;
   avatarUrl?: string | null;
-  role: UserRole;
+  role: AuthUserRole;
   isOnboardingCompleted: boolean;
-  createdAt: string;
 }

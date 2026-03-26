@@ -1,14 +1,18 @@
 import { Link, useLocation } from "wouter";
-import { PawPrint, Bell, Menu, X, Instagram, Twitter, Facebook } from "lucide-react";
-import { useState, useEffect } from "react";
+import { PawPrint, Bell, Menu, X, Instagram, Twitter, Facebook, ChevronDown, LogOut, User, FileText } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import AIChatWidget from "@/components/ai-chat-widget";
+import { useAuth } from "@/contexts/auth-context";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +20,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const navLinks = [
@@ -35,6 +49,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { name: "About us", href: "/about" },
     { name: "Lost & Found", href: "/lost-found" },
   ];
+
+  const initials = user?.fullName
+    ? user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "?";
+
+  const firstName = user?.fullName?.split(" ")[0] ?? "";
+
+  async function handleLogout() {
+    setUserDropdownOpen(false);
+    await logout();
+  }
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-background">
@@ -99,16 +124,79 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-white"></span>
               </button>
 
-              {/* User Pill */}
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 border border-[#1E2A3A]/20 rounded-full px-3 py-1.5 hover:border-primary/50 transition-colors"
-              >
-                <div className="w-7 h-7 rounded-full bg-[#1E2A3A] flex items-center justify-center overflow-hidden">
-                  <span className="text-white text-xs font-bold">S</span>
+              {/* Auth section */}
+              {user ? (
+                /* Logged-in user pill with dropdown */
+                <div ref={dropdownRef} className="relative">
+                  <button
+                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                    className="flex items-center gap-2 border border-[#1E2A3A]/20 rounded-full px-3 py-1.5 hover:border-primary/50 transition-colors"
+                  >
+                    <div className="w-7 h-7 rounded-full bg-[#1E2A3A] flex items-center justify-center overflow-hidden">
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-white text-xs font-bold">{initials}</span>
+                      )}
+                    </div>
+                    <span className="text-sm font-semibold text-[#1E2A3A]">Hi, {firstName}!</span>
+                    <ChevronDown className={cn("w-3.5 h-3.5 text-[#1E2A3A]/60 transition-transform", userDropdownOpen && "rotate-180")} />
+                  </button>
+
+                  <AnimatePresence>
+                    {userDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                        transition={{ duration: 0.12 }}
+                        className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50"
+                      >
+                        <Link
+                          href="/profile"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-3 text-sm text-[#1E2A3A] hover:bg-gray-50 transition-colors"
+                        >
+                          <User className="w-4 h-4 text-[#1E2A3A]/60" />
+                          Profile
+                        </Link>
+                        <Link
+                          href="/profile?tab=requests"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-3 text-sm text-[#1E2A3A] hover:bg-gray-50 transition-colors"
+                        >
+                          <FileText className="w-4 h-4 text-[#1E2A3A]/60" />
+                          My Requests
+                        </Link>
+                        <div className="border-t border-gray-100" />
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Logout
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <span className="text-sm font-semibold text-[#1E2A3A]">Hi, Sara!</span>
-              </Link>
+              ) : (
+                /* Unauthenticated: Login + Sign Up */
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/login"
+                    className="px-4 py-2 text-sm font-semibold text-[#1E2A3A] hover:text-primary transition-colors"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="px-4 py-2 bg-[#1E2A3A] text-white text-sm font-bold rounded-full hover:bg-[#1E2A3A]/90 transition-all"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -152,6 +240,41 @@ export function Layout({ children }: { children: React.ReactNode }) {
               >
                 Adopt Now!
               </Link>
+
+              {user ? (
+                <div className="mt-2 space-y-2">
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 py-3 text-[#1E2A3A] font-semibold"
+                  >
+                    <User className="w-5 h-5" /> Profile
+                  </Link>
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); void handleLogout(); }}
+                    className="flex items-center gap-2 py-3 text-red-500 font-semibold"
+                  >
+                    <LogOut className="w-5 h-5" /> Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-2 flex gap-3">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 py-3 text-center border-2 border-[#1E2A3A] text-[#1E2A3A] font-bold rounded-full"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 py-3 text-center bg-[#1E2A3A] text-white font-bold rounded-full"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
             </nav>
           </motion.div>
         )}

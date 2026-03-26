@@ -8,6 +8,44 @@
 import * as zod from "zod";
 
 /**
+ * @summary Register a new user account
+ */
+export const RegisterBody = zod.object({
+  fullName: zod.string(),
+  email: zod.string(),
+  phone: zod.string().optional(),
+  password: zod.string(),
+});
+
+/**
+ * @summary Log in with email and password
+ */
+export const LoginBody = zod.object({
+  email: zod.string(),
+  password: zod.string(),
+});
+
+export const LoginResponse = zod.object({
+  id: zod.number(),
+  fullName: zod.string(),
+  email: zod.string(),
+  phone: zod.string().nullish(),
+  country: zod.string().nullish(),
+  city: zod.string().nullish(),
+  avatarUrl: zod.string().nullish(),
+  role: zod.enum(["user", "admin", "volunteer"]),
+  isOnboardingCompleted: zod.boolean(),
+});
+
+/**
+ * @summary Log out current user
+ */
+export const LogoutResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string().optional(),
+});
+
+/**
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -586,6 +624,7 @@ export const GetMyProfileResponse = zod.object({
   city: zod.string().nullish(),
   avatarUrl: zod.string().nullish(),
   role: zod.enum(["user", "admin", "volunteer"]),
+  isOnboardingCompleted: zod.boolean(),
   createdAt: zod.string(),
 });
 
@@ -610,6 +649,7 @@ export const UpdateMyProfileResponse = zod.object({
   city: zod.string().nullish(),
   avatarUrl: zod.string().nullish(),
   role: zod.enum(["user", "admin", "volunteer"]),
+  isOnboardingCompleted: zod.boolean(),
   createdAt: zod.string(),
 });
 
@@ -777,6 +817,7 @@ export const ListAdminUsersResponseItem = zod.object({
   city: zod.string().nullish(),
   avatarUrl: zod.string().nullish(),
   role: zod.enum(["user", "admin", "volunteer"]),
+  isOnboardingCompleted: zod.boolean(),
   createdAt: zod.string(),
 });
 export const ListAdminUsersResponse = zod.array(ListAdminUsersResponseItem);

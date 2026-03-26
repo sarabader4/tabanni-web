@@ -13,39 +13,42 @@ function requireAuth(req: Request, res: Response): boolean {
   return true;
 }
 
-router.get("/users/me", async (req, res) => {
+router.get("/users/me", async (req, res): Promise<void> => {
   try {
     if (!requireAuth(req, res)) return;
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.userId));
-    if (!user) return res.status(404).json({ error: "not_found", message: "User not found" });
-    res.json(user);
+    if (!user) { res.status(404).json({ error: "not_found", message: "User not found" }); return; }
+    const { passwordHash: _pw, ...safeUser } = user;
+    res.json(safeUser);
   } catch (err) {
     req.log.error({ err }, "Error getting user profile");
     res.status(500).json({ error: "internal_error", message: "Failed to get profile" });
   }
 });
 
-router.put("/users/me", async (req, res) => {
+router.put("/users/me", async (req, res): Promise<void> => {
   try {
     if (!requireAuth(req, res)) return;
     const parsed = UpdateMyProfileBody.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
+      res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
+      return;
     }
     const { fullName, email, phone, country, city, avatarUrl } = parsed.data;
     const [user] = await db.update(usersTable)
       .set({ fullName, email, phone, country, city, avatarUrl })
       .where(eq(usersTable.id, req.userId))
       .returning();
-    if (!user) return res.status(404).json({ error: "not_found", message: "User not found" });
-    res.json(user);
+    if (!user) { res.status(404).json({ error: "not_found", message: "User not found" }); return; }
+    const { passwordHash: _pw, ...safeUser } = user;
+    res.json(safeUser);
   } catch (err) {
     req.log.error({ err }, "Error updating user profile");
     res.status(500).json({ error: "internal_error", message: "Failed to update profile" });
   }
 });
 
-router.get("/users/me/pets", async (req, res) => {
+router.get("/users/me/pets", async (req, res): Promise<void> => {
   try {
     if (!requireAuth(req, res)) return;
     const pets = await db.select().from(petsTable)
@@ -58,7 +61,7 @@ router.get("/users/me/pets", async (req, res) => {
   }
 });
 
-router.get("/users/me/applications", async (req, res) => {
+router.get("/users/me/applications", async (req, res): Promise<void> => {
   try {
     if (!requireAuth(req, res)) return;
     const [adoptionRequests, fosterRequests] = await Promise.all([
@@ -106,7 +109,7 @@ router.get("/users/me/applications", async (req, res) => {
   }
 });
 
-router.get("/users/me/favourites", async (req, res) => {
+router.get("/users/me/favourites", async (req, res): Promise<void> => {
   try {
     if (!requireAuth(req, res)) return;
     const pets = await db.select({
@@ -145,7 +148,7 @@ router.get("/users/me/favourites", async (req, res) => {
   }
 });
 
-router.get("/users/me/donations", async (req, res) => {
+router.get("/users/me/donations", async (req, res): Promise<void> => {
   try {
     if (!requireAuth(req, res)) return;
     const donations = await db.select().from(donationsTable)

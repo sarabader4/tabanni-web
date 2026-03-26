@@ -36,7 +36,40 @@ export interface User {
   city?: string | null;
   avatarUrl?: string | null;
   role: UserRole;
+  isOnboardingCompleted: boolean;
   createdAt: string;
+}
+
+export type AuthUserRole = (typeof AuthUserRole)[keyof typeof AuthUserRole];
+
+export const AuthUserRole = {
+  user: "user",
+  admin: "admin",
+  volunteer: "volunteer",
+} as const;
+
+export interface AuthUser {
+  id: number;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  country?: string | null;
+  city?: string | null;
+  avatarUrl?: string | null;
+  role: AuthUserRole;
+  isOnboardingCompleted: boolean;
+}
+
+export interface RegisterBody {
+  fullName: string;
+  email: string;
+  phone?: string;
+  password: string;
+}
+
+export interface LoginBody {
+  email: string;
+  password: string;
 }
 
 export interface UpdateUserInput {
