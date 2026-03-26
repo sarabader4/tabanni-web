@@ -84,6 +84,10 @@ function StripeCardForm({
       const cardElement = elements.getElement(CardElement);
       if (!cardElement) throw new Error("Card element not found");
 
+      // The PaymentIntent ID is embedded in the clientSecret (format: pi_xxx_secret_xxx).
+      // Extracting it here allows us to persist failure state even before confirmation resolves.
+      const paymentIntentId = clientSecret.split("_secret_")[0];
+
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: { card: cardElement },
       });
@@ -93,7 +97,7 @@ function StripeCardForm({
         await fetch(apiUrl("payments/stripe/confirm"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentIntentId: undefined, status: "failed" }),
+          body: JSON.stringify({ paymentIntentId, status: "failed" }),
         });
         onError(result.error.message ?? "Payment declined");
       } else if (result.paymentIntent?.status === "succeeded") {
@@ -104,9 +108,10 @@ function StripeCardForm({
         });
         onSuccess();
       }
-    } catch (err: any) {
-      setCardError(err.message ?? "An error occurred");
-      onError(err.message ?? "Payment failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setCardError(message);
+      onError(message);
     } finally {
       setProcessing(false);
     }
@@ -168,8 +173,8 @@ function CliQSection({
       });
       if (!resp.ok) throw new Error("Could not save donation");
       onSuccess();
-    } catch (err: any) {
-      onError(err.message ?? "Failed to confirm");
+    } catch (err: unknown) {
+      onError(err instanceof Error ? err.message : "Failed to confirm");
     } finally {
       setConfirming(false);
     }

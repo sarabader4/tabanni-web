@@ -53,12 +53,18 @@ router.post("/payments/stripe/create-intent", async (req, res) => {
       return res.status(400).json({ error: "validation_error", message: "Invalid amount" });
     }
 
+    // PayPal does not support JOD; Stripe does but only with 3-decimal precision (fils).
+    // To avoid unit mismatch (JOD smallest unit = 1 fil = 1/1000 JOD) we bill in USD,
+    // documenting the exchange rate to the user in the UI.
+    const JOD_TO_USD = 1.41;
+    const amountUSD = Math.round(amountJOD * JOD_TO_USD * 100); // USD in cents
+
     const stripe = await getUncachableStripeClient();
     const intent = await stripe.paymentIntents.create({
-      amount: Math.round(amountJOD * 100),
-      currency: "jod",
-      description: `Tabbani donation from ${donorName}`,
-      metadata: { donorName, donorPhone: donorPhone ?? "", frequency: frequency ?? "one_time" },
+      amount: amountUSD,
+      currency: "usd",
+      description: `Tabbani donation from ${donorName} (${amountJOD} JOD)`,
+      metadata: { donorName, donorPhone: donorPhone ?? "", frequency: frequency ?? "one_time", amountJOD: String(amountJOD) },
     });
 
     const [donation] = await db.insert(donationsTable).values({
