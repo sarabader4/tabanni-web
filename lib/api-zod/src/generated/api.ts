@@ -65,6 +65,7 @@ export const ListPetsResponse = zod.object({
       ownerPhone: zod.string().nullish(),
       approved: zod.boolean(),
       featured: zod.boolean(),
+      addedByAdmin: zod.boolean(),
       createdAt: zod.string(),
     }),
   ),
@@ -128,6 +129,7 @@ export const GetFeaturedPetsResponseItem = zod.object({
   ownerPhone: zod.string().nullish(),
   approved: zod.boolean(),
   featured: zod.boolean(),
+  addedByAdmin: zod.boolean(),
   createdAt: zod.string(),
 });
 export const GetFeaturedPetsResponse = zod.array(GetFeaturedPetsResponseItem);
@@ -169,6 +171,7 @@ export const GetPetResponse = zod.object({
   ownerPhone: zod.string().nullish(),
   approved: zod.boolean(),
   featured: zod.boolean(),
+  addedByAdmin: zod.boolean(),
   createdAt: zod.string(),
 });
 
@@ -229,6 +232,7 @@ export const UpdatePetResponse = zod.object({
   ownerPhone: zod.string().nullish(),
   approved: zod.boolean(),
   featured: zod.boolean(),
+  addedByAdmin: zod.boolean(),
   createdAt: zod.string(),
 });
 
@@ -642,6 +646,7 @@ export const GetMyPetsResponseItem = zod.object({
   ownerPhone: zod.string().nullish(),
   approved: zod.boolean(),
   featured: zod.boolean(),
+  addedByAdmin: zod.boolean(),
   createdAt: zod.string(),
 });
 export const GetMyPetsResponse = zod.array(GetMyPetsResponseItem);
@@ -713,6 +718,7 @@ export const GetMyFavouritesResponseItem = zod.object({
   ownerPhone: zod.string().nullish(),
   approved: zod.boolean(),
   featured: zod.boolean(),
+  addedByAdmin: zod.boolean(),
   createdAt: zod.string(),
 });
 export const GetMyFavouritesResponse = zod.array(GetMyFavouritesResponseItem);
@@ -812,6 +818,7 @@ export const ApprovePetResponse = zod.object({
   ownerPhone: zod.string().nullish(),
   approved: zod.boolean(),
   featured: zod.boolean(),
+  addedByAdmin: zod.boolean(),
   createdAt: zod.string(),
 });
 
@@ -852,6 +859,7 @@ export const TogglePetFeaturedResponse = zod.object({
   ownerPhone: zod.string().nullish(),
   approved: zod.boolean(),
   featured: zod.boolean(),
+  addedByAdmin: zod.boolean(),
   createdAt: zod.string(),
 });
 
@@ -938,6 +946,7 @@ export const AiRecommendResponse = zod.object({
           ownerPhone: zod.string().nullish(),
           approved: zod.boolean(),
           featured: zod.boolean(),
+          addedByAdmin: zod.boolean(),
           createdAt: zod.string(),
         }),
         petName: zod.string(),

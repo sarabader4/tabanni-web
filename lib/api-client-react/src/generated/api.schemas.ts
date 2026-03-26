@@ -116,6 +116,7 @@ export interface Pet {
   ownerPhone?: string | null;
   approved: boolean;
   featured: boolean;
+  addedByAdmin: boolean;
   createdAt: string;
 }
 

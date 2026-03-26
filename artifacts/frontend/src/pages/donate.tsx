@@ -1,27 +1,24 @@
 import { useState, useEffect, useMemo } from "react";
 import { useListDonations } from "@workspace/api-client-react";
-import { Heart, Package, ShieldCheck, CheckCircle, Loader2, Smartphone, AlertCircle } from "lucide-react";
+import { Heart, Package, ShieldCheck, CheckCircle, Loader2, Smartphone, AlertCircle, CreditCard } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 const BASE = import.meta.env.BASE_URL;
 const apiUrl = (path: string) => `${BASE}api/${path}`;
 
 interface PaymentConfig {
   publishableKey: string;
-  paypalClientId: string;
 }
 
 const monetarySchema = z.object({
   donorName: z.string().min(1, "Name required"),
   donorPhone: z.string().min(1, "Phone required"),
   amount: z.string().min(1, "Amount required"),
-  frequency: z.enum(["one_time", "monthly"]),
-  paymentMethod: z.enum(["Visa", "Mastercard", "PayPal", "CliQ"]),
+  paymentMethod: z.enum(["Visa", "Mastercard", "CliQ"]),
 });
 
 const suppliesSchema = z.object({
@@ -49,7 +46,6 @@ function StripeCardForm({
   donorName,
   donorPhone,
   amount,
-  frequency,
   paymentMethodLabel,
   onSuccess,
   onError,
@@ -57,7 +53,6 @@ function StripeCardForm({
   donorName: string;
   donorPhone: string;
   amount: string;
-  frequency: string;
   paymentMethodLabel: string;
   onSuccess: () => void;
   onError: (msg: string) => void;
@@ -76,7 +71,7 @@ function StripeCardForm({
       const resp = await fetch(apiUrl("payments/stripe/create-intent"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, donorName, donorPhone, frequency }),
+        body: JSON.stringify({ amount, donorName, donorPhone, frequency: "one_time" }),
       });
       if (!resp.ok) throw new Error("Could not initiate payment");
       const { clientSecret } = await resp.json();
@@ -84,8 +79,6 @@ function StripeCardForm({
       const cardElement = elements.getElement(CardElement);
       if (!cardElement) throw new Error("Card element not found");
 
-      // The PaymentIntent ID is embedded in the clientSecret (format: pi_xxx_secret_xxx).
-      // Extracting it here allows us to persist failure state even before confirmation resolves.
       const paymentIntentId = clientSecret.split("_secret_")[0];
 
       const result = await stripe.confirmCardPayment(clientSecret, {
@@ -150,14 +143,12 @@ function CliQSection({
   amount,
   donorName,
   donorPhone,
-  frequency,
   onSuccess,
   onError,
 }: {
   amount: string;
   donorName: string;
   donorPhone: string;
-  frequency: string;
   onSuccess: () => void;
   onError: (msg: string) => void;
 }) {
@@ -169,7 +160,7 @@ function CliQSection({
       const resp = await fetch(apiUrl("payments/cliq/confirm"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, donorName, donorPhone, frequency }),
+        body: JSON.stringify({ amount, donorName, donorPhone, frequency: "one_time" }),
       });
       if (!resp.ok) throw new Error("Could not save donation");
       onSuccess();
@@ -194,23 +185,13 @@ function CliQSection({
         </div>
         <div className="space-y-3 bg-white rounded-xl p-4 border border-teal-100">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Phone / CliQ Alias</span>
-            <span className="font-bold text-foreground font-mono">+962 79 123 4567</span>
-          </div>
-          <div className="border-t border-border/50" />
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">IBAN</span>
-            <span className="font-bold text-foreground font-mono text-xs">JO94 CBJO 0010 0000 0001 2345 6789</span>
-          </div>
-          <div className="border-t border-border/50" />
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Bank Name</span>
-            <span className="font-bold text-foreground">Cairo Amman Bank</span>
+            <span className="text-sm text-muted-foreground">Phone / CliQ Number</span>
+            <span className="font-bold text-foreground font-mono">00962799476182</span>
           </div>
           <div className="border-t border-border/50" />
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Account Name</span>
-            <span className="font-bold text-foreground">Tabbani Foundation</span>
+            <span className="font-bold text-foreground">Sara Ibrahim Bader</span>
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
@@ -338,7 +319,7 @@ export default function Donate() {
 
   const monetaryForm = useForm<z.infer<typeof monetarySchema>>({
     resolver: zodResolver(monetarySchema),
-    defaultValues: { donorName: "", donorPhone: "", amount: "25", frequency: "one_time", paymentMethod: "Visa" },
+    defaultValues: { donorName: "", donorPhone: "", amount: "25", paymentMethod: "Visa" },
   });
 
   const suppliesForm = useForm<z.infer<typeof suppliesSchema>>({
@@ -350,7 +331,6 @@ export default function Donate() {
   const watchedMethod = monetaryForm.watch("paymentMethod");
   const watchedName = monetaryForm.watch("donorName");
   const watchedPhone = monetaryForm.watch("donorPhone");
-  const watchedFrequency = monetaryForm.watch("frequency");
 
   useEffect(() => {
     fetch(apiUrl("payments/config"))
@@ -377,7 +357,7 @@ export default function Donate() {
   const handleReset = () => {
     setDonationStatus("idle");
     setErrorMsg("");
-    monetaryForm.reset({ donorName: "", donorPhone: "", amount: "25", frequency: "one_time", paymentMethod: "Visa" });
+    monetaryForm.reset({ donorName: "", donorPhone: "", amount: "25", paymentMethod: "Visa" });
   };
 
   const onSuppliesSubmit = async (values: z.infer<typeof suppliesSchema>) => {
@@ -401,353 +381,276 @@ export default function Donate() {
 
   const isCardMethod = watchedMethod === "Visa" || watchedMethod === "Mastercard";
 
-  const paypalClientId = config?.paypalClientId || "sb";
-
   return (
-    <PayPalScriptProvider
-      options={{ clientId: paypalClientId, currency: "USD", intent: "capture" }}
-      deferLoading={!config?.paypalClientId}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Support Our Mission
-          </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            100% of your donation goes directly towards food, medical care, and shelter for rescued animals across Jordan. Every dinar makes a difference.
-          </p>
-        </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="text-center max-w-3xl mx-auto mb-16">
+        <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
+          Support Our Mission
+        </h1>
+        <p className="text-lg text-muted-foreground leading-relaxed">
+          100% of your donation goes directly towards food, medical care, and shelter for rescued animals across Jordan. Every dinar makes a difference.
+        </p>
+      </div>
 
-        <div className="grid lg:grid-cols-12 gap-12 items-start">
-          <div className="lg:col-span-8 bg-card rounded-3xl border border-border shadow-xl shadow-black/5 overflow-hidden">
-            <div className="flex border-b border-border">
-              <button
-                onClick={() => { setTab("monetary"); handleReset(); }}
-                className={`flex-1 py-6 flex items-center justify-center gap-2 font-bold text-sm transition-colors ${
-                  tab === "monetary" ? "bg-white text-primary border-b-2 border-primary" : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                <Heart className="w-5 h-5" /> Monetary Donation
-              </button>
-              <button
-                onClick={() => { setTab("supplies"); handleReset(); }}
-                className={`flex-1 py-6 flex items-center justify-center gap-2 font-bold text-sm transition-colors ${
-                  tab === "supplies" ? "bg-white text-secondary border-b-2 border-secondary" : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                <Package className="w-5 h-5" /> Donate Supplies
-              </button>
-            </div>
+      <div className="grid lg:grid-cols-12 gap-12 items-start">
+        <div className="lg:col-span-8 bg-card rounded-3xl border border-border shadow-xl shadow-black/5 overflow-hidden">
+          <div className="flex border-b border-border">
+            <button
+              onClick={() => { setTab("monetary"); handleReset(); }}
+              className={`flex-1 py-6 flex items-center justify-center gap-2 font-bold text-sm transition-colors ${
+                tab === "monetary" ? "bg-white text-primary border-b-2 border-primary" : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <Heart className="w-5 h-5" /> Monetary Donation
+            </button>
+            <button
+              onClick={() => { setTab("supplies"); handleReset(); }}
+              className={`flex-1 py-6 flex items-center justify-center gap-2 font-bold text-sm transition-colors ${
+                tab === "supplies" ? "bg-white text-secondary border-b-2 border-secondary" : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <Package className="w-5 h-5" /> Donate Supplies
+            </button>
+          </div>
 
-            <div className="p-8 md:p-12">
-              {donationStatus === "success" ? (
-                <SuccessScreen onReset={handleReset} />
-              ) : tab === "monetary" ? (
-                <div className="space-y-8">
-                  <div>
-                    <label className="text-sm font-bold block mb-4">Select Amount (JOD)</label>
-                    <div className="grid grid-cols-4 gap-3">
-                      {["10", "25", "50", "100"].map(amt => (
-                        <button
-                          key={amt}
-                          type="button"
-                          onClick={() => monetaryForm.setValue("amount", amt)}
-                          className={`py-3 rounded-2xl font-bold text-lg transition-all ${
-                            watchedAmount === amt
-                              ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
-                              : "bg-muted text-foreground hover:bg-muted/80"
-                          }`}
-                        >
-                          {amt}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="mt-4">
-                      <input
-                        type="number"
-                        placeholder="Other Amount"
-                        {...monetaryForm.register("amount")}
-                        className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 font-bold focus:ring-2 focus:ring-primary/50"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold">Your Name</label>
-                      <input
-                        {...monetaryForm.register("donorName")}
-                        className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/50"
-                      />
-                      {monetaryForm.formState.errors.donorName && (
-                        <p className="text-xs text-red-500">{monetaryForm.formState.errors.donorName.message}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold">Phone Number</label>
-                      <input
-                        {...monetaryForm.register("donorPhone")}
-                        className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/50"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <label className="text-sm font-bold block">Frequency</label>
-                    <div className="flex gap-4">
-                      {[
-                        { value: "one_time", label: "One-time" },
-                        { value: "monthly", label: "Monthly" },
-                      ].map(opt => (
-                        <label
-                          key={opt.value}
-                          className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-2xl cursor-pointer transition-colors border ${
-                            watchedFrequency === opt.value
-                              ? "bg-primary/10 border-primary text-primary font-bold"
-                              : "bg-muted/50 border-border hover:bg-muted"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            value={opt.value}
-                            {...monetaryForm.register("frequency")}
-                            className="accent-primary"
-                          />
-                          <span className="font-bold text-sm">{opt.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <label className="text-sm font-bold block">Payment Method</label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {[
-                        { value: "Visa", label: "💳 Visa" },
-                        { value: "Mastercard", label: "💳 Mastercard" },
-                        { value: "PayPal", label: "🅿️ PayPal" },
-                        { value: "CliQ", label: "📱 CliQ" },
-                      ].map(method => (
-                        <label
-                          key={method.value}
-                          className={`flex items-center justify-center gap-2 p-4 rounded-2xl cursor-pointer transition-colors border ${
-                            watchedMethod === method.value
-                              ? "bg-primary/10 border-primary text-primary font-bold"
-                              : "bg-muted/50 border-border hover:bg-muted"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            value={method.value}
-                            {...monetaryForm.register("paymentMethod")}
-                            className="accent-primary sr-only"
-                          />
-                          <span className="font-bold text-sm text-center">{method.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {donationStatus === "error" && (
-                    <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 rounded-xl px-4 py-3">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      {errorMsg || "Payment failed. Please try again."}
+          <div className="p-8 md:p-12">
+            {donationStatus === "success" ? (
+              <SuccessScreen onReset={handleReset} />
+            ) : tab === "monetary" ? (
+              <div className="space-y-8">
+                <div>
+                  <label className="text-sm font-bold block mb-4">Select Amount (JOD)</label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {["10", "25", "50", "100"].map(amt => (
                       <button
-                        onClick={() => setDonationStatus("idle")}
-                        className="ml-auto text-xs underline"
+                        key={amt}
+                        type="button"
+                        onClick={() => monetaryForm.setValue("amount", amt)}
+                        className={`py-3 rounded-2xl font-bold text-lg transition-all ${
+                          watchedAmount === amt
+                            ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
+                            : "bg-muted text-foreground hover:bg-muted/80"
+                        }`}
                       >
-                        Dismiss
+                        {amt}
                       </button>
-                    </div>
-                  )}
-
-                  {isCardMethod && (
-                    <div>
-                      {configError ? (
-                        <div className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-3">
-                          Payment provider not available. Please try another method.
-                        </div>
-                      ) : !stripePromise ? (
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm py-4">
-                          <Loader2 className="w-4 h-4 animate-spin" /> Loading payment form...
-                        </div>
-                      ) : (
-                        <Elements stripe={stripePromise} options={{ appearance: { theme: "stripe" } }}>
-                          <StripeCardForm
-                            donorName={watchedName}
-                            donorPhone={watchedPhone}
-                            amount={watchedAmount}
-                            frequency={watchedFrequency}
-                            paymentMethodLabel={watchedMethod}
-                            onSuccess={handleSuccess}
-                            onError={handleError}
-                          />
-                        </Elements>
-                      )}
-                    </div>
-                  )}
-
-                  {watchedMethod === "PayPal" && (
-                    <div>
-                      {configError || !config?.paypalClientId ? (
-                        <div className="text-sm text-muted-foreground bg-muted/50 rounded-xl px-4 py-3">
-                          PayPal is not configured. Please use a card or CliQ.
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <p className="text-sm text-muted-foreground">
-                            Donating <strong>{watchedAmount || 0} JOD</strong> via PayPal
-                          </p>
-                          <PayPalButtons
-                            style={{ layout: "vertical", color: "blue", shape: "rect", label: "donate" }}
-                            createOrder={async () => {
-                              const resp = await fetch(apiUrl("payments/paypal/create-order"), {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  amount: watchedAmount,
-                                  donorName: watchedName,
-                                  donorPhone: watchedPhone,
-                                  frequency: watchedFrequency,
-                                }),
-                              });
-                              if (!resp.ok) throw new Error("Could not create PayPal order");
-                              const { orderId } = await resp.json();
-                              return orderId;
-                            }}
-                            onApprove={async (data) => {
-                              const resp = await fetch(apiUrl("payments/paypal/capture-order"), {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ orderId: data.orderID }),
-                              });
-                              const result = await resp.json();
-                              if (result.success) {
-                                handleSuccess();
-                              } else {
-                                handleError("PayPal payment could not be completed.");
-                              }
-                            }}
-                            onError={() => handleError("PayPal encountered an error. Please try again.")}
-                            onCancel={() => {}}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {watchedMethod === "CliQ" && (
-                    <CliQSection
-                      amount={watchedAmount}
-                      donorName={watchedName}
-                      donorPhone={watchedPhone}
-                      frequency={watchedFrequency}
-                      onSuccess={handleSuccess}
-                      onError={handleError}
+                    ))}
+                  </div>
+                  <div className="mt-4">
+                    <input
+                      type="number"
+                      placeholder="Other Amount"
+                      {...monetaryForm.register("amount")}
+                      className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 font-bold focus:ring-2 focus:ring-primary/50"
                     />
-                  )}
-
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
-                    <ShieldCheck className="w-4 h-4 text-secondary" />
-                    Secure encrypted checkout
                   </div>
                 </div>
-              ) : (
-                <form onSubmit={suppliesForm.handleSubmit(onSuppliesSubmit)} className="space-y-8">
+
+                <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold block">What are you donating?</label>
-                    <select
-                      {...suppliesForm.register("donationTypeLabel")}
-                      className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50 outline-none"
-                    >
-                      <option value="Food">Pet Food (Dry/Wet)</option>
-                      <option value="Blankets">Blankets & Beds</option>
-                      <option value="Toys">Toys</option>
-                      <option value="Medicine">Medicine & Supplies</option>
-                      <option value="Other">Other</option>
-                    </select>
+                    <label className="text-sm font-bold">Your Name</label>
+                    <input
+                      {...monetaryForm.register("donorName")}
+                      className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/50"
+                    />
+                    {monetaryForm.formState.errors.donorName && (
+                      <p className="text-xs text-red-500">{monetaryForm.formState.errors.donorName.message}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold">Description of items</label>
-                    <textarea
-                      {...suppliesForm.register("description")}
-                      placeholder="E.g. 2 large bags of adult dog food, 3 new fleece blankets..."
-                      className="w-full min-h-[120px] bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50 outline-none resize-none"
+                    <label className="text-sm font-bold">Phone Number</label>
+                    <input
+                      {...monetaryForm.register("donorPhone")}
+                      className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold">Your Name</label>
-                      <input
-                        {...suppliesForm.register("donorName")}
-                        className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold">Phone Number</label>
-                      <input
-                        {...suppliesForm.register("donorPhone")}
-                        className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50"
-                      />
-                    </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-sm font-bold block">Payment Method</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { value: "Visa", label: "💳 Visa" },
+                      { value: "Mastercard", label: "💳 Mastercard" },
+                      { value: "CliQ", label: "📱 CliQ" },
+                    ].map(method => (
+                      <label
+                        key={method.value}
+                        className={`flex items-center justify-center gap-2 p-4 rounded-2xl cursor-pointer transition-colors border ${
+                          watchedMethod === method.value
+                            ? "bg-primary/10 border-primary text-primary font-bold"
+                            : "bg-muted/50 border-border hover:bg-muted"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          value={method.value}
+                          {...monetaryForm.register("paymentMethod")}
+                          className="accent-primary sr-only"
+                        />
+                        <span className="font-bold text-sm text-center">{method.label}</span>
+                      </label>
+                    ))}
                   </div>
-                  {donationStatus === "error" && (
-                    <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 rounded-xl px-4 py-3">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      {errorMsg}
+                </div>
+
+                {isCardMethod && (
+                  <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+                    <div className="flex items-center gap-3 pb-3 border-b border-border">
+                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                        <CreditCard className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-foreground">SARA I BADER</p>
+                        <p className="text-xs text-muted-foreground">Safwa Islamic Bank · ···· 2769</p>
+                      </div>
                     </div>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={suppliesSubmitting}
-                    className="w-full bg-secondary hover:bg-secondary/90 text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-secondary/25 transition-all hover:-translate-y-1 disabled:opacity-50 flex items-center justify-center gap-2"
+                    {configError ? (
+                      <div className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-3">
+                        Payment provider not available. Please try CliQ instead.
+                      </div>
+                    ) : !stripePromise ? (
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm py-2">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Loading payment form...
+                      </div>
+                    ) : (
+                      <Elements stripe={stripePromise} options={{ appearance: { theme: "stripe" } }}>
+                        <StripeCardForm
+                          donorName={watchedName}
+                          donorPhone={watchedPhone}
+                          amount={watchedAmount}
+                          paymentMethodLabel={watchedMethod}
+                          onSuccess={handleSuccess}
+                          onError={handleError}
+                        />
+                      </Elements>
+                    )}
+                  </div>
+                )}
+
+                {watchedMethod === "CliQ" && (
+                  <CliQSection
+                    amount={watchedAmount}
+                    donorName={watchedName}
+                    donorPhone={watchedPhone}
+                    onSuccess={handleSuccess}
+                    onError={handleError}
+                  />
+                )}
+
+                {donationStatus === "error" && (
+                  <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 rounded-xl px-4 py-3">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {errorMsg || "Payment failed. Please try again."}
+                    <button
+                      onClick={() => setDonationStatus("idle")}
+                      className="ml-auto text-xs underline"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+                  <ShieldCheck className="w-4 h-4 text-secondary" />
+                  Secure encrypted checkout
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={suppliesForm.handleSubmit(onSuppliesSubmit)} className="space-y-8">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold block">What are you donating?</label>
+                  <select
+                    {...suppliesForm.register("donationTypeLabel")}
+                    className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50 outline-none"
                   >
-                    {suppliesSubmitting ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> Submitting...</>
-                    ) : (
-                      "Schedule Drop-off"
-                    )}
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-
-          <div className="lg:col-span-4 space-y-8">
-            <div className="bg-foreground text-white p-8 rounded-3xl relative overflow-hidden">
-              <div className="relative z-10">
-                <h3 className="font-display font-bold text-2xl mb-4">Why donate?</h3>
-                <ul className="space-y-4 text-white/80 text-sm">
-                  <li className="flex gap-3"><span className="text-primary font-bold">✓</span> Helps rescue injured animals from the streets</li>
-                  <li className="flex gap-3"><span className="text-primary font-bold">✓</span> Pays for vaccinations and sterilization</li>
-                  <li className="flex gap-3"><span className="text-primary font-bold">✓</span> Provides food for fosters who can't afford it</li>
-                </ul>
-              </div>
-              <Heart className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5" />
-            </div>
-
-            <div className="bg-card border border-border p-8 rounded-3xl">
-              <h3 className="font-display font-bold text-xl mb-6 flex items-center gap-2">
-                <Heart className="w-5 h-5 text-primary" /> Recent Donors
-              </h3>
-              <div className="space-y-4">
-                {recentDonors?.slice(0, 5).map(donor => (
-                  <div key={donor.id} className="flex justify-between items-center pb-4 border-b border-border/50 last:border-0 last:pb-0">
-                    <span className="font-medium text-sm">{donor.donorName}</span>
-                    {donor.type === "monetary" ? (
-                      <span className="text-primary font-bold text-sm">{donor.amount} JOD</span>
-                    ) : (
-                      <span className="text-secondary font-bold text-xs px-2 py-1 bg-secondary/10 rounded-md">Supplies</span>
-                    )}
+                    <option value="Food">Pet Food (Dry/Wet)</option>
+                    <option value="Blankets">Blankets & Beds</option>
+                    <option value="Toys">Toys</option>
+                    <option value="Medicine">Medicine & Supplies</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold">Description of items</label>
+                  <textarea
+                    {...suppliesForm.register("description")}
+                    placeholder="E.g. 2 large bags of adult dog food, 3 new fleece blankets..."
+                    className="w-full min-h-[120px] bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50 outline-none resize-none"
+                  />
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold">Your Name</label>
+                    <input
+                      {...suppliesForm.register("donorName")}
+                      className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50"
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold">Phone Number</label>
+                    <input
+                      {...suppliesForm.register("donorPhone")}
+                      className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50"
+                    />
+                  </div>
+                </div>
+                {donationStatus === "error" && (
+                  <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 rounded-xl px-4 py-3">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {errorMsg}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={suppliesSubmitting}
+                  className="w-full bg-secondary hover:bg-secondary/90 text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-secondary/25 transition-all hover:-translate-y-1 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {suppliesSubmitting ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Submitting...</>
+                  ) : (
+                    "Schedule Drop-off"
+                  )}
+                </button>
+              </form>
+            )}
           </div>
         </div>
 
-        <GoFundMeSection />
+        <div className="lg:col-span-4 space-y-8">
+          <div className="bg-foreground text-white p-8 rounded-3xl relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="font-display font-bold text-2xl mb-4">Why donate?</h3>
+              <ul className="space-y-4 text-white/80 text-sm">
+                <li className="flex gap-3"><span className="text-primary font-bold">✓</span> Helps rescue injured animals from the streets</li>
+                <li className="flex gap-3"><span className="text-primary font-bold">✓</span> Pays for vaccinations and sterilization</li>
+                <li className="flex gap-3"><span className="text-primary font-bold">✓</span> Provides food for fosters who can't afford it</li>
+              </ul>
+            </div>
+            <Heart className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5" />
+          </div>
+
+          <div className="bg-card border border-border p-8 rounded-3xl">
+            <h3 className="font-display font-bold text-xl mb-6 flex items-center gap-2">
+              <Heart className="w-5 h-5 text-primary" /> Recent Donors
+            </h3>
+            <div className="space-y-4">
+              {recentDonors?.slice(0, 5).map(donor => (
+                <div key={donor.id} className="flex justify-between items-center pb-4 border-b border-border/50 last:border-0 last:pb-0">
+                  <span className="font-medium text-sm">{donor.donorName}</span>
+                  {donor.type === "monetary" ? (
+                    <span className="text-primary font-bold text-sm">{donor.amount} JOD</span>
+                  ) : (
+                    <span className="text-secondary font-bold text-xs px-2 py-1 bg-secondary/10 rounded-md">Supplies</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </PayPalScriptProvider>
+
+      <GoFundMeSection />
+    </div>
   );
 }
