@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { requireAuth } from "../middlewares/requireAuth";
+import { requireAuth, requireAdmin } from "../middlewares/requireAuth";
 import { db, adoptionRequestsTable, petsTable, usersTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import {
@@ -13,7 +13,7 @@ const router: IRouter = Router();
 
 const ADOPTION_STATUSES = ["pending", "approved", "rejected"] as const;
 
-router.get("/adoption-requests", async (req, res) => {
+router.get("/adoption-requests", requireAuth, async (req, res) => {
   try {
     const queryParsed = ListAdoptionRequestsQueryParams.safeParse(req.query);
     if (!queryParsed.success) {
@@ -77,7 +77,7 @@ router.post("/adoption-requests", requireAuth, async (req, res): Promise<void> =
   }
 });
 
-router.put("/adoption-requests/:id/status", async (req, res) => {
+router.put("/adoption-requests/:id/status", requireAdmin, async (req, res): Promise<void> => {
   try {
     const paramsParsed = UpdateAdoptionRequestStatusParams.safeParse(req.params);
     if (!paramsParsed.success) {
