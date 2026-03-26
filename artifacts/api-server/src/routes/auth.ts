@@ -48,7 +48,7 @@ router.post("/auth/register", async (req, res) => {
       role: "user",
     }).returning();
 
-    const token = signToken(user.id);
+    const token = signToken(user.id, user.role ?? "user");
     res.cookie("token", token, COOKIE_OPTS);
     res.status(201).json({
       id: user.id,
@@ -90,7 +90,7 @@ router.post("/auth/login", async (req, res) => {
       return;
     }
 
-    const token = signToken(user.id);
+    const token = signToken(user.id, user.role ?? "user");
     res.cookie("token", token, COOKIE_OPTS);
     res.json({
       id: user.id,

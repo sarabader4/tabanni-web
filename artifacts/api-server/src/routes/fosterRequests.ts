@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { requireAuth } from "../middlewares/requireAuth";
 import { db, fosterRequestsTable, petsTable, usersTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import {
@@ -59,15 +60,16 @@ router.get("/foster-requests", async (req, res) => {
   }
 });
 
-router.post("/foster-requests", async (req, res) => {
+router.post("/foster-requests", requireAuth, async (req, res): Promise<void> => {
   try {
     const parsed = CreateFosterRequestBody.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
+      res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
+      return;
     }
 
-    const { petId, requesterId, message } = parsed.data;
-    const [request] = await db.insert(fosterRequestsTable).values({ petId, requesterId, message }).returning();
+    const { petId, message } = parsed.data;
+    const [request] = await db.insert(fosterRequestsTable).values({ petId, requesterId: req.userId, message }).returning();
     res.status(201).json(request);
   } catch (err) {
     req.log.error({ err }, "Error creating foster request");

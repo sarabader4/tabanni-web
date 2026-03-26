@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
-import { optionalAuth, requireAuth } from "./middlewares/requireAuth";
+import { optionalAuth, requireAdmin } from "./middlewares/requireAuth";
 import { WebhookHandlers } from "./webhookHandlers";
 
 const app: Express = express();
@@ -62,8 +62,8 @@ app.use(cookieParser());
 // Populate req.userId from JWT cookie for all routes (non-blocking)
 app.use(optionalAuth);
 
-// Admin routes always require authentication
-app.use("/api/admin", requireAuth);
+// Admin routes require authentication AND admin role
+app.use("/api/admin", requireAdmin);
 
 app.use("/api", router);
 

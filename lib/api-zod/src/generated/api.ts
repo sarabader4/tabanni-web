@@ -332,7 +332,7 @@ export const ListAdoptionRequestsResponse = zod.array(
  */
 export const CreateAdoptionRequestBody = zod.object({
   petId: zod.number(),
-  requesterId: zod.number(),
+  requesterId: zod.number().optional(),
   message: zod.string().optional(),
 });
 
@@ -390,7 +390,7 @@ export const ListFosterRequestsResponse = zod.array(
  */
 export const CreateFosterRequestBody = zod.object({
   petId: zod.number(),
-  requesterId: zod.number(),
+  requesterId: zod.number().optional(),
   message: zod.string().optional(),
 });
 

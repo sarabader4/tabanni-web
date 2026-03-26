@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { requireAuth } from "../middlewares/requireAuth";
 import { db, petsTable, usersTable, favouritesTable } from "@workspace/db";
 import { eq, and, ilike, sql, desc, gte, lte } from "drizzle-orm";
 import {
@@ -260,26 +261,23 @@ router.delete("/pets/:id", async (req, res) => {
   }
 });
 
-router.post("/pets/:id/favourite", async (req, res) => {
+router.post("/pets/:id/favourite", requireAuth, async (req, res): Promise<void> => {
   try {
     const paramsParsed = ToggleFavouriteParams.safeParse(req.params);
     if (!paramsParsed.success) {
-      return res.status(400).json({ error: "validation_error", message: "Invalid pet id", details: paramsParsed.error.issues });
+      res.status(400).json({ error: "validation_error", message: "Invalid pet id", details: paramsParsed.error.issues });
+      return;
     }
     const petId = paramsParsed.data.id;
-
-    const bodyParsed = ToggleFavouriteBody.safeParse(req.body);
-    if (!bodyParsed.success) {
-      return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: bodyParsed.error.issues });
-    }
-    const { userId } = bodyParsed.data;
+    const userId = req.userId;
 
     const existing = await db.select().from(favouritesTable)
       .where(and(eq(favouritesTable.userId, userId), eq(favouritesTable.petId, petId)));
 
     if (existing.length > 0) {
       await db.delete(favouritesTable).where(and(eq(favouritesTable.userId, userId), eq(favouritesTable.petId, petId)));
-      return res.json({ success: true, message: "Removed from favourites" });
+      res.json({ success: true, message: "Removed from favourites" });
+      return;
     }
 
     await db.insert(favouritesTable).values({ userId, petId });

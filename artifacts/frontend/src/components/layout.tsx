@@ -1,13 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { PawPrint, Bell, Menu, X, Instagram, Twitter, Facebook, ChevronDown, LogOut, User, FileText } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import AIChatWidget from "@/components/ai-chat-widget";
 import { useAuth } from "@/contexts/auth-context";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -56,10 +56,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const firstName = user?.fullName?.split(" ")[0] ?? "";
 
-  async function handleLogout() {
+  const handleLogout = useCallback(async () => {
     setUserDropdownOpen(false);
+    setMobileMenuOpen(false);
     await logout();
-  }
+    navigate("/");
+  }, [logout, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-background">
@@ -251,7 +253,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <User className="w-5 h-5" /> Profile
                   </Link>
                   <button
-                    onClick={() => { setMobileMenuOpen(false); void handleLogout(); }}
+                    onClick={() => void handleLogout()}
                     className="flex items-center gap-2 py-3 text-red-500 font-semibold"
                   >
                     <LogOut className="w-5 h-5" /> Logout
