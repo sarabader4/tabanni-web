@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import { useListPets } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
@@ -66,14 +67,15 @@ export default function Adopt() {
               className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
           </div>
-          <button
+          <Link
+            href="/#ai-pet-match"
             className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap"
             style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
             title="AI-powered pet matching"
           >
             <Sparkles className="w-4 h-4" />
             AI Pet Match
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -137,10 +139,10 @@ export default function Adopt() {
 
         {/* Bottom row: floating add + pagination */}
         <div className="flex justify-between items-center mt-8">
-          <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 transition-all">
+          <Link href="/profile" className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 transition-all">
             <Plus className="w-4 h-4" />
             Add your pet to adopt!
-          </button>
+          </Link>
           <div className="flex gap-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}

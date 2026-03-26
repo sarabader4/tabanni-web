@@ -85,6 +85,7 @@ router.get("/pets", async (req, res) => {
         approved: petsTable.approved,
         rejected: petsTable.rejected,
         featured: petsTable.featured,
+        addedByAdmin: petsTable.addedByAdmin,
         createdAt: petsTable.createdAt,
       })
         .from(petsTable)
@@ -163,6 +164,7 @@ router.get("/pets/featured", async (req, res) => {
       ownerPhone: usersTable.phone,
       approved: petsTable.approved,
       featured: petsTable.featured,
+      addedByAdmin: petsTable.addedByAdmin,
       createdAt: petsTable.createdAt,
     })
       .from(petsTable)
@@ -208,6 +210,7 @@ router.get("/pets/:id", async (req, res) => {
       ownerPhone: usersTable.phone,
       approved: petsTable.approved,
       featured: petsTable.featured,
+      addedByAdmin: petsTable.addedByAdmin,
       createdAt: petsTable.createdAt,
     })
       .from(petsTable)

@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Heart, Shield, Clock, Search } from "lucide-react";
+import { ArrowRight, Heart, Shield, Search, Sparkles } from "lucide-react";
 import { useGetFeaturedPets, useGetAdminStats, useListGalleryPosts } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import AIPetMatchWidget from "@/components/ai-pet-match-widget";
@@ -47,6 +47,16 @@ export default function Home() {
                 >
                   Foster a Pet
                 </Link>
+                <button
+                  onClick={() => {
+                    document.getElementById("ai-pet-match")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-white shadow-lg hover:opacity-90 hover:-translate-y-1 transition-all"
+                  style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
+                >
+                  <Sparkles className="w-5 h-5" />
+                  AI Pet Match
+                </button>
               </div>
             </motion.div>
             
@@ -97,7 +107,9 @@ export default function Home() {
       </section>
 
       {/* AI Pet Match */}
-      <AIPetMatchWidget />
+      <section id="ai-pet-match">
+        <AIPetMatchWidget />
+      </section>
 
       {/* Stats Section */}
       <section className="bg-foreground py-20 mt-10">

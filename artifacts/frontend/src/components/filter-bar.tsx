@@ -22,11 +22,22 @@ interface FilterBarProps {
 const petTypes = ["Dog", "Cat", "Rabbit", "Bird", "Other"];
 const genders = ["Male", "Female"];
 const sizes = ["Small", "Medium", "Large"];
-const cities = ["Amman", "Irbid", "Zarqa", "Aqaba", "Madaba"];
+const cities = [
+  "Amman", "Zarqa", "Irbid", "Aqaba", "Salt", "Madaba",
+  "Karak", "Tafila", "Ma'an", "Jerash", "Ajloun", "Mafraq",
+];
 const months = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
+
+const breedsByType: Record<string, string[]> = {
+  dog: ["Golden Retriever", "Husky", "Labrador", "German Shepherd", "Poodle", "Beagle", "Mixed"],
+  cat: ["Persian", "Siamese", "Maine Coon", "British Shorthair", "Ragdoll", "Mixed"],
+  rabbit: ["Holland Lop", "Mini Rex", "Lionhead", "Dutch", "Mixed"],
+  bird: ["Parakeet", "Cockatiel", "Canary", "Lovebird", "African Grey", "Mixed"],
+  other: ["Mixed", "Other"],
+};
 
 function FilterSelect({
   label,
@@ -63,13 +74,15 @@ export function FilterBar({ filters, onChange, showMonth = false, showSterilized
     onChange({ ...filters, [key]: value });
   };
 
+  const currentBreeds = filters.type ? (breedsByType[filters.type] ?? []) : [];
+
   return (
     <div className="flex flex-wrap gap-2 items-center">
       <FilterSelect
         label="Type"
         value={filters.type}
         options={petTypes}
-        onChange={(v) => update("type", v)}
+        onChange={(v) => onChange({ ...filters, type: v, breed: "" })}
       />
       <FilterSelect
         label="Gender"
@@ -98,7 +111,7 @@ export function FilterBar({ filters, onChange, showMonth = false, showSterilized
       <FilterSelect
         label="Breed"
         value={filters.breed}
-        options={["Golden Retriever", "Husky", "Labrador", "Mixed", "Persian", "Siamese"]}
+        options={currentBreeds}
         onChange={(v) => update("breed", v)}
       />
       {showSterilized && (

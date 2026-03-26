@@ -1230,6 +1230,8 @@ components:
           type: boolean
         featured:
           type: boolean
+        addedByAdmin:
+          type: boolean
         createdAt:
           type: string
       required:
@@ -1247,6 +1249,7 @@ components:
         - yearlyVaccines
         - approved
         - featured
+        - addedByAdmin
         - createdAt
 
     CreatePetInput:

@@ -1,5 +1,4 @@
-import { Search } from "lucide-react";
-import { useState } from "react";
+import { Search, X } from "lucide-react";
 
 export interface FilterState {
   search: string;
@@ -14,6 +13,11 @@ interface FilterSidebarProps {
   onChange: (filters: FilterState) => void;
   title?: string;
 }
+
+const JORDAN_CITIES = [
+  "Amman", "Zarqa", "Irbid", "Aqaba", "Salt", "Madaba",
+  "Karak", "Tafila", "Ma'an", "Jerash", "Ajloun", "Mafraq",
+];
 
 export function FilterSidebar({ filters, onChange, title = "Filters" }: FilterSidebarProps) {
   const updateFilter = (key: keyof FilterState, value: string) => {
@@ -35,8 +39,17 @@ export function FilterSidebar({ filters, onChange, title = "Filters" }: FilterSi
               placeholder="Search by name or breed..."
               value={filters.search}
               onChange={(e) => updateFilter("search", e.target.value)}
-              className="w-full bg-muted/50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+              className="w-full bg-muted/50 border-none rounded-xl pl-10 pr-9 py-2.5 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
             />
+            {filters.search && (
+              <button
+                onClick={() => updateFilter("search", "")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -104,9 +117,9 @@ export function FilterSidebar({ filters, onChange, title = "Filters" }: FilterSi
             className="w-full bg-muted/50 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/50 outline-none appearance-none"
           >
             <option value="">Any City</option>
-            <option value="Amman">Amman</option>
-            <option value="Irbid">Irbid</option>
-            <option value="Zarqa">Zarqa</option>
+            {JORDAN_CITIES.map((city) => (
+              <option key={city} value={city}>{city}</option>
+            ))}
           </select>
         </div>
 
