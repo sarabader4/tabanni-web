@@ -111,7 +111,7 @@ router.post("/auth/login", async (req, res) => {
 
 router.post("/auth/logout", (_req, res) => {
   res.clearCookie("token", { path: "/" });
-  res.json({ message: "Logged out successfully" });
+  res.json({ success: true, message: "Logged out successfully" });
 });
 
 export default router;
