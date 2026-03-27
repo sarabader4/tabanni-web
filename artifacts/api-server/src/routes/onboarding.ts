@@ -32,6 +32,8 @@ function validate(body: Record<string, unknown>): string | null {
   if (isNaN(monthlyCost) || monthlyCost < 0) return "monthlyCostEstimation is required";
   if (!Array.isArray(body.activities) || body.activities.length === 0) return "Select at least one activity";
   if (!Array.isArray(body.petPreferences) || body.petPreferences.length === 0) return "Select at least one pet preference";
+  if (!Array.isArray(body.trainingExpectations) || body.trainingExpectations.length === 0) return "Select at least one training expectation";
+  if (typeof body.spayNeuterCommitment !== "boolean") return "spayNeuterCommitment must be a boolean";
   if (body.confirmed !== true) return "You must confirm the application";
   return null;
 }

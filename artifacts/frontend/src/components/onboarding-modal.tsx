@@ -126,6 +126,7 @@ function validateStep(step: number, form: FormData): FormErrors {
   if (step === 4) {
     if (form.activities.length === 0) errors.activities = "Select at least one activity";
     if (form.petPreferences.length === 0) errors.petPreferences = "Select at least one preference";
+    if (form.trainingExpectations.length === 0) errors.trainingExpectations = "Select at least one training expectation";
   }
   if (step === 5) {
     if (!form.dailyCarePlan.trim()) errors.dailyCarePlan = "Required";
@@ -488,7 +489,8 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
               </div>
 
               <div>
-                <label className={labelClass}>Training expectations (select all that apply)</label>
+                <label className={labelClass}>Training expectations (select all that apply) *</label>
+                {errors.trainingExpectations && <p className={errorClass}>{errors.trainingExpectations}</p>}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                   {TRAINING_EXPECTATION_OPTIONS.map(opt => (
                     <button
@@ -536,7 +538,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Travel plan for your pet *</label>
+                <label className={labelClass}>Travel plan for your pet</label>
                 <input className={fieldClass} placeholder="e.g. Stay with family, pet hotel..." value={form.travelPlan} onChange={e => set("travelPlan", e.target.value)} />
               </div>
               <div className="sm:col-span-2">
