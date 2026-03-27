@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut,
+  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut, Plus, Camera,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useLocation } from "wouter";
 import {
-  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useGetMyDonations, useListLostFoundReports,
+  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useGetMyDonations, useListLostFoundReports, useCreatePet, type Pet,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -370,6 +370,474 @@ const PASSWORD_SENTINEL = "\x00\x00UNCHANGED\x00\x00";
 
 const DEFAULT_COUNTRY = findCountryByName("Jordan") ?? ALL_COUNTRIES[0];
 
+function calculateAge(birthday: string): string {
+  if (!birthday) return "";
+  const birth = new Date(birthday);
+  const now = new Date();
+  const totalMonths = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+  if (totalMonths < 0) return "";
+  const years = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+  if (years === 0) return `${months} month${months !== 1 ? "s" : ""}`;
+  if (months === 0) return `${years} year${years !== 1 ? "s" : ""}`;
+  return `${years} yr${years !== 1 ? "s" : ""} ${months} mo`;
+}
+
+interface AddPetModalProps {
+  onClose: () => void;
+  onSuccess: () => void;
+  userName: string;
+}
+
+function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
+  const { toast } = useToast();
+  const createPet = useCreatePet();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [section, setSection] = useState<1 | 2>(1);
+
+  const [form, setForm] = useState({
+    name: "",
+    type: "dog",
+    breed: "",
+    birthday: "",
+    gender: "male",
+    weightKg: "",
+    sterilized: false as boolean,
+    yearlyVaccines: false as boolean,
+    story: "",
+    whatsappUrl: "",
+    purpose: "adopt" as "adopt" | "foster" | "both",
+  });
+
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const ageDisplay = useMemo(() => calculateAge(form.birthday), [form.birthday]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    const newFiles = [...imageFiles, ...files];
+    const newPreviews = [...imagePreviews, ...files.map(f => URL.createObjectURL(f))];
+    setImageFiles(newFiles);
+    setImagePreviews(newPreviews);
+  };
+
+  const removeImage = (idx: number) => {
+    const newFiles = imageFiles.filter((_, i) => i !== idx);
+    const newPreviews = imagePreviews.filter((_, i) => i !== idx);
+    setImageFiles(newFiles);
+    setImagePreviews(newPreviews);
+  };
+
+  const validateSection1 = () => {
+    const e: Record<string, string> = {};
+    if (!form.name.trim()) e.name = "Pet name is required";
+    if (!form.type) e.type = "Type is required";
+    if (!form.breed.trim()) e.breed = "Breed is required";
+    if (!form.birthday) e.birthday = "Birthdate is required";
+    if (!form.gender) e.gender = "Gender is required";
+    if (!form.weightKg.trim()) e.weightKg = "Weight is required";
+    if (!form.story.trim()) e.story = "Pet story is required";
+    if (imageFiles.length === 0) e.images = "At least one photo is required";
+    return e;
+  };
+
+  const validateSection2 = () => {
+    const e: Record<string, string> = {};
+    if (!form.whatsappUrl.trim()) e.whatsappUrl = "WhatsApp URL is required";
+    if (!form.purpose) e.purpose = "Availability type is required";
+    return e;
+  };
+
+  const handleNext = () => {
+    const e = validateSection1();
+    if (Object.keys(e).length > 0) {
+      setErrors(e);
+      const touchAll: Record<string, boolean> = {};
+      Object.keys(e).forEach(k => { touchAll[k] = true; });
+      setTouched(touchAll);
+      return;
+    }
+    setErrors({});
+    setSection(2);
+  };
+
+  const filesToBase64 = (files: File[]): Promise<string[]> => {
+    return Promise.all(
+      files.map(
+        file =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          })
+      )
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const e2 = validateSection2();
+    if (Object.keys(e2).length > 0) {
+      setErrors(e2);
+      const touchAll: Record<string, boolean> = {};
+      Object.keys(e2).forEach(k => { touchAll[k] = true; });
+      setTouched(touchAll);
+      return;
+    }
+
+    let imageUrls: string[] = imagePreviews;
+    try {
+      if (imageFiles.length > 0) {
+        imageUrls = await filesToBase64(imageFiles);
+      }
+    } catch {
+      imageUrls = imagePreviews;
+    }
+
+    const ageMonths = (() => {
+      if (!form.birthday) return 0;
+      const birth = new Date(form.birthday);
+      const now = new Date();
+      return Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth()));
+    })();
+
+    createPet.mutate(
+      {
+        data: {
+          name: form.name,
+          type: form.type as Pet["type"],
+          breed: form.breed || undefined,
+          gender: form.gender as "male" | "female",
+          ageMonths,
+          weightKg: form.weightKg || undefined,
+          size: "medium",
+          city: "Jordan",
+          purpose: form.purpose,
+          sterilized: form.sterilized,
+          yearlyVaccines: form.yearlyVaccines,
+          birthday: form.birthday || undefined,
+          story: form.story || undefined,
+          imageUrls,
+          whatsappUrl: form.whatsappUrl || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast({ title: "Your pet has been submitted for review" });
+          onSuccess();
+          onClose();
+        },
+        onError: () => {
+          toast({ title: "Failed to submit pet. Please try again.", variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const inputCls = (field: string) =>
+    `w-full border rounded-xl px-3 py-2.5 text-sm text-[#1E2A3A] outline-none focus:ring-2 transition-colors ${
+      touched[field] && errors[field]
+        ? "border-red-400 focus:ring-red-200"
+        : "border-gray-200 focus:ring-primary/20"
+    }`;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <div>
+            <h2 className="text-lg font-bold text-[#1E2A3A]">Add a Pet</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {section === 1 ? "Section 1 of 2 — Pet Information" : "Section 2 of 2 — Owner Information"}
+            </p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {section === 1 && (
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Pet Name *</label>
+                  <input
+                    value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    onBlur={() => setTouched(t => ({ ...t, name: true }))}
+                    className={inputCls("name")}
+                    placeholder="e.g. Buddy"
+                  />
+                  {touched.name && errors.name && <p className="text-xs text-red-500 mt-0.5">{errors.name}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Type *</label>
+                  <select
+                    value={form.type}
+                    onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                    className={inputCls("type")}
+                  >
+                    {["dog", "cat", "rabbit", "bird", "other"].map(t => (
+                      <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Breed *</label>
+                  <input
+                    value={form.breed}
+                    onChange={e => setForm(f => ({ ...f, breed: e.target.value }))}
+                    onBlur={() => setTouched(t => ({ ...t, breed: true }))}
+                    className={inputCls("breed")}
+                    placeholder="e.g. Labrador"
+                  />
+                  {touched.breed && errors.breed && <p className="text-xs text-red-500 mt-0.5">{errors.breed}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Birthdate *</label>
+                  <input
+                    type="date"
+                    value={form.birthday}
+                    onChange={e => setForm(f => ({ ...f, birthday: e.target.value }))}
+                    onBlur={() => setTouched(t => ({ ...t, birthday: true }))}
+                    max={new Date().toISOString().split("T")[0]}
+                    className={inputCls("birthday")}
+                  />
+                  {touched.birthday && errors.birthday && <p className="text-xs text-red-500 mt-0.5">{errors.birthday}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Age (auto-calculated)</label>
+                  <input
+                    value={ageDisplay}
+                    readOnly
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-default outline-none"
+                    placeholder="Select birthdate"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Gender *</label>
+                  <select
+                    value={form.gender}
+                    onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}
+                    className={inputCls("gender")}
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Weight (kg) *</label>
+                  <input
+                    value={form.weightKg}
+                    onChange={e => setForm(f => ({ ...f, weightKg: e.target.value }))}
+                    onBlur={() => setTouched(t => ({ ...t, weightKg: true }))}
+                    className={inputCls("weightKg")}
+                    placeholder="e.g. 5.2"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                  />
+                  {touched.weightKg && errors.weightKg && <p className="text-xs text-red-500 mt-0.5">{errors.weightKg}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-2">Sterilized *</label>
+                  <div className="flex gap-2">
+                    {[true, false].map(val => (
+                      <button
+                        key={String(val)}
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, sterilized: val }))}
+                        className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+                          form.sterilized === val
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {val ? "Yes" : "No"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-2">Yearly Vaccines *</label>
+                  <div className="flex gap-2">
+                    {[true, false].map(val => (
+                      <button
+                        key={String(val)}
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, yearlyVaccines: val }))}
+                        className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+                          form.yearlyVaccines === val
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {val ? "Yes" : "No"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Pet Story *</label>
+                <textarea
+                  value={form.story}
+                  onChange={e => setForm(f => ({ ...f, story: e.target.value }))}
+                  onBlur={() => setTouched(t => ({ ...t, story: true }))}
+                  rows={3}
+                  className={`${inputCls("story")} resize-none`}
+                  placeholder="Tell us about your pet's personality, history, and what makes them special..."
+                />
+                {touched.story && errors.story && <p className="text-xs text-red-500 mt-0.5">{errors.story}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-2">Photos *</label>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors hover:bg-gray-50 ${
+                    touched.images && errors.images ? "border-red-400" : "border-gray-200"
+                  }`}
+                >
+                  <Camera className="w-6 h-6 mx-auto mb-1.5 text-gray-300" />
+                  <p className="text-sm text-gray-500">Click to upload photos</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Multiple photos allowed</p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </div>
+                {touched.images && errors.images && <p className="text-xs text-red-500 mt-0.5">{errors.images}</p>}
+                {imagePreviews.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {imagePreviews.map((src, idx) => (
+                      <div key={idx} className="relative">
+                        <img src={src} alt={`preview ${idx}`} className="w-16 h-16 object-cover rounded-xl border border-gray-200" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
+                >
+                  Next: Owner Info →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {section === 2 && (
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Your Name</label>
+                <input
+                  value={userName}
+                  readOnly
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-default outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">WhatsApp URL *</label>
+                <input
+                  value={form.whatsappUrl}
+                  onChange={e => setForm(f => ({ ...f, whatsappUrl: e.target.value }))}
+                  onBlur={() => setTouched(t => ({ ...t, whatsappUrl: true }))}
+                  className={inputCls("whatsappUrl")}
+                  placeholder="https://wa.me/9627xxxxxxxx"
+                  type="url"
+                />
+                {touched.whatsappUrl && errors.whatsappUrl && (
+                  <p className="text-xs text-red-500 mt-0.5">{errors.whatsappUrl}</p>
+                )}
+                <p className="text-xs text-gray-400 mt-1">Format: https://wa.me/[country code][number]</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-2">Availability *</label>
+                <div className="flex gap-2">
+                  {[
+                    { value: "adopt", label: "Adoption" },
+                    { value: "foster", label: "Foster" },
+                    { value: "both", label: "Both" },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, purpose: opt.value as "adopt" | "foster" | "both" }))}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
+                        form.purpose === opt.value
+                          ? "bg-primary text-white border-primary"
+                          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSection(1)}
+                  className="px-5 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
+                >
+                  ← Back
+                </button>
+                <button
+                  type="submit"
+                  disabled={createPet.isPending}
+                  className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {createPet.isPending ? (
+                    <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</span>
+                  ) : (
+                    "Submit Pet"
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function buildInitialForm(profile: { fullName?: string | null; email?: string | null; phone?: string | null; country?: string | null; city?: string | null } | null): FormState {
   const countryObj = profile?.country ? (findCountryByName(profile.country) ?? DEFAULT_COUNTRY) : DEFAULT_COUNTRY;
   return {
@@ -400,12 +868,13 @@ export default function Profile() {
 
   const { data: profile, isLoading } = useGetMyProfile();
   const updateMutation = useUpdateMyProfile();
-  const { data: myPets, isLoading: petsLoading } = useGetMyPets();
+  const { data: myPets, isLoading: petsLoading, refetch: refetchPets } = useGetMyPets();
   const { data: applications, isLoading: appLoading } = useGetMyApplications();
   const { data: favourites, isLoading: favLoading } = useGetMyFavourites();
   const { data: donations, isLoading: donLoading } = useGetMyDonations();
   const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports({ limit: 20 });
 
+  const [showAddPetModal, setShowAddPetModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
@@ -760,42 +1229,71 @@ export default function Profile() {
 
             {/* ── My Pets Tab ── */}
             {activeTab === "My Pets" && (
-              petsLoading ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : !myPets || myPets.length === 0 ? (
-                <div className="text-center py-16 text-gray-400">
-                  <PawPrint className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p className="text-lg font-semibold text-[#1E2A3A]">No pets listed yet</p>
-                  <p className="text-sm mt-1">Pets you list for adoption or fostering will appear here.</p>
-                  <Link href="/adopt" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
-                    Add a Pet
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">My Listed Pets</h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {myPets.map((pet) => (
-                      <Link key={pet.id} href={`/pets/${pet.id}`}>
-                        <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-all cursor-pointer">
-                          <img
-                            src={pet.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400"}
-                            alt={pet.name}
-                            className="w-full h-28 object-cover"
-                          />
-                          <div className="p-3">
-                            <p className="font-bold text-sm text-[#1E2A3A]">{pet.name}</p>
-                            <p className="text-xs text-gray-400 capitalize">{pet.type} · {pet.city}</p>
-                            <StatusBadge status={pet.status} />
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
+              <>
+                {showAddPetModal && (
+                  <AddPetModal
+                    onClose={() => setShowAddPetModal(false)}
+                    onSuccess={() => refetchPets()}
+                    userName={profile?.fullName ?? ""}
+                  />
+                )}
+                {petsLoading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
                   </div>
-                </div>
-              )
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-5">
+                      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">My Pets</h2>
+                      <button
+                        onClick={() => setShowAddPetModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" /> Add Pet
+                      </button>
+                    </div>
+                    {(!myPets || myPets.length === 0) ? (
+                      <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
+                        <PawPrint className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-base font-semibold text-[#1E2A3A]">No pets listed yet</p>
+                        <p className="text-sm mt-1">Click "Add Pet" to submit a pet for adoption or fostering.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {(myPets as (Pet & { rejected?: boolean })[]).map((pet) => {
+                          const approvalStatus = pet.rejected ? "rejected" : pet.approved ? "approved" : "pending";
+                          const badgeMap = {
+                            approved: { color: "bg-green-100 text-green-700", icon: CheckCircle2, label: "Approved" },
+                            pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock, label: "Pending" },
+                            rejected: { color: "bg-red-100 text-red-600", icon: XCircle, label: "Rejected" },
+                          };
+                          const badge = badgeMap[approvalStatus];
+                          const BadgeIcon = badge.icon;
+                          return (
+                            <div key={pet.id} className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-all">
+                              <div className="relative">
+                                <img
+                                  src={pet.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400"}
+                                  alt={pet.name}
+                                  className="w-full h-28 object-cover"
+                                />
+                              </div>
+                              <div className="p-3">
+                                <p className="font-bold text-sm text-[#1E2A3A] truncate">{pet.name}</p>
+                                <p className="text-xs text-gray-400 capitalize mb-2">{pet.type} · {pet.breed || "Mixed"}</p>
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${badge.color}`}>
+                                  <BadgeIcon className="w-3 h-3" />
+                                  {badge.label}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
 
             {/* ── Applications Tab ── */}

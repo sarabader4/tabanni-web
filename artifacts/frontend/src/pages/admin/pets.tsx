@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import {
   useListPets,
   useApprovePet,
+  useRejectPet,
   useTogglePetFeatured,
   useDeletePet,
   useUpdatePet,
@@ -334,6 +335,7 @@ export default function AdminPets() {
   });
 
   const approveMutation = useApprovePet();
+  const rejectMutation = useRejectPet();
   const featureMutation = useTogglePetFeatured();
   const deleteMutation = useDeletePet();
 
@@ -485,12 +487,9 @@ export default function AdminPets() {
                             Approve
                           </button>
                           <button
-                            onClick={async () => {
-                              const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-                              await fetch(`${base}/api/admin/pets/${pet.id}/reject`, { method: "PUT" });
-                              refetch();
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors"
+                            onClick={() => rejectMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })}
+                            disabled={pet.rejected || rejectMutation.isPending}
+                            className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-40"
                           >
                             Reject
                           </button>
@@ -511,17 +510,16 @@ export default function AdminPets() {
                           >
                             <Star className="w-3.5 h-3.5" />
                           </button>
-                          <button
-                            onClick={async () => {
-                              const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-                              await fetch(`${base}/api/admin/pets/${pet.id}/reject`, { method: "PUT" });
-                              refetch();
-                            }}
-                            title="Reject"
-                            className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                          {!pet.approved && (
+                            <button
+                              onClick={() => rejectMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })}
+                              title="Reject"
+                              disabled={pet.rejected || rejectMutation.isPending}
+                              className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors disabled:opacity-40"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </>
                       )}
                       <button

@@ -4076,3 +4076,86 @@ export const useConfirmCliqDonation = <
 > => {
   return useMutation(getConfirmCliqDonationMutationOptions(options));
 };
+
+/**
+ * @summary Reject a pet listing (admin only)
+ */
+export const getRejectPetUrl = (id: number) => {
+  return `/api/admin/pets/${id}/reject`;
+};
+
+export const rejectPet = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Pet> => {
+  return customFetch<Pet>(getRejectPetUrl(id), {
+    ...options,
+    method: "PUT",
+  });
+};
+
+export const getRejectPetMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rejectPet>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof rejectPet>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["rejectPet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof rejectPet>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+    return rejectPet(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RejectPetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof rejectPet>>
+>;
+
+export type RejectPetMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Reject a pet listing (admin only)
+ */
+export const useRejectPet = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rejectPet>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof rejectPet>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getRejectPetMutationOptions(options));
+};

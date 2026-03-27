@@ -70,7 +70,7 @@ scripts/
 | `/gallery` | `Gallery` | 3-column masonry grid with "Read More" cards |
 | `/about` | `About` | About page |
 | `/shop` | `Shop` | Mlabbas + PetsJo shop cards + support section |
-| `/profile` | `Profile` | User profile with dark navy sidebar + edit form |
+| `/profile` | `Profile` | User profile with dark navy sidebar + edit form + My Pets tab (submit pets for adoption/fostering) |
 
 ### Navbar Design
 - Logo: orange paw icon + "tabbani" text
@@ -90,7 +90,7 @@ scripts/
 | Route | Component | Description |
 |---|---|---|
 | `/admin` | `AdminDashboard` | KPI stats (8 cards): pets, users, donations, etc. |
-| `/admin/pets` | `AdminPets` | Pet management table with approve/feature/delete |
+| `/admin/pets` | `AdminPets` | Pet management table with approve/reject/feature/delete; Pending Approval + All Pets tabs |
 | `/admin/users` | `AdminUsers` | User management with search/filter by role |
 | `/admin/adoptions` | `AdminAdoptions` | Adoption request approval/rejection |
 | `/admin/fosters` | `AdminFosters` | Foster request approval/rejection |
@@ -102,7 +102,8 @@ scripts/
 - `GET /api/pets` — list with filters (type, status, purpose, city, search, featured)
 - `GET /api/pets/featured` — featured pets only
 - `GET /api/pets/:id` — pet detail
-- `POST /api/pets` — create pet listing
+- `POST /api/pets` — create pet listing (requires auth; sets ownerId from JWT; addedByAdmin=false for users)
+- `GET /api/users/me/pets` — get current user's pets with approval status
 - `GET /api/adoption-requests` — list adoption requests
 - `POST /api/adoption-requests` — submit adoption request
 - `PATCH /api/adoption-requests/:id/status` — update request status
@@ -119,9 +120,10 @@ scripts/
 ### Admin API
 - `GET /api/admin/stats` — platform KPIs
 - `GET /api/admin/users` — user management list
-- `POST /api/pets/:id/approve` — approve pet listing
-- `POST /api/pets/:id/toggle-featured` — toggle featured status
-- `DELETE /api/pets/:id` — delete pet
+- `PUT /api/admin/pets/:id/approve` — approve pet listing (sets approved=true, rejected=false)
+- `PUT /api/admin/pets/:id/reject` — reject pet listing (sets approved=false, rejected=true)
+- `PUT /api/admin/pets/:id/toggle-featured` — toggle featured status
+- `DELETE /api/admin/pets/:id` — delete pet
 
 ### AI API
 - `POST /api/ai/chat` — AI chat assistant (body: `{message, history[]}`)
@@ -177,9 +179,20 @@ The seed script creates:
 - Language: English v1 (Arabic support planned)
 - Mock user: userId=1 (Admin Tabanni) used for unauthenticated requests
 
+## Pet Submission Workflow (Task 14)
+- **User flow**: Logged-in users can submit pets via "My Pets" tab → "Add Pet" button → 2-section modal form
+  - Section 1: Pet info (name, type, breed, birthdate, gender, weight, sterilized, vaccines, story, photos)
+  - Section 2: Owner info (auto-populated name, WhatsApp URL, availability type)
+  - Images converted to base64 data URLs and stored in `imageUrls` array
+- **Approval workflow**: Submitted pets have `approved=false, rejected=false` (Pending), visible to admin only
+- **Status display**: "My Pets" shows cards with Pending/Approved/Rejected badges
+- **Admin workflow**: Admin Pets page has "Pending Approval" tab with Approve + Reject buttons per pet
+- **DB changes**: Added `whatsapp_url` text column to `pets` table; `rejected` boolean already existed
+
 ## Status: PRODUCTION-READY
 All tasks completed:
 - [x] Task 1: Foundation (DB, API, backend routes)
 - [x] Task 2: Frontend (all user-facing pages)
 - [x] Task 3: Admin Dashboard (full CRUD management)
 - [x] Task 4: AI Features (chat widget, matching, descriptions)
+- [x] Task 14: My Pets section + pet submission modal + admin reject workflow

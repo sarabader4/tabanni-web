@@ -112,14 +112,14 @@ router.get("/pets", async (req, res) => {
   }
 });
 
-router.post("/pets", async (req, res) => {
+router.post("/pets", requireAuth, async (req, res) => {
   try {
     const parsed = CreatePetBody.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
     }
 
-    const { name, type, breed, gender, ageMonths, weightKg, size, color, sterilized, yearlyVaccines, birthday, city, purpose, imageUrls, story, ownerId } = parsed.data;
+    const { name, type, breed, gender, ageMonths, weightKg, size, color, sterilized, yearlyVaccines, birthday, city, purpose, imageUrls, story, whatsappUrl } = parsed.data;
 
     const [pet] = await db.insert(petsTable).values({
       name, type, breed, gender,
@@ -129,8 +129,9 @@ router.post("/pets", async (req, res) => {
       yearlyVaccines: yearlyVaccines ?? false,
       birthday, city, purpose,
       imageUrls: imageUrls ?? [],
-      story, ownerId,
-      approved: false, featured: false,
+      story, whatsappUrl,
+      ownerId: req.userId,
+      approved: false, featured: false, addedByAdmin: false,
     }).returning();
 
     res.status(201).json(pet);

@@ -147,7 +147,9 @@ export interface Pet {
   ownerId?: number | null;
   ownerName?: string | null;
   ownerPhone?: string | null;
+  whatsappUrl?: string | null;
   approved: boolean;
+  rejected?: boolean;
   featured: boolean;
   addedByAdmin: boolean;
   createdAt: string;
@@ -208,6 +210,7 @@ export interface CreatePetInput {
   imageUrls?: string[];
   story?: string;
   ownerId?: number;
+  whatsappUrl?: string;
 }
 
 export interface UpdatePetInput {

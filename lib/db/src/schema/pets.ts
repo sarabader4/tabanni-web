@@ -28,6 +28,7 @@ export const petsTable = pgTable("pets", {
   imageUrls: text("image_urls").array().notNull().default([]),
   story: text("story"),
   ownerId: integer("owner_id").references(() => usersTable.id),
+  whatsappUrl: text("whatsapp_url"),
   approved: boolean("approved").notNull().default(false),
   rejected: boolean("rejected").notNull().default(false),
   featured: boolean("featured").notNull().default(false),

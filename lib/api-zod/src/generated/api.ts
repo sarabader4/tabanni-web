@@ -132,6 +132,7 @@ export const CreatePetBody = zod.object({
   imageUrls: zod.array(zod.string()).optional(),
   story: zod.string().optional(),
   ownerId: zod.number().optional(),
+  whatsappUrl: zod.string().optional(),
 });
 
 /**
