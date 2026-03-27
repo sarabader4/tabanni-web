@@ -77,6 +77,11 @@ router.post("/user/onboarding", async (req: Request, res: Response): Promise<voi
 
     res.json({ success: true, message: "Onboarding completed" });
   } catch (err) {
+    const pgErr = err as { code?: string };
+    if (pgErr.code === "23505") {
+      res.status(409).json({ error: "conflict", message: "Onboarding already submitted" });
+      return;
+    }
     req.log.error({ err }, "Error submitting onboarding");
     res.status(500).json({ error: "internal_error", message: "Failed to submit onboarding" });
   }
