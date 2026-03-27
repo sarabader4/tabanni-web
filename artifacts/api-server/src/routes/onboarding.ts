@@ -28,6 +28,9 @@ const OnboardingBodyStrict = SubmitOnboardingBody.superRefine((data, ctx) => {
   if (data.age < 18) {
     ctx.addIssue({ code: "too_small", minimum: 18, type: "number", inclusive: true, path: ["age"], message: "Must be at least 18" });
   }
+  if (data.confirmed !== true) {
+    ctx.addIssue({ code: "custom", path: ["confirmed"], message: "You must confirm the onboarding declaration" });
+  }
 });
 
 const router: IRouter = Router();
