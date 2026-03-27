@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable, notificationsTable } from "@workspace/db";
+import { eq, desc, and } from "drizzle-orm";
 import { UpdateMyProfileBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -158,6 +158,53 @@ router.get("/users/me/donations", async (req, res): Promise<void> => {
   } catch (err) {
     req.log.error({ err }, "Error getting user donations");
     res.status(500).json({ error: "internal_error", message: "Failed to get donations" });
+  }
+});
+
+router.get("/users/me/notifications", async (req, res): Promise<void> => {
+  try {
+    if (!requireAuth(req, res)) return;
+    const notifications = await db.select({
+      id: notificationsTable.id,
+      userId: notificationsTable.userId,
+      petId: notificationsTable.petId,
+      petName: petsTable.name,
+      status: notificationsTable.status,
+      message: notificationsTable.message,
+      read: notificationsTable.read,
+      createdAt: notificationsTable.createdAt,
+    })
+      .from(notificationsTable)
+      .leftJoin(petsTable, eq(notificationsTable.petId, petsTable.id))
+      .where(eq(notificationsTable.userId, req.userId))
+      .orderBy(desc(notificationsTable.createdAt));
+    res.json(notifications);
+  } catch (err) {
+    req.log.error({ err }, "Error getting user notifications");
+    res.status(500).json({ error: "internal_error", message: "Failed to get notifications" });
+  }
+});
+
+router.patch("/users/me/notifications/:id/read", async (req, res): Promise<void> => {
+  try {
+    if (!requireAuth(req, res)) return;
+    const notifId = parseInt(req.params.id);
+    if (isNaN(notifId)) {
+      res.status(400).json({ error: "validation_error", message: "Invalid notification id" });
+      return;
+    }
+    const [notif] = await db.update(notificationsTable)
+      .set({ read: true })
+      .where(and(eq(notificationsTable.id, notifId), eq(notificationsTable.userId, req.userId)))
+      .returning();
+    if (!notif) {
+      res.status(404).json({ error: "not_found", message: "Notification not found" });
+      return;
+    }
+    res.json(notif);
+  } catch (err) {
+    req.log.error({ err }, "Error marking notification as read");
+    res.status(500).json({ error: "internal_error", message: "Failed to mark notification as read" });
   }
 });
 

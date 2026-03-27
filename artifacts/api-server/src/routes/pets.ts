@@ -34,7 +34,7 @@ router.get("/pets", async (req, res) => {
     const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
 
-    const conditions = [];
+    const conditions = [eq(petsTable.approved, true)];
 
     const petType = type ? PET_TYPES.find(t => t === type) : undefined;
     if (petType) conditions.push(eq(petsTable.type, petType));

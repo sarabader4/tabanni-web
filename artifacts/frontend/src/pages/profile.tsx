@@ -5,9 +5,49 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useLocation } from "wouter";
 import {
-  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useGetMyDonations, useListLostFoundReports, useCreatePet, type Pet,
+  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useCreatePet, type Pet,
 } from "@workspace/api-client-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+
+interface PetNotification {
+  id: number;
+  userId: number;
+  petId: number | null;
+  petName: string | null;
+  status: "accepted" | "rejected";
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
+function useGetMyNotifications() {
+  return useQuery<PetNotification[]>({
+    queryKey: ["/api/users/me/notifications"],
+    queryFn: async () => {
+      const res = await fetch("/api/users/me/notifications", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch notifications");
+      return res.json();
+    },
+  });
+}
+
+function useMarkNotificationRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/users/me/notifications/${id}/read`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to mark as read");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/notifications"] });
+    },
+  });
+}
 import {
   parsePhoneNumberFromString,
   getCountries,
@@ -871,7 +911,8 @@ export default function Profile() {
   const { data: myPets, isLoading: petsLoading, refetch: refetchPets } = useGetMyPets();
   const { data: applications, isLoading: appLoading } = useGetMyApplications();
   const { data: favourites, isLoading: favLoading } = useGetMyFavourites();
-  const { data: donations, isLoading: donLoading } = useGetMyDonations();
+  const { data: notifications, isLoading: notifLoading } = useGetMyNotifications();
+  const markRead = useMarkNotificationRead();
   const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports({ limit: 20 });
 
   const [showAddPetModal, setShowAddPetModal] = useState(false);
@@ -1402,47 +1443,61 @@ export default function Profile() {
 
             {/* ── Notifications Tab ── */}
             {activeTab === "Notifications" && (
-              <div className="space-y-8">
-                <div>
-                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">Notifications</h2>
+              <div className="space-y-4">
+                <h2 className="font-display font-bold text-lg text-[#1E2A3A]">Notifications</h2>
+                {notifLoading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : !notifications || notifications.length === 0 ? (
                   <div className="text-center py-10 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400">
                     <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
                     <p className="font-semibold text-[#1E2A3A]">No notifications yet</p>
-                    <p className="text-sm mt-1">You'll be notified about adoption updates, messages, and more.</p>
+                    <p className="text-sm mt-1">You'll be notified when your pet submissions are reviewed.</p>
                   </div>
-                </div>
-
-                <div>
-                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">Donation History</h2>
-                  {donLoading ? (
-                    <div className="flex items-center justify-center py-10">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                    </div>
-                  ) : !donations || donations.length === 0 ? (
-                    <div className="text-center py-10 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400">
-                      <p className="font-semibold text-[#1E2A3A]">No donations yet</p>
-                      <p className="text-sm mt-1">Your donation activity will appear here.</p>
-                      <Link href="/donate" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
-                        Make a Donation
-                      </Link>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {donations.map((don) => (
-                        <div key={don.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
-                          <div>
-                            <p className="font-bold text-sm text-[#1E2A3A] capitalize">{don.type} donation</p>
-                            <p className="text-xs text-gray-400">{new Date(don.createdAt).toLocaleDateString()}</p>
-                            {don.description && <p className="text-xs text-gray-500 mt-0.5">{don.description}</p>}
-                          </div>
-                          {don.amount && (
-                            <span className="font-bold text-primary text-sm">{don.amount} JD</span>
-                          )}
+                ) : (
+                  <div className="space-y-2">
+                    {notifications.map((notif) => (
+                      <button
+                        key={notif.id}
+                        onClick={() => { if (!notif.read) markRead.mutate(notif.id); }}
+                        className={`w-full text-left flex items-start gap-4 p-4 rounded-xl border transition-colors ${
+                          notif.read
+                            ? "bg-white border-gray-100 opacity-70"
+                            : "bg-primary/5 border-primary/20 hover:bg-primary/10"
+                        }`}
+                      >
+                        <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
+                          notif.status === "accepted" ? "bg-green-100" : "bg-red-100"
+                        }`}>
+                          {notif.status === "accepted"
+                            ? <CheckCircle2 className="w-5 h-5 text-green-600" />
+                            : <XCircle className="w-5 h-5 text-red-500" />
+                          }
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-[#1E2A3A]">
+                              {notif.petName ?? "Your pet"}
+                            </span>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                              notif.status === "accepted"
+                                ? "bg-green-100 text-green-600"
+                                : "bg-red-100 text-red-500"
+                            }`}>
+                              {notif.status === "accepted" ? "Accepted" : "Rejected"}
+                            </span>
+                            {!notif.read && (
+                              <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{notif.message}</p>
+                          <p className="text-xs text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
