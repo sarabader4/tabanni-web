@@ -8,6 +8,13 @@
       "when": 1774545100000,
       "tag": "0001_payment_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774648813928,
+      "tag": "0002_wakeful_praxagora",
+      "breakpoints": true
     }
   ]
 }
