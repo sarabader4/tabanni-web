@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Settings, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff,
+  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut,
 } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { Link, useLocation } from "wouter";
 import {
   useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useGetMyDonations, useListLostFoundReports,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
 import {
   parsePhoneNumberFromString,
   getCountries,
@@ -23,7 +24,6 @@ const sidebarLinks = [
   { label: "Notifications", icon: Bell },
   { label: "Volunteer", icon: Users },
   { label: "Lost&Found", icon: MapPin },
-  { label: "Settings", icon: Settings },
 ];
 
 const REGION_NAMES = new Intl.DisplayNames(["en"], { type: "region" });
@@ -393,7 +393,10 @@ const NO_TOUCHED: TouchedState = {
 
 export default function Profile() {
   const { toast } = useToast();
+  const { logout } = useAuth();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("Profile");
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const { data: profile, isLoading } = useGetMyProfile();
   const updateMutation = useUpdateMyProfile();
@@ -483,6 +486,11 @@ export default function Profile() {
     }
   };
 
+  const handleLogoutConfirm = async () => {
+    await logout();
+    setLocation("/");
+  };
+
   const displayName = profile?.fullName || "User";
   const avatarLetter = displayName.charAt(0).toUpperCase();
 
@@ -497,6 +505,7 @@ export default function Profile() {
   }
 
   return (
+    <div>
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -540,6 +549,15 @@ export default function Profile() {
                   </button>
                 );
               })}
+              <div className="pt-2 border-t border-white/10 mt-2">
+                <button
+                  onClick={() => setShowLogoutDialog(true)}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors text-red-300 hover:bg-red-500/20 hover:text-red-200"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Log Out
+                </button>
+              </div>
             </nav>
           </div>
 
@@ -987,17 +1005,39 @@ export default function Profile() {
               </div>
             )}
 
-            {/* ── Settings Tab ── */}
-            {activeTab === "Settings" && (
-              <div className="text-center py-16 text-gray-400">
-                <Settings className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p className="text-lg font-semibold text-[#1E2A3A]">Settings</p>
-                <p className="text-sm mt-1">Coming soon.</p>
-              </div>
-            )}
           </div>
         </div>
       </div>
+    </div>
+
+    {/* Log Out Confirmation Dialog */}
+    {showLogoutDialog && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+              <LogOut className="w-5 h-5 text-red-500" />
+            </div>
+            <h2 className="text-lg font-bold text-[#1E2A3A]">Log Out</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-6">Are you sure you want to log out?</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowLogoutDialog(false)}
+              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#1E2A3A] hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleLogoutConfirm}
+              className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
