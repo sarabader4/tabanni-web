@@ -31,6 +31,12 @@ const OnboardingBodyStrict = SubmitOnboardingBody.superRefine((data, ctx) => {
   if (data.confirmed !== true) {
     ctx.addIssue({ code: "custom", path: ["confirmed"], message: "You must confirm the onboarding declaration" });
   }
+  if (data.exerciseHours < 0 || data.exerciseHours > 24) {
+    ctx.addIssue({ code: "too_small", minimum: 0, type: "number", inclusive: true, path: ["exerciseHours"], message: "exerciseHours must be between 0 and 24" });
+  }
+  if (data.monthlyCostEstimation < 0) {
+    ctx.addIssue({ code: "too_small", minimum: 0, type: "number", inclusive: true, path: ["monthlyCostEstimation"], message: "monthlyCostEstimation must be non-negative" });
+  }
 });
 
 const router: IRouter = Router();
