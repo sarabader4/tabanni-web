@@ -3,6 +3,33 @@ import { db, usersTable, userProfilesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { SubmitOnboardingBody } from "@workspace/api-zod";
 
+const REQUIRED_STRING_FIELDS = [
+  "areaOfResidence", "homeAddress", "occupation", "mainCaregiver",
+  "adoptionReason", "financialResponsibility", "yardType", "dayLocation",
+  "nightLocation", "householdObjection", "homeType", "ownershipType",
+  "breedingIntention", "dailyCarePlan",
+] as const;
+
+const OnboardingBodyStrict = SubmitOnboardingBody.superRefine((data, ctx) => {
+  for (const field of REQUIRED_STRING_FIELDS) {
+    if (!data[field].trim()) {
+      ctx.addIssue({ code: "too_small", minimum: 1, type: "string", inclusive: true, path: [field], message: `${field} must not be empty` });
+    }
+  }
+  if (data.activities.length === 0) {
+    ctx.addIssue({ code: "too_small", minimum: 1, type: "array", inclusive: true, path: ["activities"], message: "Select at least one activity" });
+  }
+  if (data.petPreferences.length === 0) {
+    ctx.addIssue({ code: "too_small", minimum: 1, type: "array", inclusive: true, path: ["petPreferences"], message: "Select at least one pet preference" });
+  }
+  if (data.trainingExpectations.length === 0) {
+    ctx.addIssue({ code: "too_small", minimum: 1, type: "array", inclusive: true, path: ["trainingExpectations"], message: "Select at least one training expectation" });
+  }
+  if (data.age < 18) {
+    ctx.addIssue({ code: "too_small", minimum: 18, type: "number", inclusive: true, path: ["age"], message: "Must be at least 18" });
+  }
+});
+
 const router: IRouter = Router();
 
 function requireAuth(req: Request, res: Response): boolean {
@@ -27,7 +54,7 @@ router.post("/user/onboarding", async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    const parsed = SubmitOnboardingBody.safeParse(req.body);
+    const parsed = OnboardingBodyStrict.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
       return;
