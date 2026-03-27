@@ -68,6 +68,12 @@ router.get("/adoption-requests", requireAuth, async (req, res) => {
 
 router.post("/adoption-requests", requireAuth, async (req, res): Promise<void> => {
   try {
+    const [currentUser] = await db.select({ isOnboardingCompleted: usersTable.isOnboardingCompleted }).from(usersTable).where(eq(usersTable.id, req.userId));
+    if (!currentUser?.isOnboardingCompleted) {
+      res.status(403).json({ error: "onboarding_required", message: "Please complete your adoption profile before submitting a request" });
+      return;
+    }
+
     const parsed = CreateAdoptionRequestBody.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
