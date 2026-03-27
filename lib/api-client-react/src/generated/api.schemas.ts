@@ -265,7 +265,7 @@ export interface AdoptionRequest {
 
 export interface CreateAdoptionRequestInput {
   petId: number;
-  requesterId: number;
+  requesterId?: number;
   message?: string;
 }
 
@@ -293,7 +293,7 @@ export interface FosterRequest {
 
 export interface CreateFosterRequestInput {
   petId: number;
-  requesterId: number;
+  requesterId?: number;
   message?: string;
 }
 

@@ -48,28 +48,37 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   return data as T;
 }
 
+function shouldShowOnboarding(user: AuthUser | null): boolean {
+  return user !== null && !user.isOnboardingCompleted;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [onboardingVisible, setOnboardingVisible] = useState(false);
   const [pendingOnboardingAction, setPendingOnboardingAction] = useState<(() => void) | null>(null);
-  const [hasSkipped, setHasSkipped] = useState(false);
   const queryClient = useQueryClient();
 
-  const refreshUser = useCallback(async () => {
+  const refreshUser = useCallback(async (): Promise<void> => {
     try {
       const me = await apiFetch<AuthUser>("/api/users/me");
       setUser(me);
-      return me;
     } catch {
       setUser(null);
-      return null;
     }
   }, []);
 
   useEffect(() => {
-    refreshUser().finally(() => setIsLoading(false));
-  }, [refreshUser]);
+    apiFetch<AuthUser>("/api/users/me")
+      .then(me => {
+        setUser(me);
+        if (shouldShowOnboarding(me)) {
+          setOnboardingVisible(true);
+        }
+      })
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const me = await apiFetch<AuthUser>("/api/auth/login", {
@@ -77,8 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
     setUser(me);
-    setHasSkipped(false);
-    if (!me.isOnboardingCompleted) {
+    if (shouldShowOnboarding(me)) {
       setOnboardingVisible(true);
     }
     await queryClient.invalidateQueries();
@@ -90,8 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify(data),
     });
     setUser(me);
-    setHasSkipped(false);
-    if (!me.isOnboardingCompleted) {
+    if (shouldShowOnboarding(me)) {
       setOnboardingVisible(true);
     }
     await queryClient.invalidateQueries();
@@ -100,7 +107,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     await apiFetch("/api/auth/logout", { method: "POST" }).catch(() => null);
     setUser(null);
-    setHasSkipped(false);
     setOnboardingVisible(false);
     setPendingOnboardingAction(null);
     await queryClient.invalidateQueries();
@@ -126,7 +132,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pendingOnboardingAction]);
 
   const skipOnboarding = useCallback(() => {
-    setHasSkipped(true);
     setOnboardingVisible(false);
     setPendingOnboardingAction(null);
   }, []);

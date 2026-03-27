@@ -8,6 +8,6 @@
 
 export interface CreateAdoptionRequestInput {
   petId: number;
-  requesterId: number;
+  requesterId?: number;
   message?: string;
 }

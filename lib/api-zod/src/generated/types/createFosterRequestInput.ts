@@ -8,6 +8,6 @@
 
 export interface CreateFosterRequestInput {
   petId: number;
-  requesterId: number;
+  requesterId?: number;
   message?: string;
 }
