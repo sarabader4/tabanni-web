@@ -1574,7 +1574,6 @@ components:
           type: string
       required:
         - petId
-        - requesterId
 
     FosterRequest:
       type: object
@@ -1623,7 +1622,6 @@ components:
           type: string
       required:
         - petId
-        - requesterId
 
     UpdateRequestStatusInput:
       type: object
@@ -2029,3 +2027,111 @@ components:
         - totalDonationsThisMonth
         - newUsersToday
         - totalUsers
+
+    UserProfile:
+      type: object
+      description: Profile data stored after a user completes onboarding.
+      properties:
+        id:
+          type: number
+        userId:
+          type: number
+        areaOfResidence:
+          type: string
+        homeAddress:
+          type: string
+        occupation:
+          type: string
+        age:
+          type: number
+        mainCaregiver:
+          type: string
+        adoptionReason:
+          type: string
+        financialResponsibility:
+          type: string
+        childrenCount:
+          type: number
+          nullable: true
+        yardType:
+          type: string
+        dayLocation:
+          type: string
+        nightLocation:
+          type: string
+        allergies:
+          type: string
+          nullable: true
+        currentPets:
+          type: string
+          nullable: true
+        householdObjection:
+          type: string
+        homeType:
+          type: string
+        ownershipType:
+          type: string
+        previousPetExperience:
+          type: string
+          nullable: true
+        exerciseHours:
+          type: number
+        monthlyCostEstimation:
+          type: number
+        breedingIntention:
+          type: string
+        spayNeuterCommitment:
+          type: boolean
+        behaviorTolerance:
+          type: string
+          nullable: true
+        traumaHandlingComfort:
+          type: string
+          nullable: true
+        dailyCarePlan:
+          type: string
+        travelPlan:
+          type: string
+          nullable: true
+        activities:
+          type: array
+          items:
+            type: string
+        petPreferences:
+          type: array
+          items:
+            type: string
+        trainingExpectations:
+          type: array
+          items:
+            type: string
+        confirmed:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - areaOfResidence
+        - homeAddress
+        - occupation
+        - age
+        - mainCaregiver
+        - adoptionReason
+        - financialResponsibility
+        - yardType
+        - dayLocation
+        - nightLocation
+        - householdObjection
+        - homeType
+        - ownershipType
+        - exerciseHours
+        - monthlyCostEstimation
+        - breedingIntention
+        - spayNeuterCommitment
+        - dailyCarePlan
+        - activities
+        - petPreferences
+        - trainingExpectations
+        - confirmed
+        - createdAt

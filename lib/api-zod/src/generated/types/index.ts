@@ -86,4 +86,6 @@ export * from "./updateRequestStatusInput";
 export * from "./updateRequestStatusInputStatus";
 export * from "./updateUserInput";
 export * from "./user";
+export * from "./userOnboardingInput";
+export * from "./userProfile";
 export * from "./userRole";

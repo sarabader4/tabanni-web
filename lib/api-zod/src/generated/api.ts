@@ -613,6 +613,46 @@ export const SendMessageBody = zod.object({
 });
 
 /**
+ * @summary Submit adoption readiness onboarding form
+ */
+export const SubmitOnboardingBody = zod.object({
+  areaOfResidence: zod.string(),
+  homeAddress: zod.string(),
+  occupation: zod.string(),
+  age: zod.number(),
+  mainCaregiver: zod.string(),
+  adoptionReason: zod.string(),
+  financialResponsibility: zod.string(),
+  childrenCount: zod.number().optional(),
+  yardType: zod.string(),
+  dayLocation: zod.string(),
+  nightLocation: zod.string(),
+  allergies: zod.string().optional(),
+  currentPets: zod.string().optional(),
+  householdObjection: zod.string(),
+  homeType: zod.string(),
+  ownershipType: zod.string(),
+  previousPetExperience: zod.string().optional(),
+  exerciseHours: zod.number(),
+  monthlyCostEstimation: zod.number(),
+  breedingIntention: zod.string(),
+  spayNeuterCommitment: zod.boolean(),
+  behaviorTolerance: zod.string().optional(),
+  traumaHandlingComfort: zod.string().optional(),
+  dailyCarePlan: zod.string(),
+  travelPlan: zod.string().optional(),
+  activities: zod.array(zod.string()),
+  petPreferences: zod.array(zod.string()),
+  trainingExpectations: zod.array(zod.string()),
+  confirmed: zod.boolean(),
+});
+
+export const SubmitOnboardingResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string().optional(),
+});
+
+/**
  * @summary Get current user profile
  */
 export const GetMyProfileResponse = zod.object({

@@ -12,9 +12,8 @@ export function useFavourites() {
   const { user, isLoading: userLoading } = useCurrentUser();
   const queryClient = useQueryClient();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: favourites, isLoading: favLoading } = useGetMyFavourites({
-    query: { enabled: !!user } as any,
+    query: { queryKey: getGetMyFavouritesQueryKey(), enabled: !!user },
   });
 
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());

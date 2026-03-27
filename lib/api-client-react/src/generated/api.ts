@@ -69,6 +69,7 @@ import type {
   UpdateRequestStatusInput,
   UpdateUserInput,
   User,
+  UserOnboardingInput,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -2354,6 +2355,92 @@ export const useSendMessage = <
   TContext
 > => {
   return useMutation(getSendMessageMutationOptions(options));
+};
+
+/**
+ * @summary Submit adoption readiness onboarding form
+ */
+export const getSubmitOnboardingUrl = () => {
+  return `/api/user/onboarding`;
+};
+
+export const submitOnboarding = async (
+  userOnboardingInput: UserOnboardingInput,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getSubmitOnboardingUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(userOnboardingInput),
+  });
+};
+
+export const getSubmitOnboardingMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitOnboarding>>,
+    TError,
+    { data: BodyType<UserOnboardingInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof submitOnboarding>>,
+  TError,
+  { data: BodyType<UserOnboardingInput> },
+  TContext
+> => {
+  const mutationKey = ["submitOnboarding"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof submitOnboarding>>,
+    { data: BodyType<UserOnboardingInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return submitOnboarding(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubmitOnboardingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof submitOnboarding>>
+>;
+export type SubmitOnboardingMutationBody = BodyType<UserOnboardingInput>;
+export type SubmitOnboardingMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Submit adoption readiness onboarding form
+ */
+export const useSubmitOnboarding = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitOnboarding>>,
+    TError,
+    { data: BodyType<UserOnboardingInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof submitOnboarding>>,
+  TError,
+  { data: BodyType<UserOnboardingInput> },
+  TContext
+> => {
+  return useMutation(getSubmitOnboardingMutationOptions(options));
 };
 
 /**

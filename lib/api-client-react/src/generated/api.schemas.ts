@@ -484,6 +484,38 @@ export interface MyApplicationsResponse {
   fosterRequests: FosterRequest[];
 }
 
+export interface UserOnboardingInput {
+  areaOfResidence: string;
+  homeAddress: string;
+  occupation: string;
+  age: number;
+  mainCaregiver: string;
+  adoptionReason: string;
+  financialResponsibility: string;
+  childrenCount?: number;
+  yardType: string;
+  dayLocation: string;
+  nightLocation: string;
+  allergies?: string;
+  currentPets?: string;
+  householdObjection: string;
+  homeType: string;
+  ownershipType: string;
+  previousPetExperience?: string;
+  exerciseHours: number;
+  monthlyCostEstimation: number;
+  breedingIntention: string;
+  spayNeuterCommitment: boolean;
+  behaviorTolerance?: string;
+  traumaHandlingComfort?: string;
+  dailyCarePlan: string;
+  travelPlan?: string;
+  activities: string[];
+  petPreferences: string[];
+  trainingExpectations: string[];
+  confirmed: boolean;
+}
+
 export interface AdminStats {
   totalPets: number;
   pendingApproval: number;
@@ -493,6 +525,44 @@ export interface AdminStats {
   totalDonationsThisMonth: string;
   newUsersToday: number;
   totalUsers: number;
+}
+
+/**
+ * Profile data stored after a user completes onboarding.
+ */
+export interface UserProfile {
+  id: number;
+  userId: number;
+  areaOfResidence: string;
+  homeAddress: string;
+  occupation: string;
+  age: number;
+  mainCaregiver: string;
+  adoptionReason: string;
+  financialResponsibility: string;
+  childrenCount?: number | null;
+  yardType: string;
+  dayLocation: string;
+  nightLocation: string;
+  allergies?: string | null;
+  currentPets?: string | null;
+  householdObjection: string;
+  homeType: string;
+  ownershipType: string;
+  previousPetExperience?: string | null;
+  exerciseHours: number;
+  monthlyCostEstimation: number;
+  breedingIntention: string;
+  spayNeuterCommitment: boolean;
+  behaviorTolerance?: string | null;
+  traumaHandlingComfort?: string | null;
+  dailyCarePlan: string;
+  travelPlan?: string | null;
+  activities: string[];
+  petPreferences: string[];
+  trainingExpectations: string[];
+  confirmed: boolean;
+  createdAt: string;
 }
 
 export type ListPetsParams = {
