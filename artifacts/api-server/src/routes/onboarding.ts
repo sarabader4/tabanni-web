@@ -49,6 +49,77 @@ function requireAuth(req: Request, res: Response): boolean {
   return true;
 }
 
+router.get("/user/profile", async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!requireAuth(req, res)) return;
+    const [profile] = await db.select().from(userProfilesTable).where(eq(userProfilesTable.userId, req.userId));
+    if (!profile) {
+      res.status(404).json({ error: "not_found", message: "Profile not found" });
+      return;
+    }
+    res.json(profile);
+  } catch (err) {
+    req.log.error({ err }, "Error getting user profile");
+    res.status(500).json({ error: "internal_error", message: "Failed to get user profile" });
+  }
+});
+
+router.put("/user/profile", async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!requireAuth(req, res)) return;
+
+    const [existing] = await db.select({ id: userProfilesTable.id }).from(userProfilesTable).where(eq(userProfilesTable.userId, req.userId));
+    if (!existing) {
+      res.status(404).json({ error: "not_found", message: "Profile not found. Complete onboarding first." });
+      return;
+    }
+
+    const parsed = OnboardingBodyStrict.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
+      return;
+    }
+
+    const data = parsed.data;
+    const [updated] = await db.update(userProfilesTable).set({
+      areaOfResidence: data.areaOfResidence,
+      homeAddress: data.homeAddress,
+      occupation: data.occupation,
+      age: data.age,
+      mainCaregiver: data.mainCaregiver,
+      adoptionReason: data.adoptionReason,
+      financialResponsibility: data.financialResponsibility,
+      childrenCount: data.childrenCount ?? 0,
+      yardType: data.yardType,
+      dayLocation: data.dayLocation,
+      nightLocation: data.nightLocation,
+      allergies: data.allergies ?? null,
+      currentPets: data.currentPets ?? null,
+      householdObjection: data.householdObjection,
+      homeType: data.homeType,
+      ownershipType: data.ownershipType,
+      previousPetExperience: data.previousPetExperience ?? null,
+      exerciseHours: data.exerciseHours,
+      monthlyCostEstimation: data.monthlyCostEstimation,
+      breedingIntention: data.breedingIntention,
+      spayNeuterCommitment: data.spayNeuterCommitment,
+      behaviorTolerance: data.behaviorTolerance ?? null,
+      traumaHandlingComfort: data.traumaHandlingComfort ?? null,
+      dailyCarePlan: data.dailyCarePlan,
+      travelPlan: data.travelPlan ?? null,
+      activities: data.activities,
+      petPreferences: data.petPreferences,
+      trainingExpectations: data.trainingExpectations,
+      confirmed: data.confirmed,
+    }).where(eq(userProfilesTable.userId, req.userId)).returning();
+
+    res.json(updated);
+  } catch (err) {
+    req.log.error({ err }, "Error updating user profile");
+    res.status(500).json({ error: "internal_error", message: "Failed to update user profile" });
+  }
+});
+
 router.post("/user/onboarding", async (req: Request, res: Response): Promise<void> => {
   try {
     if (!requireAuth(req, res)) return;

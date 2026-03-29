@@ -13,7 +13,7 @@ export default function PetDetail() {
   const { data: pet, isLoading } = useGetPet(Number(id));
   const { toast } = useToast();
   const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
-  const { user, requireOnboarding } = useAuth();
+  const { user } = useAuth();
 
   const petId = Number(id);
   const favourited = isFavourited(petId);
@@ -56,8 +56,13 @@ export default function PetDetail() {
     try {
       await adoptMutation.mutateAsync({ data: { petId: Number(id), message: "I would love to adopt this pet." } });
       toast({ title: "Adoption request sent!", description: "The owner will contact you soon." });
-    } catch {
-      toast({ title: "Error", description: "Failed to send request. Please try again.", variant: "destructive" });
+    } catch (err: unknown) {
+      const body = (err as { response?: { data?: { error?: string } } })?.response?.data;
+      if (body?.error === "duplicate_request") {
+        toast({ title: "Request already exists", description: "You already have a request for this pet. Check My Requests in your profile.", variant: "destructive" });
+      } else {
+        toast({ title: "Error", description: "Failed to send request. Please try again.", variant: "destructive" });
+      }
     }
   };
 
@@ -65,19 +70,34 @@ export default function PetDetail() {
     try {
       await fosterMutation.mutateAsync({ data: { petId: Number(id), message: "I would love to foster this pet." } });
       toast({ title: "Foster request sent!", description: "The owner will contact you soon." });
-    } catch {
-      toast({ title: "Error", description: "Failed to send request. Please try again.", variant: "destructive" });
+    } catch (err: unknown) {
+      const body = (err as { response?: { data?: { error?: string } } })?.response?.data;
+      if (body?.error === "duplicate_request") {
+        toast({ title: "Request already exists", description: "You already have a request for this pet. Check My Requests in your profile.", variant: "destructive" });
+      } else {
+        toast({ title: "Error", description: "Failed to send request. Please try again.", variant: "destructive" });
+      }
     }
   };
 
   const handleAdopt = () => {
     if (!user) { navigate("/login"); toast({ title: "Please log in first." }); return; }
-    requireOnboarding(doAdopt);
+    if (!user.isOnboardingCompleted) {
+      toast({ title: "Complete your Adoption Readiness form first", description: "Fill in your profile before sending a request." });
+      navigate("/profile?tab=My+Requests&openForm=true");
+      return;
+    }
+    doAdopt();
   };
 
   const handleFoster = () => {
     if (!user) { navigate("/login"); toast({ title: "Please log in first." }); return; }
-    requireOnboarding(doFoster);
+    if (!user.isOnboardingCompleted) {
+      toast({ title: "Complete your Adoption Readiness form first", description: "Fill in your profile before sending a request." });
+      navigate("/profile?tab=My+Requests&openForm=true");
+      return;
+    }
+    doFoster();
   };
 
   if (isLoading) {

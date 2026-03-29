@@ -72,13 +72,18 @@ router.get("/users/me/applications", async (req, res): Promise<void> => {
         message: adoptionRequestsTable.message,
         status: adoptionRequestsTable.status,
         petName: petsTable.name,
-        petImageUrl: petsTable.imageUrls,
-        requesterName: usersTable.fullName,
+        petImageUrls: petsTable.imageUrls,
+        petType: petsTable.type,
+        petBreed: petsTable.breed,
+        petGender: petsTable.gender,
+        petAgeMonths: petsTable.ageMonths,
+        petStory: petsTable.story,
+        petCity: petsTable.city,
+        petPurpose: petsTable.purpose,
         createdAt: adoptionRequestsTable.createdAt,
       })
         .from(adoptionRequestsTable)
         .leftJoin(petsTable, eq(adoptionRequestsTable.petId, petsTable.id))
-        .leftJoin(usersTable, eq(adoptionRequestsTable.requesterId, usersTable.id))
         .where(eq(adoptionRequestsTable.requesterId, req.userId))
         .orderBy(desc(adoptionRequestsTable.createdAt)),
       db.select({
@@ -88,20 +93,33 @@ router.get("/users/me/applications", async (req, res): Promise<void> => {
         message: fosterRequestsTable.message,
         status: fosterRequestsTable.status,
         petName: petsTable.name,
-        petImageUrl: petsTable.imageUrls,
-        requesterName: usersTable.fullName,
+        petImageUrls: petsTable.imageUrls,
+        petType: petsTable.type,
+        petBreed: petsTable.breed,
+        petGender: petsTable.gender,
+        petAgeMonths: petsTable.ageMonths,
+        petStory: petsTable.story,
+        petCity: petsTable.city,
+        petPurpose: petsTable.purpose,
         createdAt: fosterRequestsTable.createdAt,
       })
         .from(fosterRequestsTable)
         .leftJoin(petsTable, eq(fosterRequestsTable.petId, petsTable.id))
-        .leftJoin(usersTable, eq(fosterRequestsTable.requesterId, usersTable.id))
         .where(eq(fosterRequestsTable.requesterId, req.userId))
         .orderBy(desc(fosterRequestsTable.createdAt)),
     ]);
 
     res.json({
-      adoptionRequests: adoptionRequests.map(r => ({ ...r, petImageUrl: Array.isArray(r.petImageUrl) ? r.petImageUrl[0] : null })),
-      fosterRequests: fosterRequests.map(r => ({ ...r, petImageUrl: Array.isArray(r.petImageUrl) ? r.petImageUrl[0] : null })),
+      adoptionRequests: adoptionRequests.map(r => ({
+        ...r,
+        petImageUrl: Array.isArray(r.petImageUrls) ? r.petImageUrls[0] ?? null : null,
+        petImageUrls: Array.isArray(r.petImageUrls) ? r.petImageUrls : [],
+      })),
+      fosterRequests: fosterRequests.map(r => ({
+        ...r,
+        petImageUrl: Array.isArray(r.petImageUrls) ? r.petImageUrls[0] ?? null : null,
+        petImageUrls: Array.isArray(r.petImageUrls) ? r.petImageUrls : [],
+      })),
     });
   } catch (err) {
     req.log.error({ err }, "Error getting user applications");

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut, Plus, Camera,
+  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut, Plus, Camera, Inbox, Trash2, ChevronRight, ChevronLeft, ClipboardList,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useLocation } from "wouter";
@@ -48,6 +48,1668 @@ function useMarkNotificationRead() {
     },
   });
 }
+
+interface UserProfile {
+  id: number;
+  userId: number;
+  areaOfResidence: string;
+  homeAddress: string;
+  occupation: string;
+  age: number;
+  mainCaregiver: string;
+  adoptionReason: string;
+  financialResponsibility: string;
+  childrenCount: number;
+  yardType: string;
+  dayLocation: string;
+  nightLocation: string;
+  allergies: string | null;
+  currentPets: string | null;
+  householdObjection: string;
+  homeType: string;
+  ownershipType: string;
+  previousPetExperience: string | null;
+  exerciseHours: number;
+  monthlyCostEstimation: number;
+  breedingIntention: string;
+  spayNeuterCommitment: boolean;
+  behaviorTolerance: string | null;
+  traumaHandlingComfort: string | null;
+  dailyCarePlan: string;
+  travelPlan: string | null;
+  activities: string[];
+  petPreferences: string[];
+  trainingExpectations: string[];
+  confirmed: boolean;
+  createdAt: string;
+}
+
+interface IncomingRequest {
+  id: number;
+  petId: number;
+  requesterId: number;
+  message: string | null;
+  status: "pending" | "approved" | "rejected";
+  petName: string | null;
+  petImageUrl: string | null;
+  requesterName: string | null;
+  requesterCity: string | null;
+  createdAt: string;
+  requesterProfile: UserProfile | null;
+}
+
+function useGetIncomingAdoptionRequests() {
+  return useQuery<IncomingRequest[]>({
+    queryKey: ["/api/adoption-requests/incoming"],
+    queryFn: async () => {
+      const res = await fetch("/api/adoption-requests/incoming", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch incoming adoption requests");
+      return res.json();
+    },
+  });
+}
+
+function useGetIncomingFosterRequests() {
+  return useQuery<IncomingRequest[]>({
+    queryKey: ["/api/foster-requests/incoming"],
+    queryFn: async () => {
+      const res = await fetch("/api/foster-requests/incoming", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch incoming foster requests");
+      return res.json();
+    },
+  });
+}
+
+function useUpdateAdoptionRequestStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: "approved" | "rejected" }) => {
+      const res = await fetch(`/api/adoption-requests/${id}/status`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update adoption request status");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/adoption-requests/incoming"] });
+    },
+  });
+}
+
+function useUpdateFosterRequestStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: "approved" | "rejected" }) => {
+      const res = await fetch(`/api/foster-requests/${id}/status`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update foster request status");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/foster-requests/incoming"] });
+    },
+  });
+}
+
+function useDeleteAdoptionRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/adoption-requests/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete adoption request");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
+    },
+  });
+}
+
+function useDeleteFosterRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/foster-requests/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete foster request");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
+    },
+  });
+}
+
+function useUpdateAdoptionRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, message }: { id: number; message: string }) => {
+      const res = await fetch(`/api/adoption-requests/${id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      if (!res.ok) throw new Error("Failed to update adoption request");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
+    },
+  });
+}
+
+function useUpdateFosterRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, message }: { id: number; message: string }) => {
+      const res = await fetch(`/api/foster-requests/${id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      if (!res.ok) throw new Error("Failed to update foster request");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
+    },
+  });
+}
+
+interface RequesterProfileModalProps {
+  request: IncomingRequest;
+  requestType: "adoption" | "foster";
+  onClose: () => void;
+  onAccept: () => void;
+  onReject: () => void;
+  isLoading?: boolean;
+}
+
+function RequesterProfileModal({ request, requestType, onClose, onAccept, onReject, isLoading }: RequesterProfileModalProps) {
+  const profile = request.requesterProfile;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
+          <div>
+            <h2 className="text-lg font-bold text-[#1E2A3A]">Adoption Readiness — {request.requesterName || "Requester"}</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {requestType === "adoption" ? "Adoption" : "Foster"} request for {request.petName}
+            </p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {/* Pet banner */}
+          <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-xl p-3">
+            <img
+              src={request.petImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200"}
+              alt={request.petName || "Pet"}
+              className="w-12 h-12 rounded-xl object-cover shrink-0"
+            />
+            <div>
+              <p className="text-xs font-semibold text-blue-600 mb-0.5 uppercase tracking-wide">Pet Requested</p>
+              <p className="font-bold text-sm text-[#1E2A3A]">{request.petName || "Unknown Pet"}</p>
+              <p className="text-xs text-gray-500 capitalize">{requestType === "adoption" ? "Adoption" : "Foster"} request</p>
+            </div>
+          </div>
+
+          {request.message && (
+            <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+              <p className="text-xs font-semibold text-orange-700 mb-1">Message from requester</p>
+              <p className="text-sm text-gray-700">{request.message}</p>
+            </div>
+          )}
+
+          {!profile ? (
+            <div className="text-center py-8 text-gray-400">
+              <p className="text-sm">No adoption readiness profile found for this requester.</p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3 text-sm">
+              {[
+                ["Area of Residence", profile.areaOfResidence],
+                ["Home Address", profile.homeAddress],
+                ["Occupation", profile.occupation],
+                ["Age", String(profile.age)],
+                ["Main Caregiver", profile.mainCaregiver],
+                ["Home Type", profile.homeType],
+                ["Ownership Type", profile.ownershipType],
+                ["Yard / Outdoor Space", profile.yardType],
+                ["Number of Children", String(profile.childrenCount)],
+                ["Household Objection", profile.householdObjection],
+                ["Daytime Pet Location", profile.dayLocation],
+                ["Nighttime Pet Location", profile.nightLocation],
+                ["Exercise Hours / Day", `${profile.exerciseHours} hr${profile.exerciseHours !== 1 ? "s" : ""}`],
+                ["Current Pets", profile.currentPets || "None"],
+                ["Monthly Cost Estimate", `${profile.monthlyCostEstimation} JD`],
+                ["Financial Responsibility", profile.financialResponsibility],
+                ["Breeding Intention", profile.breedingIntention],
+                ["Spay/Neuter Commitment", profile.spayNeuterCommitment ? "Yes" : "No"],
+                ["Behavior Tolerance", profile.behaviorTolerance || "—"],
+                ["Trauma Handling Comfort", profile.traumaHandlingComfort || "—"],
+                ["Allergies", profile.allergies || "None"],
+              ].map(([label, value]) => (
+                <div key={label} className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
+                  <p className="text-sm text-[#1E2A3A]">{value}</p>
+                </div>
+              ))}
+
+              <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                <p className="text-xs font-semibold text-gray-500 mb-0.5">Adoption Reason</p>
+                <p className="text-sm text-[#1E2A3A]">{profile.adoptionReason}</p>
+              </div>
+              <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                <p className="text-xs font-semibold text-gray-500 mb-0.5">Daily Care Plan</p>
+                <p className="text-sm text-[#1E2A3A]">{profile.dailyCarePlan}</p>
+              </div>
+              {profile.previousPetExperience && (
+                <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-gray-500 mb-0.5">Previous Pet Experience</p>
+                  <p className="text-sm text-[#1E2A3A]">{profile.previousPetExperience}</p>
+                </div>
+              )}
+              {profile.travelPlan && (
+                <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-gray-500 mb-0.5">Travel Plan</p>
+                  <p className="text-sm text-[#1E2A3A]">{profile.travelPlan}</p>
+                </div>
+              )}
+
+              {(profile.activities?.length ?? 0) > 0 && (
+                <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Activities</p>
+                  <div className="flex flex-wrap gap-1">
+                    {profile.activities?.map(a => (
+                      <span key={a} className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">{a}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(profile.petPreferences?.length ?? 0) > 0 && (
+                <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Pet Preferences</p>
+                  <div className="flex flex-wrap gap-1">
+                    {profile.petPreferences?.map(p => (
+                      <span key={p} className="px-2 py-0.5 bg-secondary/10 text-secondary rounded-full text-xs font-medium">{p}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(profile.trainingExpectations?.length ?? 0) > 0 && (
+                <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Training Expectations</p>
+                  <div className="flex flex-wrap gap-1">
+                    {profile.trainingExpectations?.map(t => (
+                      <span key={t} className="px-2 py-0.5 bg-[#1E2A3A]/10 text-[#1E2A3A] rounded-full text-xs font-medium">{t}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {request.status === "pending" && (
+          <div className="flex gap-3 p-5 border-t border-gray-100 shrink-0">
+            <button
+              onClick={onReject}
+              disabled={isLoading}
+              className="flex-1 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
+            >
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Reject"}
+            </button>
+            <button
+              onClick={onAccept}
+              disabled={isLoading}
+              className="flex-1 py-2.5 bg-green-500 text-white rounded-xl text-sm font-semibold hover:bg-green-600 transition-colors disabled:opacity-50"
+            >
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Accept"}
+            </button>
+          </div>
+        )}
+        {request.status !== "pending" && (
+          <div className="p-5 border-t border-gray-100 shrink-0 text-center">
+            <StatusBadge status={request.status} />
+            <p className="text-xs text-gray-400 mt-2">This request has already been {request.status}.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [profileData, setProfileData] = useState<ReadinessFormData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const loadProfile = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/user/profile", { credentials: "include" });
+      if (!res.ok) return;
+      const data = await res.json();
+      setProfileData({
+        areaOfResidence: data.areaOfResidence ?? "",
+        homeAddress: data.homeAddress ?? "",
+        occupation: data.occupation ?? "",
+        age: String(data.age ?? ""),
+        mainCaregiver: data.mainCaregiver ?? "",
+        adoptionReason: data.adoptionReason ?? "",
+        financialResponsibility: data.financialResponsibility ?? "",
+        childrenCount: String(data.childrenCount ?? "0"),
+        yardType: data.yardType ?? "",
+        dayLocation: data.dayLocation ?? "",
+        nightLocation: data.nightLocation ?? "",
+        allergies: data.allergies ?? "",
+        currentPets: data.currentPets ?? "",
+        householdObjection: data.householdObjection ?? "",
+        homeType: data.homeType ?? "",
+        ownershipType: data.ownershipType ?? "",
+        previousPetExperience: data.previousPetExperience ?? "",
+        exerciseHours: String(data.exerciseHours ?? ""),
+        monthlyCostEstimation: String(data.monthlyCostEstimation ?? ""),
+        breedingIntention: data.breedingIntention ?? "",
+        spayNeuterCommitment: data.spayNeuterCommitment ?? false,
+        behaviorTolerance: data.behaviorTolerance ?? "",
+        traumaHandlingComfort: data.traumaHandlingComfort ?? "",
+        dailyCarePlan: data.dailyCarePlan ?? "",
+        travelPlan: data.travelPlan ?? "",
+        activities: Array.isArray(data.activities) ? data.activities : [],
+        petPreferences: Array.isArray(data.petPreferences) ? data.petPreferences : [],
+        trainingExpectations: Array.isArray(data.trainingExpectations) ? data.trainingExpectations : [],
+        confirmed: data.confirmed ?? false,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isExpanded) loadProfile();
+  }, [isExpanded]);
+
+  const isComplete = Boolean(
+    profileData?.areaOfResidence && profileData?.occupation && profileData?.homeType && profileData?.dailyCarePlan
+  );
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+      <button
+        onClick={() => setIsExpanded(v => !v)}
+        className="w-full flex items-center gap-4 p-4 hover:bg-gray-50/70 transition-colors text-left"
+      >
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+          <ClipboardList className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-sm text-[#1E2A3A]">Adoption Readiness Profile</p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {loading ? "Loading…" : isComplete ? "Your profile is complete" : "Click to view or update your profile"}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {profileData && (
+            isComplete ? (
+              <span className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                <CheckCircle2 className="w-3 h-3" /> Complete
+              </span>
+            ) : (
+              <span className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">
+                <Clock className="w-3 h-3" /> Incomplete
+              </span>
+            )
+          )}
+          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+        </div>
+      </button>
+
+      {isExpanded && (
+        <div className="border-t border-gray-100 p-5">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : !profileData?.areaOfResidence ? (
+            <div className="text-center py-8 text-gray-400">
+              <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p className="text-sm text-[#1E2A3A] font-semibold mb-1">Profile not filled yet</p>
+              <p className="text-xs mb-4">Fill in your readiness profile so shelters can review your application.</p>
+              <button
+                onClick={onEdit}
+                className="px-5 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors"
+              >
+                Fill Out Profile
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="grid sm:grid-cols-2 gap-3 text-sm mb-5">
+                {([
+                  ["Area of Residence", profileData.areaOfResidence],
+                  ["Home Address", profileData.homeAddress],
+                  ["Occupation", profileData.occupation],
+                  ["Age", profileData.age],
+                  ["Main Caregiver", profileData.mainCaregiver],
+                  ["Home Type", profileData.homeType],
+                  ["Ownership Type", profileData.ownershipType],
+                  ["Yard / Outdoor Space", profileData.yardType],
+                  ["Number of Children", profileData.childrenCount],
+                  ["Household Objection", profileData.householdObjection],
+                  ["Daytime Pet Location", profileData.dayLocation],
+                  ["Nighttime Pet Location", profileData.nightLocation],
+                  ["Exercise Hours / Day", profileData.exerciseHours ? `${profileData.exerciseHours} hrs` : ""],
+                  ["Current Pets", profileData.currentPets || "None"],
+                  ["Monthly Cost Estimate", profileData.monthlyCostEstimation ? `${profileData.monthlyCostEstimation} JD` : ""],
+                  ["Financial Responsibility", profileData.financialResponsibility],
+                  ["Breeding Intention", profileData.breedingIntention],
+                  ["Spay/Neuter Commitment", profileData.spayNeuterCommitment ? "Yes" : "No"],
+                  ["Allergies", profileData.allergies || "None"],
+                  ["Behavior Tolerance", profileData.behaviorTolerance || "—"],
+                  ["Trauma Handling", profileData.traumaHandlingComfort || "—"],
+                ] as [string, string][]).filter(([, v]) => v).map(([label, value]) => (
+                  <div key={label} className="bg-gray-50 rounded-xl p-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
+                    <p className="text-sm text-[#1E2A3A]">{value}</p>
+                  </div>
+                ))}
+
+                {profileData.adoptionReason && (
+                  <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Adoption Reason</p>
+                    <p className="text-sm text-[#1E2A3A]">{profileData.adoptionReason}</p>
+                  </div>
+                )}
+                {profileData.dailyCarePlan && (
+                  <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Daily Care Plan</p>
+                    <p className="text-sm text-[#1E2A3A]">{profileData.dailyCarePlan}</p>
+                  </div>
+                )}
+                {profileData.previousPetExperience && (
+                  <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Previous Pet Experience</p>
+                    <p className="text-sm text-[#1E2A3A]">{profileData.previousPetExperience}</p>
+                  </div>
+                )}
+                {(profileData.activities?.length ?? 0) > 0 && (
+                  <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">Activities</p>
+                    <div className="flex flex-wrap gap-1">
+                      {profileData.activities.map(a => (
+                        <span key={a} className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">{a}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {(profileData.petPreferences?.length ?? 0) > 0 && (
+                  <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">Pet Preferences</p>
+                    <div className="flex flex-wrap gap-1">
+                      {profileData.petPreferences.map(p => (
+                        <span key={p} className="px-2 py-0.5 bg-secondary/10 text-secondary rounded-full text-xs font-medium">{p}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {(profileData.trainingExpectations?.length ?? 0) > 0 && (
+                  <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">Training Expectations</p>
+                    <div className="flex flex-wrap gap-1">
+                      {profileData.trainingExpectations.map(t => (
+                        <span key={t} className="px-2 py-0.5 bg-[#1E2A3A]/10 text-[#1E2A3A] rounded-full text-xs font-medium">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={onEdit}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" /> Edit Profile
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PetDetailModal({ request, requestType, onClose }: { request: MyRequestItem; requestType: "adoption" | "foster"; onClose: () => void }) {
+  const ageLabel = request.petAgeMonths != null
+    ? request.petAgeMonths < 12
+      ? `${request.petAgeMonths} month${request.petAgeMonths !== 1 ? "s" : ""}`
+      : `${Math.floor(request.petAgeMonths / 12)} year${Math.floor(request.petAgeMonths / 12) !== 1 ? "s" : ""}`
+    : null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="relative h-56 shrink-0">
+          <img
+            src={request.petImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"}
+            alt={request.petName || "Pet"}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
+          >
+            <X className="w-4 h-4 text-gray-700" />
+          </button>
+          <div className="absolute bottom-3 left-4">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${requestType === "adoption" ? "bg-primary" : "bg-secondary"}`}>
+              {requestType === "adoption" ? "Adoption" : "Foster"} Request
+            </span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <h2 className="text-xl font-bold text-[#1E2A3A]">{request.petName || "Unknown Pet"}</h2>
+            <StatusBadge status={request.status} />
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            {request.petType && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-xl text-xs font-semibold text-gray-600 capitalize">
+                <PawPrint className="w-3 h-3" /> {request.petType}
+              </span>
+            )}
+            {ageLabel && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-xl text-xs font-semibold text-gray-600">
+                <Clock className="w-3 h-3" /> {ageLabel}
+              </span>
+            )}
+            {request.petCity && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-xl text-xs font-semibold text-gray-600">
+                <MapPin className="w-3 h-3" /> {request.petCity}
+              </span>
+            )}
+            {request.petGender && (
+              <span className="px-3 py-1.5 bg-gray-100 rounded-xl text-xs font-semibold text-gray-600 capitalize">
+                {request.petGender}
+              </span>
+            )}
+          </div>
+
+          {request.petStory && (
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">About</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{request.petStory}</p>
+            </div>
+          )}
+
+          <hr className="border-gray-100 mb-4" />
+
+          <div className="flex items-center justify-between text-xs text-gray-400">
+            <p>Request submitted {new Date(request.createdAt).toLocaleDateString()}</p>
+            <Link href={`/pets/${request.petId}`} className="text-primary font-semibold hover:underline">
+              View full profile →
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface MyRequestItem {
+  id: number;
+  petId: number;
+  petName: string | null | undefined;
+  petImageUrl: string | null | undefined;
+  petType: string | null | undefined;
+  petBreed: string | null | undefined;
+  petAgeMonths: number | null | undefined;
+  petGender: string | null | undefined;
+  petStory: string | null | undefined;
+  petCity: string | null | undefined;
+  status: string;
+  message: string | null | undefined;
+  createdAt: string;
+}
+
+const ACTIVITY_OPTIONS_MODAL = [
+  "Morning walks", "Evening runs", "Hiking", "Swimming", "Dog park visits",
+  "Training sessions", "Playtime indoors", "Agility sports", "Camping", "Road trips",
+];
+const PET_PREFERENCE_OPTIONS_MODAL = [
+  "Dogs", "Cats", "Rabbits", "Birds", "Small animals",
+  "Senior pets", "Puppies/kittens", "Mixed breeds", "Purebreds", "Special needs pets",
+];
+const TRAINING_EXPECTATION_OPTIONS_MODAL = [
+  "Basic obedience", "House training", "Leash training", "Socialization",
+  "Advanced commands", "Behavioral correction", "Agility training", "No training expected",
+];
+
+const READINESS_STEPS = [
+  { title: "Personal Info", fields: ["areaOfResidence", "homeAddress", "occupation", "age", "mainCaregiver"] },
+  { title: "Home & Lifestyle", fields: ["homeType", "ownershipType", "yardType", "childrenCount", "householdObjection"] },
+  { title: "Pet Care", fields: ["dayLocation", "nightLocation", "exerciseHours", "currentPets", "previousPetExperience"] },
+  { title: "Adoption Intent", fields: ["adoptionReason", "financialResponsibility", "monthlyCostEstimation", "breedingIntention", "spayNeuterCommitment"] },
+  { title: "Activities & Preferences", fields: ["activities", "petPreferences", "trainingExpectations"] },
+  { title: "Commitments", fields: ["allergies", "behaviorTolerance", "traumaHandlingComfort", "dailyCarePlan", "travelPlan", "confirmed"] },
+];
+
+interface ReadinessFormData {
+  areaOfResidence: string;
+  homeAddress: string;
+  occupation: string;
+  age: string;
+  mainCaregiver: string;
+  adoptionReason: string;
+  financialResponsibility: string;
+  childrenCount: string;
+  yardType: string;
+  dayLocation: string;
+  nightLocation: string;
+  allergies: string;
+  currentPets: string;
+  householdObjection: string;
+  homeType: string;
+  ownershipType: string;
+  previousPetExperience: string;
+  exerciseHours: string;
+  monthlyCostEstimation: string;
+  breedingIntention: string;
+  spayNeuterCommitment: boolean;
+  behaviorTolerance: string;
+  traumaHandlingComfort: string;
+  dailyCarePlan: string;
+  travelPlan: string;
+  activities: string[];
+  petPreferences: string[];
+  trainingExpectations: string[];
+  confirmed: boolean;
+}
+
+type ReadinessFormErrors = Partial<Record<keyof ReadinessFormData, string>>;
+
+function validateReadinessStep(step: number, form: ReadinessFormData): ReadinessFormErrors {
+  const errors: ReadinessFormErrors = {};
+  if (step === 0) {
+    if (!form.areaOfResidence.trim()) errors.areaOfResidence = "Required";
+    if (!form.homeAddress.trim()) errors.homeAddress = "Required";
+    if (!form.occupation.trim()) errors.occupation = "Required";
+    if (!form.age || Number(form.age) < 18) errors.age = "Must be at least 18";
+    if (!form.mainCaregiver.trim()) errors.mainCaregiver = "Required";
+  }
+  if (step === 1) {
+    if (!form.homeType) errors.homeType = "Required";
+    if (!form.ownershipType) errors.ownershipType = "Required";
+    if (!form.yardType) errors.yardType = "Required";
+    if (!form.householdObjection) errors.householdObjection = "Required";
+  }
+  if (step === 2) {
+    if (!form.dayLocation.trim()) errors.dayLocation = "Required";
+    if (!form.nightLocation.trim()) errors.nightLocation = "Required";
+    if (form.exerciseHours === "" || Number(form.exerciseHours) < 0) errors.exerciseHours = "Required";
+  }
+  if (step === 3) {
+    if (!form.adoptionReason.trim()) errors.adoptionReason = "Required";
+    if (!form.financialResponsibility.trim()) errors.financialResponsibility = "Required";
+    if (form.monthlyCostEstimation === "" || Number(form.monthlyCostEstimation) < 0) errors.monthlyCostEstimation = "Required";
+    if (!form.breedingIntention) errors.breedingIntention = "Required";
+  }
+  if (step === 4) {
+    if (form.activities.length === 0) errors.activities = "Select at least one activity";
+    if (form.petPreferences.length === 0) errors.petPreferences = "Select at least one preference";
+    if (form.trainingExpectations.length === 0) errors.trainingExpectations = "Select at least one training expectation";
+  }
+  if (step === 5) {
+    if (!form.dailyCarePlan.trim()) errors.dailyCarePlan = "Required";
+    if (!form.confirmed) errors.confirmed = "You must confirm to proceed";
+  }
+  return errors;
+}
+
+const rfFieldClass = "w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all";
+const rfLabelClass = "block text-sm font-semibold text-foreground mb-1";
+const rfErrorClass = "text-xs text-red-500 mt-1";
+
+interface MyRequestDetailModalProps {
+  request: MyRequestItem;
+  requestType: "adoption" | "foster";
+  onClose: () => void;
+  onDeleted: () => void;
+}
+
+function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRequestDetailModalProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [step, setStep] = useState(0);
+  const [profileForm, setProfileForm] = useState<ReadinessFormData | null>(null);
+  const [formErrors, setFormErrors] = useState<ReadinessFormErrors>({});
+  const [requestMessage, setRequestMessage] = useState<string>(request.message ?? "");
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const deleteAdoption = useDeleteAdoptionRequest();
+  const deleteFoster = useDeleteFosterRequest();
+
+  const isPending = request.status === "pending";
+  const isDeleting = deleteAdoption.isPending || deleteFoster.isPending;
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/user/profile", { credentials: "include" });
+        if (!res.ok) {
+          setProfileForm({
+            areaOfResidence: "", homeAddress: "", occupation: "", age: "", mainCaregiver: "",
+            adoptionReason: "", financialResponsibility: "", childrenCount: "0", yardType: "",
+            dayLocation: "", nightLocation: "", allergies: "", currentPets: "", householdObjection: "",
+            homeType: "", ownershipType: "", previousPetExperience: "", exerciseHours: "",
+            monthlyCostEstimation: "", breedingIntention: "", spayNeuterCommitment: false,
+            behaviorTolerance: "", traumaHandlingComfort: "", dailyCarePlan: "", travelPlan: "",
+            activities: [], petPreferences: [], trainingExpectations: [], confirmed: false,
+          });
+          return;
+        }
+        const data = await res.json();
+        setProfileForm({
+          areaOfResidence: data.areaOfResidence ?? "",
+          homeAddress: data.homeAddress ?? "",
+          occupation: data.occupation ?? "",
+          age: String(data.age ?? ""),
+          mainCaregiver: data.mainCaregiver ?? "",
+          adoptionReason: data.adoptionReason ?? "",
+          financialResponsibility: data.financialResponsibility ?? "",
+          childrenCount: String(data.childrenCount ?? "0"),
+          yardType: data.yardType ?? "",
+          dayLocation: data.dayLocation ?? "",
+          nightLocation: data.nightLocation ?? "",
+          allergies: data.allergies ?? "",
+          currentPets: data.currentPets ?? "",
+          householdObjection: data.householdObjection ?? "",
+          homeType: data.homeType ?? "",
+          ownershipType: data.ownershipType ?? "",
+          previousPetExperience: data.previousPetExperience ?? "",
+          exerciseHours: String(data.exerciseHours ?? ""),
+          monthlyCostEstimation: String(data.monthlyCostEstimation ?? ""),
+          breedingIntention: data.breedingIntention ?? "",
+          spayNeuterCommitment: data.spayNeuterCommitment ?? false,
+          behaviorTolerance: data.behaviorTolerance ?? "",
+          traumaHandlingComfort: data.traumaHandlingComfort ?? "",
+          dailyCarePlan: data.dailyCarePlan ?? "",
+          travelPlan: data.travelPlan ?? "",
+          activities: Array.isArray(data.activities) ? data.activities : [],
+          petPreferences: Array.isArray(data.petPreferences) ? data.petPreferences : [],
+          trainingExpectations: Array.isArray(data.trainingExpectations) ? data.trainingExpectations : [],
+          confirmed: data.confirmed ?? false,
+        });
+      } finally {
+        setProfileLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
+
+  const set = (key: keyof ReadinessFormData, value: ReadinessFormData[keyof ReadinessFormData]) => {
+    setProfileForm(prev => prev ? { ...prev, [key]: value } : prev);
+    setFormErrors(prev => ({ ...prev, [key]: undefined }));
+  };
+
+  const toggleArr = (key: "activities" | "petPreferences" | "trainingExpectations", value: string) => {
+    setProfileForm(prev => {
+      if (!prev) return prev;
+      const arr = prev[key] as string[];
+      return { ...prev, [key]: arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value] };
+    });
+    setFormErrors(prev => ({ ...prev, [key]: undefined }));
+  };
+
+  const handleNext = () => {
+    if (!profileForm) return;
+    const errs = validateReadinessStep(step, profileForm);
+    if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
+    setFormErrors({});
+    setStep(s => s + 1);
+  };
+
+  const handleBack = () => {
+    setFormErrors({});
+    setStep(s => s - 1);
+  };
+
+  const handleSave = async () => {
+    if (!profileForm) return;
+    const errs = validateReadinessStep(step, profileForm);
+    if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
+    setIsSaving(true);
+    try {
+      const reqPath = requestType === "adoption" ? "adoption-requests" : "foster-requests";
+      const [profileRes, requestRes] = await Promise.all([
+        fetch("/api/user/profile", {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...profileForm,
+            age: Number(profileForm.age),
+            childrenCount: Number(profileForm.childrenCount),
+            exerciseHours: Number(profileForm.exerciseHours),
+            monthlyCostEstimation: Number(profileForm.monthlyCostEstimation),
+          }),
+        }),
+        fetch(`/api/${reqPath}/${request.id}`, {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: requestMessage }),
+        }),
+      ]);
+      if (!profileRes.ok) {
+        const err = await profileRes.json().catch(() => ({}));
+        throw new Error(err.message ?? "Failed to save profile");
+      }
+      if (!requestRes.ok) {
+        const err = await requestRes.json().catch(() => ({}));
+        throw new Error(err.message ?? "Failed to update request");
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
+      toast({ title: "Request updated successfully" });
+      onClose();
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : "Failed to save", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      if (requestType === "adoption") {
+        await deleteAdoption.mutateAsync(request.id);
+      } else {
+        await deleteFoster.mutateAsync(request.id);
+      }
+      toast({ title: "Request deleted" });
+      onDeleted();
+    } catch {
+      toast({ title: "Failed to delete request", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-[#FFF8F3] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between px-6 pt-6 pb-3 shrink-0">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <img
+                src={request.petImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200"}
+                alt={request.petName || "Pet"}
+                className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+              />
+              <div>
+                <h2 className="font-display text-lg font-bold text-[#1E2A3A]">
+                  {requestType === "adoption" ? "Adoption" : "Foster"} Request — {request.petName || "Unknown Pet"}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={request.status} />
+                  {!isPending && <span className="text-xs text-gray-400">Read-only — editing only available for pending requests</span>}
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">Step {step + 1} of {READINESS_STEPS.length} — {READINESS_STEPS[step].title}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="px-6 pb-3 shrink-0">
+          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-300"
+              style={{ width: `${((step + 1) / READINESS_STEPS.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 pb-4">
+          {profileLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : profileForm && (
+            <>
+              {step === 0 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Message to Pet Owner</label>
+                    <textarea
+                      rows={3}
+                      className={rfFieldClass}
+                      disabled={!isPending}
+                      value={requestMessage}
+                      onChange={e => setRequestMessage(e.target.value)}
+                      placeholder="Add a personal note to the pet owner..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">This message is specific to this request. Only editable while status is pending.</p>
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Area of Residence *</label>
+                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.areaOfResidence} onChange={e => set("areaOfResidence", e.target.value)} />
+                    {formErrors.areaOfResidence && <p className={rfErrorClass}>{formErrors.areaOfResidence}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Home Address *</label>
+                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.homeAddress} onChange={e => set("homeAddress", e.target.value)} />
+                    {formErrors.homeAddress && <p className={rfErrorClass}>{formErrors.homeAddress}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Occupation *</label>
+                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.occupation} onChange={e => set("occupation", e.target.value)} />
+                    {formErrors.occupation && <p className={rfErrorClass}>{formErrors.occupation}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Age *</label>
+                    <input type="number" min={18} max={120} className={rfFieldClass} disabled={!isPending} value={profileForm.age} onChange={e => set("age", e.target.value)} />
+                    {formErrors.age && <p className={rfErrorClass}>{formErrors.age}</p>}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Main Caregiver *</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.mainCaregiver} onChange={e => set("mainCaregiver", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Myself</option><option>Spouse / Partner</option><option>Family member</option><option>Shared responsibility</option>
+                    </select>
+                    {formErrors.mainCaregiver && <p className={rfErrorClass}>{formErrors.mainCaregiver}</p>}
+                  </div>
+                </div>
+              )}
+
+              {step === 1 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className={rfLabelClass}>Home Type *</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.homeType} onChange={e => set("homeType", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Apartment</option><option>Villa</option><option>House</option><option>Townhouse</option><option>Studio</option>
+                    </select>
+                    {formErrors.homeType && <p className={rfErrorClass}>{formErrors.homeType}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Ownership Type *</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.ownershipType} onChange={e => set("ownershipType", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Owner</option><option>Renting</option><option>Family home</option>
+                    </select>
+                    {formErrors.ownershipType && <p className={rfErrorClass}>{formErrors.ownershipType}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Yard / Outdoor Space *</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.yardType} onChange={e => set("yardType", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>No outdoor space</option><option>Small balcony</option><option>Large balcony</option><option>Small yard</option><option>Large yard / garden</option>
+                    </select>
+                    {formErrors.yardType && <p className={rfErrorClass}>{formErrors.yardType}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Number of Children in Home</label>
+                    <input type="number" min={0} className={rfFieldClass} disabled={!isPending} value={profileForm.childrenCount} onChange={e => set("childrenCount", e.target.value)} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Any household member object to having a pet? *</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.householdObjection} onChange={e => set("householdObjection", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>No, everyone agrees</option><option>Some are hesitant but open</option><option>Yes, there may be resistance</option>
+                    </select>
+                    {formErrors.householdObjection && <p className={rfErrorClass}>{formErrors.householdObjection}</p>}
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className={rfLabelClass}>Where will the pet spend daytime? *</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.dayLocation} onChange={e => set("dayLocation", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Indoors with family</option><option>Indoors alone</option><option>Outdoors in yard</option><option>Mix of indoor/outdoor</option>
+                    </select>
+                    {formErrors.dayLocation && <p className={rfErrorClass}>{formErrors.dayLocation}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Where will the pet sleep at night? *</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.nightLocation} onChange={e => set("nightLocation", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>In bedroom</option><option>In living room</option><option>In crate</option><option>Outdoors</option><option>Dedicated pet room</option>
+                    </select>
+                    {formErrors.nightLocation && <p className={rfErrorClass}>{formErrors.nightLocation}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Exercise hours per day *</label>
+                    <input type="number" min={0} max={24} className={rfFieldClass} disabled={!isPending} value={profileForm.exerciseHours} onChange={e => set("exerciseHours", e.target.value)} />
+                    {formErrors.exerciseHours && <p className={rfErrorClass}>{formErrors.exerciseHours}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Current pets at home</label>
+                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.currentPets} onChange={e => set("currentPets", e.target.value)} placeholder="e.g. 1 dog, 2 cats (or None)" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Previous pet experience</label>
+                    <textarea rows={3} className={rfFieldClass} disabled={!isPending} value={profileForm.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} placeholder="Describe your experience with pets..." />
+                  </div>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Why do you want to adopt? *</label>
+                    <textarea rows={3} className={rfFieldClass} disabled={!isPending} value={profileForm.adoptionReason} onChange={e => set("adoptionReason", e.target.value)} />
+                    {formErrors.adoptionReason && <p className={rfErrorClass}>{formErrors.adoptionReason}</p>}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Who will be financially responsible? *</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.financialResponsibility} onChange={e => set("financialResponsibility", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Myself</option><option>Partner / Spouse</option><option>Shared</option><option>Family</option>
+                    </select>
+                    {formErrors.financialResponsibility && <p className={rfErrorClass}>{formErrors.financialResponsibility}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Estimated monthly cost (JD) *</label>
+                    <input type="number" min={0} className={rfFieldClass} disabled={!isPending} value={profileForm.monthlyCostEstimation} onChange={e => set("monthlyCostEstimation", e.target.value)} />
+                    {formErrors.monthlyCostEstimation && <p className={rfErrorClass}>{formErrors.monthlyCostEstimation}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Intention to breed? *</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.breedingIntention} onChange={e => set("breedingIntention", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>No, not planning to breed</option><option>Possibly in the future</option><option>Yes, planning to breed</option>
+                    </select>
+                    {formErrors.breedingIntention && <p className={rfErrorClass}>{formErrors.breedingIntention}</p>}
+                  </div>
+                  <div className="sm:col-span-2 flex items-center gap-3">
+                    <input type="checkbox" id="spay-modal" checked={profileForm.spayNeuterCommitment} disabled={!isPending} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FF6B35]" />
+                    <label htmlFor="spay-modal" className="text-sm text-foreground">I commit to spaying/neutering the pet if not already done</label>
+                  </div>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div className="space-y-6">
+                  <div>
+                    <label className={rfLabelClass}>Activities you enjoy *</label>
+                    {formErrors.activities && <p className={rfErrorClass}>{formErrors.activities}</p>}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                      {ACTIVITY_OPTIONS_MODAL.map(opt => (
+                        <button key={opt} type="button" disabled={!isPending} onClick={() => toggleArr("activities", opt)}
+                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.activities.includes(opt) ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Pet preferences *</label>
+                    {formErrors.petPreferences && <p className={rfErrorClass}>{formErrors.petPreferences}</p>}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                      {PET_PREFERENCE_OPTIONS_MODAL.map(opt => (
+                        <button key={opt} type="button" disabled={!isPending} onClick={() => toggleArr("petPreferences", opt)}
+                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.petPreferences.includes(opt) ? "bg-secondary text-white border-secondary" : "bg-white border-border hover:border-secondary/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Training expectations *</label>
+                    {formErrors.trainingExpectations && <p className={rfErrorClass}>{formErrors.trainingExpectations}</p>}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                      {TRAINING_EXPECTATION_OPTIONS_MODAL.map(opt => (
+                        <button key={opt} type="button" disabled={!isPending} onClick={() => toggleArr("trainingExpectations", opt)}
+                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(opt) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {step === 5 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className={rfLabelClass}>Allergies</label>
+                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.allergies} onChange={e => set("allergies", e.target.value)} placeholder="Describe or write None" />
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Behavior challenges you can tolerate</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.behaviorTolerance} onChange={e => set("behaviorTolerance", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>None — I prefer a well-behaved pet</option>
+                      <option>Minor issues (chewing, jumping)</option>
+                      <option>Moderate issues with proper training</option>
+                      <option>Significant behavioral challenges</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Comfort handling a pet with trauma</label>
+                    <select className={rfFieldClass} disabled={!isPending} value={profileForm.traumaHandlingComfort} onChange={e => set("traumaHandlingComfort", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Not comfortable</option><option>Somewhat comfortable</option><option>Comfortable with guidance</option><option>Very comfortable</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Travel plan for your pet</label>
+                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.travelPlan} onChange={e => set("travelPlan", e.target.value)} placeholder="e.g. Stay with family, pet hotel..." />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Daily care plan *</label>
+                    <textarea rows={3} className={rfFieldClass} disabled={!isPending} value={profileForm.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} placeholder="Describe your daily routine for the pet..." />
+                    {formErrors.dailyCarePlan && <p className={rfErrorClass}>{formErrors.dailyCarePlan}</p>}
+                  </div>
+                  <div className="sm:col-span-2 bg-primary/5 border border-primary/20 rounded-2xl p-4">
+                    <div className="flex items-start gap-3">
+                      <input type="checkbox" id="confirmed-modal" checked={profileForm.confirmed} disabled={!isPending} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FF6B35]" />
+                      <label htmlFor="confirmed-modal" className="text-sm text-foreground leading-relaxed">
+                        I confirm that all information provided is accurate and that I understand the responsibilities of pet adoption/fostering.
+                      </label>
+                    </div>
+                    {formErrors.confirmed && <p className={rfErrorClass}>{formErrors.confirmed}</p>}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isDeleting}
+              className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Request
+            </button>
+            {step > 0 && (
+              <button onClick={handleBack} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:bg-muted/50 text-sm font-semibold transition-colors">
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
+            )}
+          </div>
+
+          {step < READINESS_STEPS.length - 1 ? (
+            <button onClick={handleNext} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
+              Next <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : isPending ? (
+            <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              Save Changes
+            </button>
+          ) : (
+            <button onClick={onClose} className="px-6 py-2.5 rounded-xl bg-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-300 transition-all">
+              Close
+            </button>
+          )}
+        </div>
+      </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-[#1E2A3A]">Delete Request</h3>
+            </div>
+            <p className="text-sm text-gray-500 mb-6">Are you sure you want to delete this request? This cannot be undone.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#1E2A3A] hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleDelete} disabled={isDeleting} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-50">
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [step, setStep] = useState(0);
+  const [profileForm, setProfileForm] = useState<ReadinessFormData | null>(null);
+  const [formErrors, setFormErrors] = useState<ReadinessFormErrors>({});
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/user/profile", { credentials: "include" });
+        if (!res.ok) {
+          setProfileForm({
+            areaOfResidence: "", homeAddress: "", occupation: "", age: "", mainCaregiver: "",
+            adoptionReason: "", financialResponsibility: "", childrenCount: "0", yardType: "",
+            dayLocation: "", nightLocation: "", allergies: "", currentPets: "", householdObjection: "",
+            homeType: "", ownershipType: "", previousPetExperience: "", exerciseHours: "",
+            monthlyCostEstimation: "", breedingIntention: "", spayNeuterCommitment: false,
+            behaviorTolerance: "", traumaHandlingComfort: "", dailyCarePlan: "", travelPlan: "",
+            activities: [], petPreferences: [], trainingExpectations: [], confirmed: false,
+          });
+          return;
+        }
+        const data = await res.json();
+        setProfileForm({
+          areaOfResidence: data.areaOfResidence ?? "",
+          homeAddress: data.homeAddress ?? "",
+          occupation: data.occupation ?? "",
+          age: String(data.age ?? ""),
+          mainCaregiver: data.mainCaregiver ?? "",
+          adoptionReason: data.adoptionReason ?? "",
+          financialResponsibility: data.financialResponsibility ?? "",
+          childrenCount: String(data.childrenCount ?? "0"),
+          yardType: data.yardType ?? "",
+          dayLocation: data.dayLocation ?? "",
+          nightLocation: data.nightLocation ?? "",
+          allergies: data.allergies ?? "",
+          currentPets: data.currentPets ?? "",
+          householdObjection: data.householdObjection ?? "",
+          homeType: data.homeType ?? "",
+          ownershipType: data.ownershipType ?? "",
+          previousPetExperience: data.previousPetExperience ?? "",
+          exerciseHours: String(data.exerciseHours ?? ""),
+          monthlyCostEstimation: String(data.monthlyCostEstimation ?? ""),
+          breedingIntention: data.breedingIntention ?? "",
+          spayNeuterCommitment: data.spayNeuterCommitment ?? false,
+          behaviorTolerance: data.behaviorTolerance ?? "",
+          traumaHandlingComfort: data.traumaHandlingComfort ?? "",
+          dailyCarePlan: data.dailyCarePlan ?? "",
+          travelPlan: data.travelPlan ?? "",
+          activities: Array.isArray(data.activities) ? data.activities : [],
+          petPreferences: Array.isArray(data.petPreferences) ? data.petPreferences : [],
+          trainingExpectations: Array.isArray(data.trainingExpectations) ? data.trainingExpectations : [],
+          confirmed: data.confirmed ?? false,
+        });
+      } finally {
+        setProfileLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
+
+  const set = (key: keyof ReadinessFormData, value: ReadinessFormData[keyof ReadinessFormData]) => {
+    setProfileForm(prev => prev ? { ...prev, [key]: value } : prev);
+    setFormErrors(prev => ({ ...prev, [key]: undefined }));
+  };
+
+  const toggleArr = (key: "activities" | "petPreferences" | "trainingExpectations", value: string) => {
+    setProfileForm(prev => {
+      if (!prev) return prev;
+      const arr = prev[key] as string[];
+      return { ...prev, [key]: arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value] };
+    });
+    setFormErrors(prev => ({ ...prev, [key]: undefined }));
+  };
+
+  const handleNext = () => {
+    if (!profileForm) return;
+    const errs = validateReadinessStep(step, profileForm);
+    if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
+    setFormErrors({});
+    setStep(s => s + 1);
+  };
+
+  const handleBack = () => {
+    setFormErrors({});
+    setStep(s => s - 1);
+  };
+
+  const handleSave = async () => {
+    if (!profileForm) return;
+    const errs = validateReadinessStep(step, profileForm);
+    if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...profileForm,
+          age: Number(profileForm.age),
+          childrenCount: Number(profileForm.childrenCount),
+          exerciseHours: Number(profileForm.exerciseHours),
+          monthlyCostEstimation: Number(profileForm.monthlyCostEstimation),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? "Failed to save profile");
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
+      toast({ title: "Adoption readiness form saved!" });
+      onClose();
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : "Failed to save", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-[#FFF8F3] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between px-6 pt-6 pb-3 shrink-0">
+          <div>
+            <h2 className="font-display text-lg font-bold text-[#1E2A3A]">Adoption Readiness Form</h2>
+            <p className="text-sm text-muted-foreground">Step {step + 1} of {READINESS_STEPS.length} — {READINESS_STEPS[step].title}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="px-6 pb-3 shrink-0">
+          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-300"
+              style={{ width: `${((step + 1) / READINESS_STEPS.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 pb-4">
+          {profileLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : profileForm && (
+            <>
+              {step === 0 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className={rfLabelClass}>Area of Residence *</label>
+                    <input className={rfFieldClass} value={profileForm.areaOfResidence} onChange={e => set("areaOfResidence", e.target.value)} />
+                    {formErrors.areaOfResidence && <p className={rfErrorClass}>{formErrors.areaOfResidence}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Home Address *</label>
+                    <input className={rfFieldClass} value={profileForm.homeAddress} onChange={e => set("homeAddress", e.target.value)} />
+                    {formErrors.homeAddress && <p className={rfErrorClass}>{formErrors.homeAddress}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Occupation *</label>
+                    <input className={rfFieldClass} value={profileForm.occupation} onChange={e => set("occupation", e.target.value)} />
+                    {formErrors.occupation && <p className={rfErrorClass}>{formErrors.occupation}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Age *</label>
+                    <input type="number" min={18} max={120} className={rfFieldClass} value={profileForm.age} onChange={e => set("age", e.target.value)} />
+                    {formErrors.age && <p className={rfErrorClass}>{formErrors.age}</p>}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Main Caregiver *</label>
+                    <select className={rfFieldClass} value={profileForm.mainCaregiver} onChange={e => set("mainCaregiver", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Myself</option><option>Spouse / Partner</option><option>Family member</option><option>Shared responsibility</option>
+                    </select>
+                    {formErrors.mainCaregiver && <p className={rfErrorClass}>{formErrors.mainCaregiver}</p>}
+                  </div>
+                </div>
+              )}
+
+              {step === 1 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className={rfLabelClass}>Home Type *</label>
+                    <select className={rfFieldClass} value={profileForm.homeType} onChange={e => set("homeType", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Apartment</option><option>Villa</option><option>House</option><option>Townhouse</option><option>Studio</option>
+                    </select>
+                    {formErrors.homeType && <p className={rfErrorClass}>{formErrors.homeType}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Ownership Type *</label>
+                    <select className={rfFieldClass} value={profileForm.ownershipType} onChange={e => set("ownershipType", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Owner</option><option>Renting</option><option>Family home</option>
+                    </select>
+                    {formErrors.ownershipType && <p className={rfErrorClass}>{formErrors.ownershipType}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Yard / Outdoor Space *</label>
+                    <select className={rfFieldClass} value={profileForm.yardType} onChange={e => set("yardType", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>No outdoor space</option><option>Small balcony</option><option>Large balcony</option><option>Small yard</option><option>Large yard / garden</option>
+                    </select>
+                    {formErrors.yardType && <p className={rfErrorClass}>{formErrors.yardType}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Number of Children in Home</label>
+                    <input type="number" min={0} className={rfFieldClass} value={profileForm.childrenCount} onChange={e => set("childrenCount", e.target.value)} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Any household member object to having a pet? *</label>
+                    <select className={rfFieldClass} value={profileForm.householdObjection} onChange={e => set("householdObjection", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>No, everyone agrees</option><option>Some are hesitant but open</option><option>Yes, there may be resistance</option>
+                    </select>
+                    {formErrors.householdObjection && <p className={rfErrorClass}>{formErrors.householdObjection}</p>}
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className={rfLabelClass}>Where will the pet spend daytime? *</label>
+                    <select className={rfFieldClass} value={profileForm.dayLocation} onChange={e => set("dayLocation", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Indoors with family</option><option>Indoors alone</option><option>Outdoors in yard</option><option>Mix of indoor/outdoor</option>
+                    </select>
+                    {formErrors.dayLocation && <p className={rfErrorClass}>{formErrors.dayLocation}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Where will the pet sleep at night? *</label>
+                    <select className={rfFieldClass} value={profileForm.nightLocation} onChange={e => set("nightLocation", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>In bedroom</option><option>In living room</option><option>In crate</option><option>Outdoors</option><option>Dedicated pet room</option>
+                    </select>
+                    {formErrors.nightLocation && <p className={rfErrorClass}>{formErrors.nightLocation}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Exercise hours per day *</label>
+                    <input type="number" min={0} max={24} className={rfFieldClass} value={profileForm.exerciseHours} onChange={e => set("exerciseHours", e.target.value)} />
+                    {formErrors.exerciseHours && <p className={rfErrorClass}>{formErrors.exerciseHours}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Current pets at home</label>
+                    <input className={rfFieldClass} value={profileForm.currentPets} onChange={e => set("currentPets", e.target.value)} placeholder="e.g. 1 dog, 2 cats (or None)" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Previous pet experience</label>
+                    <textarea rows={3} className={rfFieldClass} value={profileForm.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} placeholder="Describe your experience with pets..." />
+                  </div>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Why do you want to adopt? *</label>
+                    <textarea rows={3} className={rfFieldClass} value={profileForm.adoptionReason} onChange={e => set("adoptionReason", e.target.value)} />
+                    {formErrors.adoptionReason && <p className={rfErrorClass}>{formErrors.adoptionReason}</p>}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Who will be financially responsible? *</label>
+                    <select className={rfFieldClass} value={profileForm.financialResponsibility} onChange={e => set("financialResponsibility", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Myself</option><option>Partner / Spouse</option><option>Shared</option><option>Family</option>
+                    </select>
+                    {formErrors.financialResponsibility && <p className={rfErrorClass}>{formErrors.financialResponsibility}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Estimated monthly cost (JD) *</label>
+                    <input type="number" min={0} className={rfFieldClass} value={profileForm.monthlyCostEstimation} onChange={e => set("monthlyCostEstimation", e.target.value)} />
+                    {formErrors.monthlyCostEstimation && <p className={rfErrorClass}>{formErrors.monthlyCostEstimation}</p>}
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Intention to breed? *</label>
+                    <select className={rfFieldClass} value={profileForm.breedingIntention} onChange={e => set("breedingIntention", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>No, not planning to breed</option><option>Possibly in the future</option><option>Yes, planning to breed</option>
+                    </select>
+                    {formErrors.breedingIntention && <p className={rfErrorClass}>{formErrors.breedingIntention}</p>}
+                  </div>
+                  <div className="sm:col-span-2 flex items-center gap-3">
+                    <input type="checkbox" id="spay-readiness" checked={profileForm.spayNeuterCommitment} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FF6B35]" />
+                    <label htmlFor="spay-readiness" className="text-sm text-foreground">I commit to spaying/neutering the pet if not already done</label>
+                  </div>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div className="space-y-6">
+                  <div>
+                    <label className={rfLabelClass}>Activities you enjoy *</label>
+                    {formErrors.activities && <p className={rfErrorClass}>{formErrors.activities}</p>}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                      {ACTIVITY_OPTIONS_MODAL.map(opt => (
+                        <button key={opt} type="button" onClick={() => toggleArr("activities", opt)}
+                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.activities.includes(opt) ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/50"}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Pet preferences *</label>
+                    {formErrors.petPreferences && <p className={rfErrorClass}>{formErrors.petPreferences}</p>}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                      {PET_PREFERENCE_OPTIONS_MODAL.map(opt => (
+                        <button key={opt} type="button" onClick={() => toggleArr("petPreferences", opt)}
+                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.petPreferences.includes(opt) ? "bg-secondary text-white border-secondary" : "bg-white border-border hover:border-secondary/50"}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Training expectations *</label>
+                    {formErrors.trainingExpectations && <p className={rfErrorClass}>{formErrors.trainingExpectations}</p>}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                      {TRAINING_EXPECTATION_OPTIONS_MODAL.map(opt => (
+                        <button key={opt} type="button" onClick={() => toggleArr("trainingExpectations", opt)}
+                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(opt) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {step === 5 && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className={rfLabelClass}>Allergies</label>
+                    <input className={rfFieldClass} value={profileForm.allergies} onChange={e => set("allergies", e.target.value)} placeholder="Describe or write None" />
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Behavior challenges you can tolerate</label>
+                    <select className={rfFieldClass} value={profileForm.behaviorTolerance} onChange={e => set("behaviorTolerance", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>None — I prefer a well-behaved pet</option>
+                      <option>Minor issues (chewing, jumping)</option>
+                      <option>Moderate issues with proper training</option>
+                      <option>Significant behavioral challenges</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Comfort handling a pet with trauma</label>
+                    <select className={rfFieldClass} value={profileForm.traumaHandlingComfort} onChange={e => set("traumaHandlingComfort", e.target.value)}>
+                      <option value="">Select...</option>
+                      <option>Not comfortable</option><option>Somewhat comfortable</option><option>Comfortable with guidance</option><option>Very comfortable</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={rfLabelClass}>Travel plan for your pet</label>
+                    <input className={rfFieldClass} value={profileForm.travelPlan} onChange={e => set("travelPlan", e.target.value)} placeholder="e.g. Stay with family, pet hotel..." />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={rfLabelClass}>Daily care plan *</label>
+                    <textarea rows={3} className={rfFieldClass} value={profileForm.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} placeholder="Describe your daily routine for the pet..." />
+                    {formErrors.dailyCarePlan && <p className={rfErrorClass}>{formErrors.dailyCarePlan}</p>}
+                  </div>
+                  <div className="sm:col-span-2 bg-primary/5 border border-primary/20 rounded-2xl p-4">
+                    <div className="flex items-start gap-3">
+                      <input type="checkbox" id="confirmed-readiness" checked={profileForm.confirmed} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FF6B35]" />
+                      <label htmlFor="confirmed-readiness" className="text-sm text-foreground leading-relaxed">
+                        I confirm that all information provided is accurate and that I understand the responsibilities of pet adoption/fostering.
+                      </label>
+                    </div>
+                    {formErrors.confirmed && <p className={rfErrorClass}>{formErrors.confirmed}</p>}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border shrink-0">
+          <div>
+            {step > 0 && (
+              <button onClick={handleBack} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:bg-muted/50 text-sm font-semibold transition-colors">
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
+            )}
+          </div>
+          {step < READINESS_STEPS.length - 1 ? (
+            <button onClick={handleNext} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
+              Next <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              Save Form
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 import {
   parsePhoneNumberFromString,
   getCountries,
@@ -59,7 +1721,8 @@ import {
 const sidebarLinks = [
   { label: "Profile", icon: User },
   { label: "My Pets", icon: PawPrint },
-  { label: "Applications", icon: FileText },
+  { label: "Applications", icon: Inbox },
+  { label: "My Requests", icon: FileText },
   { label: "Favourite", icon: Heart },
   { label: "Notifications", icon: Bell },
   { label: "Volunteer", icon: Users },
@@ -915,6 +2578,19 @@ export default function Profile() {
   const markRead = useMarkNotificationRead();
   const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports({ limit: 20 });
 
+  const { data: incomingAdoptionRequests, isLoading: incomingAdoptionLoading } = useGetIncomingAdoptionRequests();
+  const { data: incomingFosterRequests, isLoading: incomingFosterLoading } = useGetIncomingFosterRequests();
+  const updateAdoptionStatus = useUpdateAdoptionRequestStatus();
+  const updateFosterStatus = useUpdateFosterRequestStatus();
+
+  const deleteAdoptionMutation = useDeleteAdoptionRequest();
+  const deleteFosterMutation = useDeleteFosterRequest();
+
+  const [selectedIncomingRequest, setSelectedIncomingRequest] = useState<{ request: IncomingRequest; type: "adoption" | "foster" } | null>(null);
+  const [showReadinessForm, setShowReadinessForm] = useState(false);
+  const [deletingRequest, setDeletingRequest] = useState<{ id: number; type: "adoption" | "foster" } | null>(null);
+  const [selectedPetRequest, setSelectedPetRequest] = useState<{ request: MyRequestItem; type: "adoption" | "foster" } | null>(null);
+
   const [showAddPetModal, setShowAddPetModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -930,6 +2606,14 @@ export default function Profile() {
       setSavedForm(initial);
     }
   }, [profile]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    const openForm = params.get("openForm");
+    if (tab) setActiveTab(tab);
+    if (openForm === "true") setShowReadinessForm(true);
+  }, []);
 
   const errors = useMemo(() => validateForm(form), [form]);
   const isFormValid = Object.keys(errors).length === 0;
@@ -1337,66 +3021,216 @@ export default function Profile() {
               </>
             )}
 
-            {/* ── Applications Tab ── */}
+            {/* ── Applications Tab (owner incoming requests) ── */}
             {activeTab === "Applications" && (
+              (incomingAdoptionLoading || incomingFosterLoading) ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="font-display font-bold text-lg text-[#1E2A3A]">Applications</h2>
+                    <p className="text-sm text-gray-500 mt-0.5">Incoming requests from people wanting to adopt or foster your pets.</p>
+                  </div>
+
+                  {(() => {
+                    const visibleAdoption = (incomingAdoptionRequests ?? []).filter(r => r.status !== "rejected");
+                    const visibleFoster = (incomingFosterRequests ?? []).filter(r => r.status !== "rejected");
+                    return visibleAdoption.length === 0 && visibleFoster.length === 0 ? (
+                      <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
+                        <Inbox className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-lg font-semibold text-[#1E2A3A]">No incoming requests yet</p>
+                        <p className="text-sm mt-1">When someone requests to adopt or foster your pet, it will show here.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {visibleAdoption.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Adoption Requests</h3>
+                            <div className="space-y-2">
+                              {visibleAdoption.map((req) => (
+                                <button
+                                  key={req.id}
+                                  onClick={() => setSelectedIncomingRequest({ request: req, type: "adoption" })}
+                                  className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/30 hover:shadow-sm transition-all text-left"
+                                >
+                                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
+                                    {(req.requesterName || "?").charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.requesterName || "Unknown Applicant"}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                      Wants to adopt <span className="font-semibold text-[#1E2A3A]">{req.petName || "your pet"}</span>
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <StatusBadge status={req.status} />
+                                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {visibleFoster.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Foster Requests</h3>
+                            <div className="space-y-2">
+                              {visibleFoster.map((req) => (
+                                <button
+                                  key={req.id}
+                                  onClick={() => setSelectedIncomingRequest({ request: req, type: "foster" })}
+                                  className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/30 hover:shadow-sm transition-all text-left"
+                                >
+                                  <div className="w-11 h-11 rounded-full bg-secondary/10 flex items-center justify-center shrink-0 text-secondary font-bold text-sm">
+                                    {(req.requesterName || "?").charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.requesterName || "Unknown Applicant"}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                      Wants to foster <span className="font-semibold text-[#1E2A3A]">{req.petName || "your pet"}</span>
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <StatusBadge status={req.status} />
+                                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              )
+            )}
+
+            {/* ── My Requests Tab (requester view) ── */}
+            {activeTab === "My Requests" && (
               appLoading ? (
                 <div className="flex items-center justify-center py-16">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <h2 className="font-display font-bold text-lg text-[#1E2A3A]">My Applications</h2>
+                  <div>
+                    <h2 className="font-display font-bold text-lg text-[#1E2A3A]">My Requests</h2>
+                    <p className="text-sm text-gray-500 mt-0.5">Your adoption and foster requests.</p>
+                  </div>
 
-                  {(applications?.adoptionRequests?.length ?? 0) > 0 && (
-                    <div>
-                      <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Adoption Requests</h3>
-                      <div className="space-y-2">
-                        {applications?.adoptionRequests?.map((req) => (
-                          <div key={req.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                            <img
-                              src={req.petImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200"}
-                              alt={req.petName || "Pet"}
-                              className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || "Unknown Pet"}</p>
-                              <p className="text-xs text-gray-400">{new Date(req.createdAt).toLocaleDateString()}</p>
-                            </div>
-                            <StatusBadge status={req.status} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <ReadinessProfileSection onEdit={() => setShowReadinessForm(true)} />
 
-                  {(applications?.fosterRequests?.length ?? 0) > 0 && (
-                    <div>
-                      <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Foster Requests</h3>
-                      <div className="space-y-2">
-                        {applications?.fosterRequests?.map((req) => (
-                          <div key={req.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                            <img
-                              src={req.petImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200"}
-                              alt={req.petName || "Pet"}
-                              className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || "Unknown Pet"}</p>
-                              <p className="text-xs text-gray-400">{new Date(req.createdAt).toLocaleDateString()}</p>
-                            </div>
-                            <StatusBadge status={req.status} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {!applications?.adoptionRequests?.length && !applications?.fosterRequests?.length && (
-                    <div className="text-center py-16 text-gray-400">
+                  {!applications?.adoptionRequests?.length && !applications?.fosterRequests?.length ? (
+                    <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                       <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p className="text-lg font-semibold text-[#1E2A3A]">No applications yet</p>
-                      <p className="text-sm mt-1">Your adoption and foster applications will appear here.</p>
+                      <p className="text-lg font-semibold text-[#1E2A3A]">No requests yet</p>
+                      <p className="text-sm mt-1">You haven't submitted any adoption or foster requests yet.</p>
+                      <Link href="/adopt" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
+                        Browse Pets
+                      </Link>
                     </div>
+                  ) : (
+                    <>
+                      {(applications?.adoptionRequests?.length ?? 0) > 0 && (
+                        <div>
+                          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Adoption Requests</h3>
+                          <div className="space-y-3">
+                            {applications?.adoptionRequests?.map((req) => {
+                              const ageLabel = req.petAgeMonths != null
+                                ? req.petAgeMonths < 12
+                                  ? `${req.petAgeMonths}mo`
+                                  : `${Math.floor(req.petAgeMonths / 12)}yr`
+                                : null;
+                              return (
+                                <div
+                                  key={req.id}
+                                  onClick={() => setSelectedPetRequest({ request: req as MyRequestItem, type: "adoption" })}
+                                  className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer"
+                                >
+                                  <img
+                                    src={req.petImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200"}
+                                    alt={req.petName || "Pet"}
+                                    className="w-14 h-14 rounded-xl object-cover shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || "Unknown Pet"}</p>
+                                    <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                      {req.petType && <span className="text-xs capitalize text-gray-500">{req.petType}</span>}
+                                      {ageLabel && <span className="text-xs text-gray-400">· {ageLabel}</span>}
+                                      {req.petCity && <span className="text-xs text-gray-400">· {req.petCity}</span>}
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <StatusBadge status={req.status} />
+                                    <button
+                                      onClick={e => { e.stopPropagation(); setDeletingRequest({ id: req.id, type: "adoption" }); }}
+                                      className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                                      title="Delete request"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {(applications?.fosterRequests?.length ?? 0) > 0 && (
+                        <div>
+                          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Foster Requests</h3>
+                          <div className="space-y-3">
+                            {applications?.fosterRequests?.map((req) => {
+                              const ageLabel = req.petAgeMonths != null
+                                ? req.petAgeMonths < 12
+                                  ? `${req.petAgeMonths}mo`
+                                  : `${Math.floor(req.petAgeMonths / 12)}yr`
+                                : null;
+                              return (
+                                <div
+                                  key={req.id}
+                                  onClick={() => setSelectedPetRequest({ request: req as MyRequestItem, type: "foster" })}
+                                  className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer"
+                                >
+                                  <img
+                                    src={req.petImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200"}
+                                    alt={req.petName || "Pet"}
+                                    className="w-14 h-14 rounded-xl object-cover shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || "Unknown Pet"}</p>
+                                    <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                      {req.petType && <span className="text-xs capitalize text-gray-500">{req.petType}</span>}
+                                      {ageLabel && <span className="text-xs text-gray-400">· {ageLabel}</span>}
+                                      {req.petCity && <span className="text-xs text-gray-400">· {req.petCity}</span>}
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <StatusBadge status={req.status} />
+                                    <button
+                                      onClick={e => { e.stopPropagation(); setDeletingRequest({ id: req.id, type: "foster" }); }}
+                                      className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                                      title="Delete request"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )
@@ -1562,6 +3396,100 @@ export default function Profile() {
         </div>
       </div>
     </div>
+
+    {/* Requester Profile Modal (owner view) */}
+    {selectedIncomingRequest && (
+      <RequesterProfileModal
+        request={selectedIncomingRequest.request}
+        requestType={selectedIncomingRequest.type}
+        onClose={() => setSelectedIncomingRequest(null)}
+        isLoading={updateAdoptionStatus.isPending || updateFosterStatus.isPending}
+        onAccept={async () => {
+          try {
+            if (selectedIncomingRequest.type === "adoption") {
+              await updateAdoptionStatus.mutateAsync({ id: selectedIncomingRequest.request.id, status: "approved" });
+            } else {
+              await updateFosterStatus.mutateAsync({ id: selectedIncomingRequest.request.id, status: "approved" });
+            }
+            toast({ title: "Request accepted", description: `${selectedIncomingRequest.request.petName} has been marked as ${selectedIncomingRequest.type === "adoption" ? "adopted" : "fostered"}.` });
+            setSelectedIncomingRequest(null);
+          } catch {
+            toast({ title: "Failed to accept request", variant: "destructive" });
+          }
+        }}
+        onReject={async () => {
+          try {
+            if (selectedIncomingRequest.type === "adoption") {
+              await updateAdoptionStatus.mutateAsync({ id: selectedIncomingRequest.request.id, status: "rejected" });
+            } else {
+              await updateFosterStatus.mutateAsync({ id: selectedIncomingRequest.request.id, status: "rejected" });
+            }
+            toast({ title: "Request rejected" });
+            setSelectedIncomingRequest(null);
+          } catch {
+            toast({ title: "Failed to reject request", variant: "destructive" });
+          }
+        }}
+      />
+    )}
+
+    {/* Adoption Readiness Form (standalone) */}
+    {showReadinessForm && (
+      <AdoptionReadinessFormModal onClose={() => setShowReadinessForm(false)} />
+    )}
+
+    {/* Pet Detail Modal */}
+    {selectedPetRequest && (
+      <PetDetailModal
+        request={selectedPetRequest.request}
+        requestType={selectedPetRequest.type}
+        onClose={() => setSelectedPetRequest(null)}
+      />
+    )}
+
+    {/* Delete Request Confirmation */}
+    {deletingRequest && (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+              <Trash2 className="w-5 h-5 text-red-500" />
+            </div>
+            <h3 className="text-lg font-bold text-[#1E2A3A]">Delete Request</h3>
+          </div>
+          <p className="text-sm text-gray-500 mb-6">Are you sure you want to delete this request? This cannot be undone.</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setDeletingRequest(null)}
+              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#1E2A3A] hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  if (deletingRequest.type === "adoption") {
+                    await deleteAdoptionMutation.mutateAsync(deletingRequest.id);
+                  } else {
+                    await deleteFosterMutation.mutateAsync(deletingRequest.id);
+                  }
+                  toast({ title: "Request deleted" });
+                  setDeletingRequest(null);
+                } catch {
+                  toast({ title: "Failed to delete request", variant: "destructive" });
+                }
+              }}
+              disabled={deleteAdoptionMutation.isPending || deleteFosterMutation.isPending}
+              className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-50"
+            >
+              {(deleteAdoptionMutation.isPending || deleteFosterMutation.isPending) ? (
+                <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+              ) : "Delete"}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* Log Out Confirmation Dialog */}
     {showLogoutDialog && (
