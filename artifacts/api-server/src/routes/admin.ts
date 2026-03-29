@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
-import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable } from "@workspace/db";
+import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable, volunteerApplicationsTable } from "@workspace/db";
 import { eq, and, ilike, desc, sql, gte, lte, lt } from "drizzle-orm";
-import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams } from "@workspace/api-zod";
-import { sendPetStatusEmail } from "../lib/mailer";
+import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams, UpdateAdminVolunteerStatusBody } from "@workspace/api-zod";
+import { sendPetStatusEmail, sendVolunteerStatusEmail } from "../lib/mailer";
 
 const router: IRouter = Router();
 
@@ -398,6 +398,91 @@ router.put("/admin/content/:key", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Error updating site content");
     res.status(500).json({ error: "internal_error", message: "Failed to update content" });
+  }
+});
+
+router.get("/admin/volunteer-applications", async (req, res) => {
+  try {
+    const applications = await db
+      .select({
+        id: volunteerApplicationsTable.id,
+        userId: volunteerApplicationsTable.userId,
+        applicationType: volunteerApplicationsTable.applicationType,
+        name: volunteerApplicationsTable.name,
+        phone: volunteerApplicationsTable.phone,
+        email: volunteerApplicationsTable.email,
+        city: volunteerApplicationsTable.city,
+        address: volunteerApplicationsTable.address,
+        skills: volunteerApplicationsTable.skills,
+        motivation: volunteerApplicationsTable.motivation,
+        status: volunteerApplicationsTable.status,
+        createdAt: volunteerApplicationsTable.createdAt,
+        updatedAt: volunteerApplicationsTable.updatedAt,
+        userFullName: usersTable.fullName,
+        userEmail: usersTable.email,
+      })
+      .from(volunteerApplicationsTable)
+      .leftJoin(usersTable, eq(volunteerApplicationsTable.userId, usersTable.id))
+      .orderBy(desc(volunteerApplicationsTable.createdAt));
+
+    res.json(applications);
+  } catch (err) {
+    req.log.error({ err }, "Error listing volunteer applications");
+    res.status(500).json({ error: "internal_error", message: "Failed to list volunteer applications" });
+  }
+});
+
+router.patch("/admin/volunteer-applications/:id/status", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    }
+
+    const parsed = UpdateAdminVolunteerStatusBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "validation_error", message: "Status must be 'accepted' or 'rejected'" });
+    }
+    const { status } = parsed.data;
+
+    const [application] = await db
+      .update(volunteerApplicationsTable)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(volunteerApplicationsTable.id, id))
+      .returning();
+
+    if (!application) {
+      return res.status(404).json({ error: "not_found", message: "Application not found" });
+    }
+
+    const notificationMessage = status === "accepted"
+      ? "Congratulations! Your volunteer application has been accepted. We look forward to working with you."
+      : "Thank you for your interest. Unfortunately, your volunteer application has been rejected at this time. You are welcome to reapply in the future.";
+
+    try {
+      await db.insert(notificationsTable).values({
+        userId: application.userId,
+        petId: null,
+        status,
+        message: notificationMessage,
+      });
+
+      const [applicant] = await db
+        .select({ email: usersTable.email, fullName: usersTable.fullName })
+        .from(usersTable)
+        .where(eq(usersTable.id, application.userId));
+
+      if (applicant) {
+        sendVolunteerStatusEmail({ to: applicant.email, userName: applicant.fullName, status });
+      }
+    } catch (err) {
+      req.log.error({ err }, "Error creating volunteer notification or sending email");
+    }
+
+    res.json(application);
+  } catch (err) {
+    req.log.error({ err }, "Error updating volunteer application status");
+    res.status(500).json({ error: "internal_error", message: "Failed to update status" });
   }
 });
 

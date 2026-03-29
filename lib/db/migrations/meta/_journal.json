@@ -29,6 +29,13 @@
       "when": 1743110400000,
       "tag": "0004_add_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1743196800000,
+      "tag": "0005_volunteer_applications",
+      "breakpoints": true
     }
   ]
 }

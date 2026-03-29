@@ -13,6 +13,7 @@ import aiRouter from "./ai";
 import paymentsRouter from "./payments";
 import authRouter from "./auth";
 import onboardingRouter from "./onboarding";
+import volunteerApplicationsRouter from "./volunteerApplications";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(adminRouter);
 router.use(aiRouter);
 router.use(paymentsRouter);
 router.use(onboardingRouter);
+router.use(volunteerApplicationsRouter);
 
 export default router;

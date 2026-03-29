@@ -7,3 +7,4 @@ export * from "./lost_found";
 export * from "./social";
 export * from "./userProfiles";
 export * from "./notifications";
+export * from "./volunteerApplications";

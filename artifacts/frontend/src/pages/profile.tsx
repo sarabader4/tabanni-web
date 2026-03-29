@@ -2541,6 +2541,515 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
   );
 }
 
+interface VolunteerApplication {
+  id: number;
+  userId: number;
+  applicationType: "member" | "volunteer_activity";
+  name: string;
+  phone: string;
+  email: string;
+  city: string;
+  address: string;
+  skills: string;
+  motivation: string;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
+  updatedAt: string;
+}
+
+function useGetMyVolunteerApplication() {
+  return useQuery<VolunteerApplication | null>({
+    queryKey: ["/api/volunteer-applications/me"],
+    queryFn: async () => {
+      const res = await fetch("/api/volunteer-applications/me", { credentials: "include" });
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error("Failed to fetch volunteer application");
+      return res.json();
+    },
+  });
+}
+
+function useSubmitVolunteerApplication() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Omit<VolunteerApplication, "id" | "userId" | "status" | "createdAt" | "updatedAt">) => {
+      const res = await fetch("/api/volunteer-applications", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? "Failed to submit application");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/volunteer-applications/me"] });
+    },
+  });
+}
+
+function useUpdateVolunteerApplication() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Omit<VolunteerApplication, "id" | "userId" | "status" | "createdAt" | "updatedAt">) => {
+      const res = await fetch("/api/volunteer-applications/me", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? "Failed to update application");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/volunteer-applications/me"] });
+    },
+  });
+}
+
+interface VolunteerFormData {
+  applicationType: "member" | "volunteer_activity";
+  name: string;
+  phone: string;
+  email: string;
+  city: string;
+  address: string;
+  skills: string;
+  motivation: string;
+}
+
+interface VolunteerApplicationModalProps {
+  onClose: () => void;
+  initialData?: VolunteerFormData | null;
+  isResubmit?: boolean;
+  profileData?: { fullName?: string | null; email?: string | null; phone?: string | null; city?: string | null } | null;
+}
+
+function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileData }: VolunteerApplicationModalProps) {
+  const { toast } = useToast();
+  const submitMutation = useSubmitVolunteerApplication();
+  const updateMutation = useUpdateVolunteerApplication();
+  const [submitted, setSubmitted] = useState(false);
+
+  const [form, setForm] = useState<VolunteerFormData>(() => initialData ?? {
+    applicationType: "member",
+    name: profileData?.fullName ?? "",
+    phone: profileData?.phone ?? "",
+    email: profileData?.email ?? "",
+    city: profileData?.city ?? "",
+    address: "",
+    skills: "",
+    motivation: "",
+  });
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof VolunteerFormData, string>>>({});
+  const [touchedFields, setTouchedFields] = useState<Set<keyof VolunteerFormData>>(new Set());
+
+  const phoneRegex = /^\+?[\d\s\-()]{7,20}$/;
+
+  function validate(data: VolunteerFormData): Partial<Record<keyof VolunteerFormData, string>> {
+    const errs: Partial<Record<keyof VolunteerFormData, string>> = {};
+    if (!data.name.trim()) errs.name = "Name is required";
+    if (!data.phone.trim()) errs.phone = "Phone is required";
+    else if (!phoneRegex.test(data.phone.trim())) errs.phone = "Invalid phone format (digits, spaces, +, -, () allowed)";
+    if (!data.email.trim()) errs.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) errs.email = "Invalid email address";
+    if (!data.city.trim()) errs.city = "City is required";
+    if (!data.address.trim()) errs.address = "Address is required";
+    if (!data.skills.trim()) errs.skills = "Skills are required";
+    if (!data.motivation.trim()) errs.motivation = "Please tell us why you want to join";
+    return errs;
+  }
+
+  function touch(field: keyof VolunteerFormData) {
+    setTouchedFields(prev => new Set([...prev, field]));
+  }
+
+  function setField<K extends keyof VolunteerFormData>(key: K, value: VolunteerFormData[K]) {
+    const next = { ...form, [key]: value };
+    setForm(next);
+    if (touchedFields.has(key)) {
+      setFormErrors(validate(next));
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const allTouched = new Set(Object.keys(form) as Array<keyof VolunteerFormData>);
+    setTouchedFields(allTouched);
+    const errs = validate(form);
+    setFormErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+
+    try {
+      if (isResubmit) {
+        await updateMutation.mutateAsync(form);
+        toast({ title: "Application resubmitted!", description: "We'll review your updated application soon." });
+      } else {
+        await submitMutation.mutateAsync(form);
+        toast({ title: "Application submitted!", description: "We'll review your application and get back to you soon." });
+      }
+      setSubmitted(true);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to submit application";
+      toast({ title: msg, variant: "destructive" });
+    }
+  }
+
+  const isLoading = submitMutation.isPending || updateMutation.isPending;
+
+  const inputCls = (field: keyof VolunteerFormData) =>
+    `w-full border rounded-xl px-3 py-2.5 text-sm text-[#1E2A3A] outline-none focus:ring-2 transition-colors ${
+      touchedFields.has(field) && formErrors[field]
+        ? "border-red-400 focus:ring-red-200"
+        : "border-gray-200 focus:ring-primary/20"
+    }`;
+
+  if (submitted) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-8 h-8 text-green-500" />
+          </div>
+          <h2 className="text-xl font-bold text-[#1E2A3A] mb-2">Application Submitted!</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Thank you for your interest in volunteering with Tabanni. We'll review your application and get back to you soon.
+          </p>
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
+          <div>
+            <h2 className="text-lg font-bold text-[#1E2A3A]">
+              {isResubmit ? "Edit & Resubmit Application" : "Join Organization"}
+            </h2>
+            <p className="text-xs text-gray-400 mt-0.5">Apply to volunteer with Tabanni</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+          <div className="p-5 space-y-5">
+            {/* Application Type */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-2">Application Type *</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setField("applicationType", "member")}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                    form.applicationType === "member"
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-200 hover:border-primary/40"
+                  }`}
+                >
+                  <Users className={`w-6 h-6 ${form.applicationType === "member" ? "text-primary" : "text-gray-400"}`} />
+                  <span className={`text-sm font-semibold ${form.applicationType === "member" ? "text-primary" : "text-gray-600"}`}>
+                    Become a Member
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setField("applicationType", "volunteer_activity")}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                    form.applicationType === "volunteer_activity"
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-200 hover:border-primary/40"
+                  }`}
+                >
+                  <Heart className={`w-6 h-6 ${form.applicationType === "volunteer_activity" ? "text-primary" : "text-gray-400"}`} />
+                  <span className={`text-sm font-semibold ${form.applicationType === "volunteer_activity" ? "text-primary" : "text-gray-600"}`}>
+                    One-time Activity
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Auto-filled fields */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Full Name *</label>
+                <input
+                  className={inputCls("name")}
+                  value={form.name}
+                  onChange={e => setField("name", e.target.value)}
+                  onBlur={() => touch("name")}
+                  placeholder="Your full name"
+                />
+                {touchedFields.has("name") && formErrors.name && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.name}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone *</label>
+                <input
+                  className={inputCls("phone")}
+                  value={form.phone}
+                  onChange={e => setField("phone", e.target.value)}
+                  onBlur={() => touch("phone")}
+                  placeholder="+962 79 000 0000"
+                />
+                {touchedFields.has("phone") && formErrors.phone && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.phone}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Email *</label>
+                <input
+                  type="email"
+                  className={inputCls("email")}
+                  value={form.email}
+                  onChange={e => setField("email", e.target.value)}
+                  onBlur={() => touch("email")}
+                  placeholder="you@email.com"
+                />
+                {touchedFields.has("email") && formErrors.email && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.email}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">City *</label>
+                <input
+                  className={inputCls("city")}
+                  value={form.city}
+                  onChange={e => setField("city", e.target.value)}
+                  onBlur={() => touch("city")}
+                  placeholder="e.g. Amman"
+                />
+                {touchedFields.has("city") && formErrors.city && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.city}</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Address *</label>
+              <input
+                className={inputCls("address")}
+                value={form.address}
+                onChange={e => setField("address", e.target.value)}
+                onBlur={() => touch("address")}
+                placeholder="Your full address"
+              />
+              {touchedFields.has("address") && formErrors.address && (
+                <p className="text-xs text-red-500 mt-0.5">{formErrors.address}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Skills *</label>
+              <input
+                className={inputCls("skills")}
+                value={form.skills}
+                onChange={e => setField("skills", e.target.value)}
+                onBlur={() => touch("skills")}
+                placeholder="e.g. Animal care, first aid, photography..."
+              />
+              {touchedFields.has("skills") && formErrors.skills && (
+                <p className="text-xs text-red-500 mt-0.5">{formErrors.skills}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Why do you want to join Tabanni? *</label>
+              <textarea
+                rows={4}
+                className={inputCls("motivation")}
+                value={form.motivation}
+                onChange={e => setField("motivation", e.target.value)}
+                onBlur={() => touch("motivation")}
+                placeholder="Tell us about your motivation to volunteer..."
+              />
+              {touchedFields.has("motivation") && formErrors.motivation && (
+                <p className="text-xs text-red-500 mt-0.5">{formErrors.motivation}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="p-5 border-t border-gray-100 shrink-0 flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Submitting...
+                </span>
+              ) : isResubmit ? "Resubmit Application" : "Submit Application"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function VolunteerSection({ profile }: { profile: { fullName?: string | null; email?: string | null; phone?: string | null; city?: string | null } | null }) {
+  const { data: application, isLoading } = useGetMyVolunteerApplication();
+  const [showModal, setShowModal] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">Volunteer</h2>
+
+      {!application ? (
+        <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Users className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="font-bold text-[#1E2A3A] mb-2">Make a Difference</h3>
+          <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+            Join the Tabanni team as a member or volunteer for a one-time activity. Help animals find their forever homes.
+          </p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
+          >
+            Join Organization
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Application Type</p>
+              <p className="font-bold text-[#1E2A3A]">
+                {application.applicationType === "member" ? "Become a Member" : "One-time Volunteer Activity"}
+              </p>
+            </div>
+            <div className="shrink-0">
+              {application.status === "pending" && (
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">
+                  <Clock className="w-3.5 h-3.5" /> Pending Review
+                </span>
+              )}
+              {application.status === "accepted" && (
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Accepted
+                </span>
+              )}
+              {application.status === "rejected" && (
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-600 rounded-full text-xs font-bold">
+                  <XCircle className="w-3.5 h-3.5" /> Rejected
+                </span>
+              )}
+            </div>
+          </div>
+
+          {application.status === "pending" && (
+            <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-sm text-yellow-800">
+              Your application is under review. We'll notify you once it's been processed.
+            </div>
+          )}
+
+          {application.status === "accepted" && (
+            <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-sm text-green-800">
+              Congratulations! Your application has been accepted. Welcome to the Tabanni team!
+            </div>
+          )}
+
+          {application.status === "rejected" && (
+            <div className="space-y-3">
+              <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-800">
+                Unfortunately, your application was not accepted this time. You can update your details and resubmit below.
+              </div>
+              <button
+                onClick={() => setShowModal(true)}
+                className="w-full py-2.5 border-2 border-primary text-primary rounded-xl font-bold text-sm hover:bg-primary/5 transition-colors"
+              >
+                Edit & Resubmit Application
+              </button>
+            </div>
+          )}
+
+          <div className="mt-4 grid sm:grid-cols-2 gap-3 text-sm">
+            {[
+              ["Name", application.name],
+              ["Email", application.email],
+              ["Phone", application.phone],
+              ["City", application.city],
+            ].map(([label, value]) => (
+              <div key={label} className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
+                <p className="text-sm text-[#1E2A3A]">{value}</p>
+              </div>
+            ))}
+            <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+              <p className="text-xs font-semibold text-gray-500 mb-0.5">Address</p>
+              <p className="text-sm text-[#1E2A3A]">{application.address}</p>
+            </div>
+            <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+              <p className="text-xs font-semibold text-gray-500 mb-0.5">Skills</p>
+              <p className="text-sm text-[#1E2A3A]">{application.skills}</p>
+            </div>
+            <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
+              <p className="text-xs font-semibold text-gray-500 mb-0.5">Motivation</p>
+              <p className="text-sm text-[#1E2A3A]">{application.motivation}</p>
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-400 mt-4">
+            Submitted on {new Date(application.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+          </p>
+        </div>
+      )}
+
+      {showModal && (
+        <VolunteerApplicationModal
+          onClose={() => setShowModal(false)}
+          isResubmit={application?.status === "rejected"}
+          initialData={application?.status === "rejected" ? {
+            applicationType: application.applicationType,
+            name: application.name,
+            phone: application.phone,
+            email: application.email,
+            city: application.city,
+            address: application.address,
+            skills: application.skills,
+            motivation: application.motivation,
+          } : null}
+          profileData={profile}
+        />
+      )}
+    </div>
+  );
+}
+
 function buildInitialForm(profile: { fullName?: string | null; email?: string | null; phone?: string | null; country?: string | null; city?: string | null } | null): FormState {
   const countryObj = profile?.country ? (findCountryByName(profile.country) ?? DEFAULT_COUNTRY) : DEFAULT_COUNTRY;
   return {
@@ -3385,11 +3894,7 @@ export default function Profile() {
 
             {/* ── Volunteer Tab ── */}
             {activeTab === "Volunteer" && (
-              <div className="text-center py-16 text-gray-400">
-                <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p className="text-lg font-semibold text-[#1E2A3A]">Volunteer opportunities</p>
-                <p className="text-sm mt-1">Coming soon.</p>
-              </div>
+              <VolunteerSection profile={profile ?? null} />
             )}
 
           </div>

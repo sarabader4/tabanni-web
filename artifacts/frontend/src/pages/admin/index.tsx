@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Menu,
   DollarSign,
+  HandHeart,
 } from "lucide-react";
 import {
   LineChart,
@@ -54,6 +55,7 @@ const SIDEBAR_NAV = [
     ],
   },
   { label: "Donors", href: "/admin/donors", icon: DollarSign },
+  { label: "Volunteers", href: "/admin/volunteers", icon: HandHeart },
   { label: "Reports & Analytics", href: "/admin/analytics", icon: BarChart2 },
 ];
 

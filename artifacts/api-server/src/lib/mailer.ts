@@ -23,6 +23,42 @@ function createTransport() {
   });
 }
 
+export async function sendVolunteerStatusEmail({
+  to,
+  userName,
+  status,
+}: {
+  to: string;
+  userName: string;
+  status: "accepted" | "rejected";
+}): Promise<void> {
+  const transport = createTransport();
+  if (!transport) return;
+
+  const statusLabel = status === "accepted" ? "Accepted" : "Rejected";
+  const messageBody = status === "accepted"
+    ? "Congratulations! Your volunteer application has been accepted. We look forward to working with you."
+    : "Thank you for your interest. Unfortunately, your volunteer application has been rejected at this time. You are welcome to reapply in the future.";
+
+  try {
+    await transport.sendMail({
+      from: SMTP_FROM,
+      to,
+      subject: `Volunteer Application ${statusLabel}`,
+      text: [
+        `Hello ${userName},`,
+        "",
+        messageBody,
+        "",
+        "Thank you for your interest in Tabanni.",
+      ].join("\n"),
+    });
+    logger.info({ to, status }, "Volunteer status email sent");
+  } catch (err) {
+    logger.error({ err, to }, "Failed to send volunteer status email");
+  }
+}
+
 export async function sendPetStatusEmail({
   to,
   userName,
