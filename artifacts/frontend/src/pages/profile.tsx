@@ -3166,7 +3166,7 @@ const NO_TOUCHED: TouchedState = {
 export default function Profile() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("Profile");
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
