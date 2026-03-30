@@ -6,6 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { useTranslation } from "react-i18next";
 
 const BASE = import.meta.env.BASE_URL;
 const apiUrl = (path: string) => `${BASE}api/${path}`;
@@ -14,19 +15,21 @@ interface PaymentConfig {
   publishableKey: string;
 }
 
-const monetarySchema = z.object({
-  donorName: z.string().min(1, "Name required"),
-  donorPhone: z.string().min(1, "Phone required"),
-  amount: z.string().min(1, "Amount required"),
+const makeMonetarySchema = (t: (key: string) => string) => z.object({
+  donorName: z.string().min(1, t("donate.errNameRequired")),
+  donorPhone: z.string().min(1, t("donate.errPhoneRequired")),
+  amount: z.string().min(1, t("donate.errAmountRequired")),
   paymentMethod: z.enum(["Visa", "Mastercard", "CliQ"]),
 });
+type MonetaryFormValues = z.infer<ReturnType<typeof makeMonetarySchema>>;
 
-const suppliesSchema = z.object({
-  donorName: z.string().min(1, "Name required"),
-  donorPhone: z.string().min(1, "Phone required"),
-  donationTypeLabel: z.string().min(1, "Select supply type"),
-  description: z.string().min(5, "Please describe the supplies"),
+const makeSuppliesSchema = (t: (key: string) => string) => z.object({
+  donorName: z.string().min(1, t("donate.errNameRequired")),
+  donorPhone: z.string().min(1, t("donate.errPhoneRequired")),
+  donationTypeLabel: z.string().min(1, t("donate.errSupplyType")),
+  description: z.string().min(5, t("donate.errDescSupplies")),
 });
+type SuppliesFormValues = z.infer<ReturnType<typeof makeSuppliesSchema>>;
 
 type DonationStatus = "idle" | "processing" | "success" | "error";
 
@@ -57,6 +60,7 @@ function StripeCardForm({
   onSuccess: () => void;
   onError: (msg: string) => void;
 }) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
@@ -73,11 +77,11 @@ function StripeCardForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount, donorName, donorPhone, frequency: "one_time" }),
       });
-      if (!resp.ok) throw new Error("Could not initiate payment");
+      if (!resp.ok) throw new Error(t("donate.couldNotInitiatePayment"));
       const { clientSecret } = await resp.json();
 
       const cardElement = elements.getElement(CardElement);
-      if (!cardElement) throw new Error("Card element not found");
+      if (!cardElement) throw new Error(t("donate.cardElementNotFound"));
 
       const paymentIntentId = clientSecret.split("_secret_")[0];
 
@@ -86,13 +90,13 @@ function StripeCardForm({
       });
 
       if (result.error) {
-        setCardError(result.error.message ?? "Payment failed");
+        setCardError(result.error.message ?? t("donate.paymentFailed"));
         await fetch(apiUrl("payments/stripe/confirm"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ paymentIntentId, status: "failed" }),
         });
-        onError(result.error.message ?? "Payment declined");
+        onError(result.error.message ?? t("donate.paymentDeclined"));
       } else if (result.paymentIntent?.status === "succeeded") {
         await fetch(apiUrl("payments/stripe/confirm"), {
           method: "POST",
@@ -102,7 +106,7 @@ function StripeCardForm({
         onSuccess();
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An error occurred";
+      const message = err instanceof Error ? err.message : t("donate.errorOccurred");
       setCardError(message);
       onError(message);
     } finally {
@@ -114,7 +118,7 @@ function StripeCardForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="bg-muted/50 rounded-xl p-4 border border-border">
         <label className="text-xs font-bold text-muted-foreground block mb-3 uppercase tracking-wide">
-          Card Details
+          {t("donate.cardDetails")}
         </label>
         <CardElement options={CARD_ELEMENT_OPTIONS} />
       </div>
@@ -130,9 +134,9 @@ function StripeCardForm({
         className="w-full bg-primary hover:bg-primary/90 text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-primary/25 transition-all hover:-translate-y-1 disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {processing ? (
-          <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+          <><Loader2 className="w-5 h-5 animate-spin" /> {t("donate.processing")}</>
         ) : (
-          `Donate ${amount || 0} JOD via ${paymentMethodLabel}`
+          t("donate.donateVia", { amount: amount || 0, method: paymentMethodLabel })
         )}
       </button>
     </form>
@@ -152,6 +156,7 @@ function CliQSection({
   onSuccess: () => void;
   onError: (msg: string) => void;
 }) {
+  const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
 
   const handleConfirm = async () => {
@@ -162,10 +167,10 @@ function CliQSection({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount, donorName, donorPhone, frequency: "one_time" }),
       });
-      if (!resp.ok) throw new Error("Could not save donation");
+      if (!resp.ok) throw new Error(t("donate.couldNotSaveDonation"));
       onSuccess();
     } catch (err: unknown) {
-      onError(err instanceof Error ? err.message : "Failed to confirm");
+      onError(err instanceof Error ? err.message : t("donate.failedToConfirm"));
     } finally {
       setConfirming(false);
     }
@@ -179,23 +184,23 @@ function CliQSection({
             <Smartphone className="w-5 h-5 text-secondary" />
           </div>
           <div>
-            <p className="font-bold text-foreground">CliQ Transfer Instructions</p>
-            <p className="text-sm text-muted-foreground">Send {amount || "0"} JOD to:</p>
+            <p className="font-bold text-foreground">{t("donate.cliqInstructions")}</p>
+            <p className="text-sm text-muted-foreground">{t("donate.sendTo", { amount: amount || "0" })}</p>
           </div>
         </div>
         <div className="space-y-3 bg-white rounded-xl p-4 border border-teal-100">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Phone / CliQ Number</span>
+            <span className="text-sm text-muted-foreground">{t("donate.phoneCliq")}</span>
             <span className="font-bold text-foreground font-mono">00962799476182</span>
           </div>
           <div className="border-t border-border/50" />
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Account Name</span>
+            <span className="text-sm text-muted-foreground">{t("donate.accountName")}</span>
             <span className="font-bold text-foreground">Sara Ibrahim Bader</span>
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
-          After completing the transfer, click the button below to confirm. We will verify and mark your donation as complete.
+          {t("donate.cliqNote")}
         </p>
       </div>
       <button
@@ -204,9 +209,9 @@ function CliQSection({
         className="w-full bg-secondary hover:bg-secondary/90 text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-secondary/25 transition-all hover:-translate-y-1 disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {confirming ? (
-          <><Loader2 className="w-5 h-5 animate-spin" /> Confirming...</>
+          <><Loader2 className="w-5 h-5 animate-spin" /> {t("donate.confirming")}</>
         ) : (
-          "I've Completed the Transfer ✓"
+          t("donate.completedTransfer")
         )}
       </button>
     </div>
@@ -214,28 +219,30 @@ function CliQSection({
 }
 
 function SuccessScreen({ onReset }: { onReset: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-12 space-y-6 text-center">
       <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
         <CheckCircle className="w-10 h-10 text-green-500" />
       </div>
       <div>
-        <h3 className="font-display font-bold text-2xl text-foreground mb-2">Thank You! 🐾</h3>
+        <h3 className="font-display font-bold text-2xl text-foreground mb-2">{t("donate.thankYou")}</h3>
         <p className="text-muted-foreground max-w-sm">
-          Your donation helps rescued animals across Jordan find loving homes. You're making a real difference!
+          {t("donate.thankYouDesc")}
         </p>
       </div>
       <button
         onClick={onReset}
         className="bg-primary/10 hover:bg-primary/20 text-primary font-bold px-8 py-3 rounded-2xl transition-colors"
       >
-        Donate Again
+        {t("donate.donateAgain")}
       </button>
     </div>
   );
 }
 
 function GoFundMeSection() {
+  const { t } = useTranslation();
   const raised = 8450;
   const goal = 15000;
   const pct = Math.min(100, Math.round((raised / goal) * 100));
@@ -243,8 +250,8 @@ function GoFundMeSection() {
   return (
     <div className="mt-16">
       <div className="text-center mb-8">
-        <h2 className="font-display text-3xl font-bold text-foreground mb-2">Support Our GoFundMe Campaign</h2>
-        <p className="text-muted-foreground">Help us reach our goal and transform more lives</p>
+        <h2 className="font-display text-3xl font-bold text-foreground mb-2">{t("donate.goFundMeTitle")}</h2>
+        <p className="text-muted-foreground">{t("donate.goFundMeSubtitle")}</p>
       </div>
       <div
         className="group relative bg-gradient-to-br from-orange-50 via-white to-teal-50 border border-border rounded-3xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl"
@@ -270,19 +277,19 @@ function GoFundMeSection() {
           <div className="p-8 md:p-10 flex flex-col justify-center space-y-6">
             <div>
               <span className="text-xs font-bold text-primary uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full">
-                GoFundMe Campaign
+                {t("donate.goFundMeCampaign")}
               </span>
               <h3 className="font-display font-bold text-2xl text-foreground mt-3 mb-2">
-                Every Pet Deserves a Loving Home
+                {t("donate.everyPetDeserves")}
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Help us rescue, rehabilitate, and rehome stray and abandoned animals across Jordan. Your support pays for medical care, food, and shelter while we find them their forever families.
+                {t("donate.goFundMeDesc")}
               </p>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm font-bold">
-                <span className="text-primary">{raised.toLocaleString()} JOD raised</span>
-                <span className="text-muted-foreground">of {goal.toLocaleString()} JOD goal</span>
+                <span className="text-primary">{t("donate.raisedOf", { raised: raised.toLocaleString() })}</span>
+                <span className="text-muted-foreground">{t("donate.ofGoal", { goal: goal.toLocaleString() })}</span>
               </div>
               <div className="h-3 bg-muted rounded-full overflow-hidden">
                 <div
@@ -290,7 +297,7 @@ function GoFundMeSection() {
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">{pct}% funded · 47 donors</p>
+              <p className="text-xs text-muted-foreground">{t("donate.funded", { pct })}</p>
             </div>
             <a
               href="https://www.gofundme.com/f/tabbani-pet-adoption-jordan"
@@ -299,7 +306,7 @@ function GoFundMeSection() {
               className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5 active:translate-y-0 text-center"
             >
               <Heart className="w-5 h-5" />
-              Donate on GoFundMe
+              {t("donate.donateOnGoFundMe")}
             </a>
           </div>
         </div>
@@ -309,6 +316,7 @@ function GoFundMeSection() {
 }
 
 export default function Donate() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<"monetary" | "supplies">("monetary");
   const [config, setConfig] = useState<PaymentConfig | null>(null);
   const [configError, setConfigError] = useState(false);
@@ -317,12 +325,15 @@ export default function Donate() {
   const [suppliesSubmitting, setSuppliesSubmitting] = useState(false);
   const { data: recentDonors, refetch: refetchDonors } = useListDonations({ limit: 5 });
 
-  const monetaryForm = useForm<z.infer<typeof monetarySchema>>({
+  const monetarySchema = useMemo(() => makeMonetarySchema(t), [t]);
+  const suppliesSchema = useMemo(() => makeSuppliesSchema(t), [t]);
+
+  const monetaryForm = useForm<MonetaryFormValues>({
     resolver: zodResolver(monetarySchema),
     defaultValues: { donorName: "", donorPhone: "", amount: "25", paymentMethod: "Visa" },
   });
 
-  const suppliesForm = useForm<z.infer<typeof suppliesSchema>>({
+  const suppliesForm = useForm<SuppliesFormValues>({
     resolver: zodResolver(suppliesSchema),
     defaultValues: { donorName: "", donorPhone: "", donationTypeLabel: "Food", description: "" },
   });
@@ -360,7 +371,7 @@ export default function Donate() {
     monetaryForm.reset({ donorName: "", donorPhone: "", amount: "25", paymentMethod: "Visa" });
   };
 
-  const onSuppliesSubmit = async (values: z.infer<typeof suppliesSchema>) => {
+  const onSuppliesSubmit = async (values: SuppliesFormValues) => {
     setSuppliesSubmitting(true);
     try {
       const resp = await fetch(apiUrl("donations"), {
@@ -373,7 +384,7 @@ export default function Donate() {
       refetchDonors();
     } catch {
       setDonationStatus("error");
-      setErrorMsg("Failed to submit. Please try again.");
+      setErrorMsg(t("donate.failedSubmit"));
     } finally {
       setSuppliesSubmitting(false);
     }
@@ -385,10 +396,10 @@ export default function Donate() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center max-w-3xl mx-auto mb-16">
         <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
-          Support Our Mission
+          {t("donate.title")}
         </h1>
         <p className="text-lg text-muted-foreground leading-relaxed">
-          100% of your donation goes directly towards food, medical care, and shelter for rescued animals across Jordan. Every dinar makes a difference.
+          {t("donate.subtitle")}
         </p>
       </div>
 
@@ -401,7 +412,7 @@ export default function Donate() {
                 tab === "monetary" ? "bg-white text-primary border-b-2 border-primary" : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
               }`}
             >
-              <Heart className="w-5 h-5" /> Monetary Donation
+              <Heart className="w-5 h-5" /> {t("donate.monetaryDonation")}
             </button>
             <button
               onClick={() => { setTab("supplies"); handleReset(); }}
@@ -409,7 +420,7 @@ export default function Donate() {
                 tab === "supplies" ? "bg-white text-secondary border-b-2 border-secondary" : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
               }`}
             >
-              <Package className="w-5 h-5" /> Donate Supplies
+              <Package className="w-5 h-5" /> {t("donate.donateSupplies")}
             </button>
           </div>
 
@@ -419,7 +430,7 @@ export default function Donate() {
             ) : tab === "monetary" ? (
               <div className="space-y-8">
                 <div>
-                  <label className="text-sm font-bold block mb-4">Select Amount (JOD)</label>
+                  <label className="text-sm font-bold block mb-4">{t("donate.selectAmount")}</label>
                   <div className="grid grid-cols-4 gap-3">
                     {["10", "25", "50", "100"].map(amt => (
                       <button
@@ -439,7 +450,7 @@ export default function Donate() {
                   <div className="mt-4">
                     <input
                       type="number"
-                      placeholder="Other Amount"
+                      placeholder={t("donate.otherAmount")}
                       {...monetaryForm.register("amount")}
                       className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 font-bold focus:ring-2 focus:ring-primary/50"
                     />
@@ -448,7 +459,7 @@ export default function Donate() {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold">Your Name</label>
+                    <label className="text-sm font-bold">{t("donate.yourName")}</label>
                     <input
                       {...monetaryForm.register("donorName")}
                       className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/50"
@@ -458,7 +469,7 @@ export default function Donate() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold">Phone Number</label>
+                    <label className="text-sm font-bold">{t("donate.phoneNumber")}</label>
                     <input
                       {...monetaryForm.register("donorPhone")}
                       className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/50"
@@ -467,7 +478,7 @@ export default function Donate() {
                 </div>
 
                 <div className="space-y-4">
-                  <label className="text-sm font-bold block">Payment Method</label>
+                  <label className="text-sm font-bold block">{t("donate.paymentMethod")}</label>
                   <div className="grid grid-cols-3 gap-3">
                     {[
                       { value: "Visa", label: "💳 Visa" },
@@ -507,11 +518,11 @@ export default function Donate() {
                     </div>
                     {configError ? (
                       <div className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-3">
-                        Payment provider not available. Please try CliQ instead.
+                        {t("donate.paymentNotAvailable")}
                       </div>
                     ) : !stripePromise ? (
                       <div className="flex items-center gap-2 text-muted-foreground text-sm py-2">
-                        <Loader2 className="w-4 h-4 animate-spin" /> Loading payment form...
+                        <Loader2 className="w-4 h-4 animate-spin" /> {t("donate.loadingPayment")}
                       </div>
                     ) : (
                       <Elements stripe={stripePromise} options={{ appearance: { theme: "stripe" } }}>
@@ -541,54 +552,54 @@ export default function Donate() {
                 {donationStatus === "error" && (
                   <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 rounded-xl px-4 py-3">
                     <AlertCircle className="w-4 h-4 shrink-0" />
-                    {errorMsg || "Payment failed. Please try again."}
+                    {errorMsg || t("donate.paymentFailed")}
                     <button
                       onClick={() => setDonationStatus("idle")}
-                      className="ml-auto text-xs underline"
+                      className="ms-auto text-xs underline"
                     >
-                      Dismiss
+                      {t("common.dismiss")}
                     </button>
                   </div>
                 )}
 
                 <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
                   <ShieldCheck className="w-4 h-4 text-secondary" />
-                  Secure encrypted checkout
+                  {t("donate.secureCheckout")}
                 </div>
               </div>
             ) : (
               <form onSubmit={suppliesForm.handleSubmit(onSuppliesSubmit)} className="space-y-8">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold block">What are you donating?</label>
+                  <label className="text-sm font-bold block">{t("donate.whatDonating")}</label>
                   <select
                     {...suppliesForm.register("donationTypeLabel")}
                     className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50 outline-none"
                   >
-                    <option value="Food">Pet Food (Dry/Wet)</option>
-                    <option value="Blankets">Blankets & Beds</option>
-                    <option value="Toys">Toys</option>
-                    <option value="Medicine">Medicine & Supplies</option>
-                    <option value="Other">Other</option>
+                    <option value="Food">{t("donate.petFood")}</option>
+                    <option value="Blankets">{t("donate.blankets")}</option>
+                    <option value="Toys">{t("donate.toys")}</option>
+                    <option value="Medicine">{t("donate.medicine")}</option>
+                    <option value="Other">{t("donate.other")}</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold">Description of items</label>
+                  <label className="text-sm font-bold">{t("donate.descriptionOfItems")}</label>
                   <textarea
                     {...suppliesForm.register("description")}
-                    placeholder="E.g. 2 large bags of adult dog food, 3 new fleece blankets..."
+                    placeholder={t("donate.descriptionPlaceholder")}
                     className="w-full min-h-[120px] bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50 outline-none resize-none"
                   />
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold">Your Name</label>
+                    <label className="text-sm font-bold">{t("donate.yourName")}</label>
                     <input
                       {...suppliesForm.register("donorName")}
                       className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold">Phone Number</label>
+                    <label className="text-sm font-bold">{t("donate.phoneNumber")}</label>
                     <input
                       {...suppliesForm.register("donorPhone")}
                       className="w-full bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-secondary/50"
@@ -607,9 +618,9 @@ export default function Donate() {
                   className="w-full bg-secondary hover:bg-secondary/90 text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-secondary/25 transition-all hover:-translate-y-1 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {suppliesSubmitting ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> Submitting...</>
+                    <><Loader2 className="w-5 h-5 animate-spin" /> {t("donate.submitting")}</>
                   ) : (
-                    "Schedule Drop-off"
+                    t("donate.scheduleDropoff")
                   )}
                 </button>
               </form>
@@ -620,19 +631,19 @@ export default function Donate() {
         <div className="lg:col-span-4 space-y-8">
           <div className="bg-foreground text-white p-8 rounded-3xl relative overflow-hidden">
             <div className="relative z-10">
-              <h3 className="font-display font-bold text-2xl mb-4">Why donate?</h3>
+              <h3 className="font-display font-bold text-2xl mb-4">{t("donate.whyDonate")}</h3>
               <ul className="space-y-4 text-white/80 text-sm">
-                <li className="flex gap-3"><span className="text-primary font-bold">✓</span> Helps rescue injured animals from the streets</li>
-                <li className="flex gap-3"><span className="text-primary font-bold">✓</span> Pays for vaccinations and sterilization</li>
-                <li className="flex gap-3"><span className="text-primary font-bold">✓</span> Provides food for fosters who can't afford it</li>
+                <li className="flex gap-3"><span className="text-primary font-bold">✓</span> {t("donate.whyDonate1")}</li>
+                <li className="flex gap-3"><span className="text-primary font-bold">✓</span> {t("donate.whyDonate2")}</li>
+                <li className="flex gap-3"><span className="text-primary font-bold">✓</span> {t("donate.whyDonate3")}</li>
               </ul>
             </div>
-            <Heart className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5" />
+            <Heart className="absolute -end-10 -bottom-10 w-48 h-48 text-white/5" />
           </div>
 
           <div className="bg-card border border-border p-8 rounded-3xl">
             <h3 className="font-display font-bold text-xl mb-6 flex items-center gap-2">
-              <Heart className="w-5 h-5 text-primary" /> Recent Donors
+              <Heart className="w-5 h-5 text-primary" /> {t("donate.recentDonors")}
             </h3>
             <div className="space-y-4">
               {recentDonors?.slice(0, 5).map(donor => (
@@ -641,7 +652,7 @@ export default function Donate() {
                   {donor.type === "monetary" ? (
                     <span className="text-primary font-bold text-sm">{donor.amount} JOD</span>
                   ) : (
-                    <span className="text-secondary font-bold text-xs px-2 py-1 bg-secondary/10 rounded-md">Supplies</span>
+                    <span className="text-secondary font-bold text-xs px-2 py-1 bg-secondary/10 rounded-md">{t("donate.supplies")}</span>
                   )}
                 </div>
               ))}

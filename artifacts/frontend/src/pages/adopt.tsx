@@ -6,6 +6,7 @@ import { FilterBar, type FilterBarState } from "@/components/filter-bar";
 import { Search, Loader2, Plus, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useFavourites } from "@/hooks/use-favourites";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 type PurposeFilter = "adopt" | "foster" | "both";
 
@@ -16,19 +17,20 @@ export default function Adopt() {
   const pageSize = 20;
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
 
   const handleFavorite = async (petId: number) => {
     if (!isLoggedIn) {
       navigate("/login");
-      toast({ title: "Please log in to save favourites." });
+      toast({ title: t("adopt.loginToFav") });
       return;
     }
     if (isPendingFor(petId)) return;
     const wasAdded = !isFavourited(petId);
     await toggleFavourite(petId);
     toast({
-      title: wasAdded ? "Added to favourites!" : "Removed from favourites.",
+      title: wasAdded ? t("adopt.addedToFav") : t("adopt.removedFromFav"),
     });
   };
   const [filters, setFilters] = useState<FilterBarState>({
@@ -65,10 +67,10 @@ export default function Adopt() {
 
   const totalPages = Math.ceil((data?.total ?? 0) / pageSize) || 1;
 
-  const purposeOptions: { key: PurposeFilter; label: string }[] = [
-    { key: "adopt", label: "Adopt" },
-    { key: "foster", label: "Foster" },
-    { key: "both", label: "Adopt & Foster" },
+  const purposeOptions: { key: PurposeFilter; labelKey: string }[] = [
+    { key: "adopt", labelKey: "adopt.adopt" },
+    { key: "foster", labelKey: "adopt.foster" },
+    { key: "both", labelKey: "adopt.adoptFoster" },
   ];
 
   return (
@@ -77,23 +79,23 @@ export default function Adopt() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
         <div className="flex gap-3 items-center">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute start-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Search for friend to adopt..."
-              className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+              placeholder={t("adopt.searchPlaceholder")}
+              className="w-full bg-white border border-gray-200 rounded-xl ps-12 pe-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
           </div>
           <Link
             href="/#ai-pet-match"
             className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap"
             style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
-            title="AI-powered pet matching"
+            title={t("home.aiPetMatchTooltip")}
           >
             <Sparkles className="w-4 h-4" />
-            AI Pet Match
+            {t("home.aiPetMatch")}
           </Link>
         </div>
       </div>
@@ -112,7 +114,7 @@ export default function Adopt() {
                   : "bg-white text-gray-500 border-gray-200 hover:border-primary/50"
               }`}
             >
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           ))}
         </div>
@@ -123,8 +125,8 @@ export default function Adopt() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         {isError ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-red-100">
-            <p className="font-bold text-lg text-red-500 mb-2">Failed to load pets</p>
-            <p className="text-gray-400 text-sm">Please try again later.</p>
+            <p className="font-bold text-lg text-red-500 mb-2">{t("adopt.failedLoad")}</p>
+            <p className="text-gray-400 text-sm">{t("adopt.failedLoadSub")}</p>
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center h-64">
@@ -133,9 +135,9 @@ export default function Adopt() {
         ) : data?.pets?.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
             <h3 className="font-display font-bold text-xl mb-2 text-[#1E2A3A]">
-              No pets found
+              {t("adopt.noPetsFound")}
             </h3>
-            <p className="text-gray-400 mb-6">Try adjusting your filters to see more results.</p>
+            <p className="text-gray-400 mb-6">{t("adopt.noPetsSub")}</p>
             <button
               onClick={() => {
                 setSearch("");
@@ -145,7 +147,7 @@ export default function Adopt() {
               }}
               className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm"
             >
-              Clear Filters
+              {t("adopt.clearFilters")}
             </button>
           </div>
         ) : (
@@ -167,7 +169,7 @@ export default function Adopt() {
         <div className="flex justify-between items-center mt-8">
           <Link href="/profile" className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 transition-all">
             <Plus className="w-4 h-4" />
-            Add your pet to adopt!
+            {t("adopt.addPet")}
           </Link>
           <div className="flex gap-2">
             <button
@@ -175,14 +177,14 @@ export default function Adopt() {
               disabled={page === 1}
               className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
             >
-              <ChevronLeft className="w-5 h-5 text-gray-500" />
+              <ChevronLeft className="w-5 h-5 text-gray-500 rtl:rotate-180" />
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
               className="w-10 h-10 rounded-full bg-primary border border-primary flex items-center justify-center hover:bg-primary/90 transition-colors"
             >
-              <ChevronRight className="w-5 h-5 text-white" />
+              <ChevronRight className="w-5 h-5 text-white rtl:rotate-180" />
             </button>
           </div>
         </div>

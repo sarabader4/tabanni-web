@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Heart, Share2, ShieldCheck } from "lucide-react";
 import type { Pet } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface PetCardProps {
   pet: Pet;
@@ -13,6 +14,7 @@ interface PetCardProps {
 
 export function PetCard({ pet, onFavorite, isFavorited, isFavoritePending, variant = "adopt" }: PetCardProps) {
   const [, navigate] = useLocation();
+  const { t } = useTranslation();
 
   const imageUrl =
     pet.imageUrls?.[0] ||
@@ -76,7 +78,7 @@ export function PetCard({ pet, onFavorite, isFavorited, isFavoritePending, varia
                 ? "text-red-500 scale-110"
                 : "text-gray-400 hover:text-red-500",
             )}
-            aria-label="Favourite"
+            aria-label={t("petDetail.favourite")}
           >
             <Heart
               className={cn(
@@ -88,7 +90,7 @@ export function PetCard({ pet, onFavorite, isFavorited, isFavoritePending, varia
           <button
             onClick={handleShare}
             className="p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-400 hover:text-primary transition-all shadow-sm"
-            aria-label="Share"
+            aria-label={t("petDetail.share")}
           >
             <Share2 className="w-4 h-4" />
           </button>

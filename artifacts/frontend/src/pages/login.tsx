@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { PawPrint, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { useTranslation } from "react-i18next";
 
 export default function Login() {
   const [, navigate] = useLocation();
   const { login } = useAuth();
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +19,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     if (!email || !password) {
-      setError("Please fill in all fields.");
+      setError(t("login.fillFields"));
       return;
     }
     setIsLoading(true);
@@ -25,7 +27,7 @@ export default function Login() {
       await login(email, password);
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+      setError(err instanceof Error ? err.message : t("login.loginFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -42,11 +44,11 @@ export default function Login() {
             </div>
             <span className="font-bold text-2xl text-[#1E2A3A] tracking-tight">tabbani</span>
           </Link>
-          <p className="mt-3 text-[#1E2A3A]/60 text-sm">Welcome back! Sign in to continue.</p>
+          <p className="mt-3 text-[#1E2A3A]/60 text-sm">{t("login.welcome")}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h1 className="text-xl font-bold text-[#1E2A3A] mb-6">Sign In</h1>
+          <h1 className="text-xl font-bold text-[#1E2A3A] mb-6">{t("login.signIn")}</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -57,13 +59,13 @@ export default function Login() {
 
             <div>
               <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
-                Email Address
+                {t("login.emailAddress")}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t("login.placeholderEmail")}
                 className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
                 autoComplete="email"
                 disabled={isLoading}
@@ -72,7 +74,7 @@ export default function Login() {
 
             <div>
               <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
-                Password
+                {t("login.password")}
               </label>
               <div className="relative">
                 <input
@@ -87,7 +89,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1E2A3A] transition-colors"
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1E2A3A] transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -102,18 +104,18 @@ export default function Login() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Signing in...
+                  {t("login.signingIn")}
                 </>
               ) : (
-                "Sign In"
+                t("login.signIn")
               )}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-[#1E2A3A]/60">
-            Don't have an account?{" "}
+            {t("login.noAccount")}{" "}
             <Link href="/register" className="text-[#FF6B35] font-semibold hover:underline">
-              Sign Up
+              {t("login.signUp")}
             </Link>
           </p>
         </div>

@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 import AIPetMatchWidget from "@/components/ai-pet-match-widget";
 import { useFavourites } from "@/hooks/use-favourites";
 import { useAuth } from "@/contexts/auth-context";
+import { useTranslation } from "react-i18next";
 
 export default function PetDetail() {
   const { id } = useParams();
   const [, navigate] = useLocation();
   const { data: pet, isLoading } = useGetPet(Number(id));
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
   const { user } = useAuth();
 
@@ -22,13 +24,13 @@ export default function PetDetail() {
   const handleFavourite = async () => {
     if (!isLoggedIn) {
       navigate("/login");
-      toast({ title: "Please log in to save favourites." });
+      toast({ title: t("petDetail.pleaseLogin") });
       return;
     }
     const wasAdded = !favourited;
     await toggleFavourite(petId);
     toast({
-      title: wasAdded ? "Added to favourites!" : "Removed from favourites.",
+      title: wasAdded ? t("petDetail.addedToFav") : t("petDetail.removedFromFav"),
     });
   };
 
@@ -45,9 +47,9 @@ export default function PetDetail() {
     } else {
       try {
         await navigator.clipboard.writeText(url);
-        toast({ title: "Link copied!", description: "Pet page link copied to clipboard." });
+        toast({ title: t("petDetail.linkCopied"), description: t("petDetail.linkCopiedDesc") });
       } catch {
-        toast({ title: "Share", description: url });
+        toast({ title: t("petDetail.share"), description: url });
       }
     }
   };
@@ -55,13 +57,13 @@ export default function PetDetail() {
   const doAdopt = async () => {
     try {
       await adoptMutation.mutateAsync({ data: { petId: Number(id), message: "I would love to adopt this pet." } });
-      toast({ title: "Adoption request sent!", description: "The owner will contact you soon." });
+      toast({ title: t("petDetail.adoptionSent"), description: t("petDetail.ownerContact") });
     } catch (err: unknown) {
       const body = (err as { response?: { data?: { error?: string } } })?.response?.data;
       if (body?.error === "duplicate_request") {
-        toast({ title: "Request already exists", description: "You already have a request for this pet. Check My Requests in your profile.", variant: "destructive" });
+        toast({ title: t("petDetail.requestExists"), description: t("petDetail.requestExistsDesc"), variant: "destructive" });
       } else {
-        toast({ title: "Error", description: "Failed to send request. Please try again.", variant: "destructive" });
+        toast({ title: t("petDetail.error"), description: t("petDetail.failedRequest"), variant: "destructive" });
       }
     }
   };
@@ -69,21 +71,21 @@ export default function PetDetail() {
   const doFoster = async () => {
     try {
       await fosterMutation.mutateAsync({ data: { petId: Number(id), message: "I would love to foster this pet." } });
-      toast({ title: "Foster request sent!", description: "The owner will contact you soon." });
+      toast({ title: t("petDetail.fosterSent"), description: t("petDetail.ownerContact") });
     } catch (err: unknown) {
       const body = (err as { response?: { data?: { error?: string } } })?.response?.data;
       if (body?.error === "duplicate_request") {
-        toast({ title: "Request already exists", description: "You already have a request for this pet. Check My Requests in your profile.", variant: "destructive" });
+        toast({ title: t("petDetail.requestExists"), description: t("petDetail.requestExistsDesc"), variant: "destructive" });
       } else {
-        toast({ title: "Error", description: "Failed to send request. Please try again.", variant: "destructive" });
+        toast({ title: t("petDetail.error"), description: t("petDetail.failedRequest"), variant: "destructive" });
       }
     }
   };
 
   const handleAdopt = () => {
-    if (!user) { navigate("/login"); toast({ title: "Please log in first." }); return; }
+    if (!user) { navigate("/login"); toast({ title: t("petDetail.pleaseLoginFirst") }); return; }
     if (!user.isOnboardingCompleted) {
-      toast({ title: "Complete your Adoption Readiness form first", description: "Fill in your profile before sending a request." });
+      toast({ title: t("petDetail.completeForm"), description: t("petDetail.completeFormDesc") });
       navigate("/profile?tab=My+Requests&openForm=true");
       return;
     }
@@ -91,9 +93,9 @@ export default function PetDetail() {
   };
 
   const handleFoster = () => {
-    if (!user) { navigate("/login"); toast({ title: "Please log in first." }); return; }
+    if (!user) { navigate("/login"); toast({ title: t("petDetail.pleaseLoginFirst") }); return; }
     if (!user.isOnboardingCompleted) {
-      toast({ title: "Complete your Adoption Readiness form first", description: "Fill in your profile before sending a request." });
+      toast({ title: t("petDetail.completeForm"), description: t("petDetail.completeFormDesc") });
       navigate("/profile?tab=My+Requests&openForm=true");
       return;
     }
@@ -107,19 +109,19 @@ export default function PetDetail() {
   if (!pet) {
     return (
       <div className="max-w-3xl mx-auto text-center py-20">
-        <h2 className="text-3xl font-display font-bold mb-4">Pet Not Found</h2>
-        <Link href="/adopt" className="text-primary hover:underline">Back to pets</Link>
+        <h2 className="text-3xl font-display font-bold mb-4">{t("petDetail.petNotFound")}</h2>
+        <Link href="/adopt" className="text-primary hover:underline">{t("petDetail.backToPets")}</Link>
       </div>
     );
   }
 
-  const ownerName = pet.addedByAdmin ? "Tabanni Group" : (pet.ownerName || "Unknown");
+  const ownerName = pet.addedByAdmin ? t("petDetail.tabbanniGroup") : (pet.ownerName || t("petDetail.unknown"));
   const ownerPhone = pet.ownerPhone;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Link href="/adopt" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground font-medium mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to list
+        <ArrowLeft className="w-4 h-4 rtl:rotate-180" /> {t("petDetail.backToList")}
       </Link>
 
       <div className="grid lg:grid-cols-2 gap-12">
@@ -144,9 +146,9 @@ export default function PetDetail() {
 
           {/* Pet Story */}
           <div className="bg-card border border-border p-6 rounded-3xl">
-            <h3 className="font-display font-bold text-xl mb-3">Pet Story</h3>
+            <h3 className="font-display font-bold text-xl mb-3">{t("petDetail.petStory")}</h3>
             <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {pet.story || `${pet.name} is looking for a loving home. Be the one to give them a second chance!`}
+              {pet.story || t("petDetail.storyFallback", { name: pet.name })}
             </p>
           </div>
 
@@ -154,20 +156,20 @@ export default function PetDetail() {
           <div className="bg-card border border-border p-6 rounded-3xl">
             <div className="flex items-center gap-2 mb-4">
               <Lightbulb className="w-5 h-5 text-amber-500" />
-              <h3 className="font-display font-bold text-xl">General Tips</h3>
+              <h3 className="font-display font-bold text-xl">{t("petDetail.generalTips")}</h3>
             </div>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
-                <span className="text-muted-foreground">Meet in a public, safe location</span>
+                <span className="text-muted-foreground">{t("petDetail.tip1")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
-                <span className="text-muted-foreground">Interact with the pet calmly</span>
+                <span className="text-muted-foreground">{t("petDetail.tip2")}</span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
-                <span className="text-muted-foreground">Check the pet's records</span>
+                <span className="text-muted-foreground">{t("petDetail.tip3")}</span>
               </li>
             </ul>
           </div>
@@ -181,11 +183,11 @@ export default function PetDetail() {
               {pet.type}
             </span>
             <span className="px-3 py-1 bg-muted text-muted-foreground font-bold text-sm rounded-full capitalize">
-              {pet.breed || "Mixed"}
+              {pet.breed || t("petDetail.mixed")}
             </span>
             {pet.purpose === "foster" && (
               <span className="px-3 py-1 bg-secondary/10 text-secondary font-bold text-sm rounded-full">
-                Needs Foster
+                {t("petDetail.needsFoster")}
               </span>
             )}
           </div>
@@ -199,7 +201,7 @@ export default function PetDetail() {
               <button
                 onClick={handleShare}
                 className="p-3 rounded-full bg-muted/50 hover:bg-blue-50 text-muted-foreground hover:text-blue-500 transition-colors"
-                aria-label="Share"
+                aria-label={t("petDetail.share")}
               >
                 <Share2 className="w-6 h-6" />
               </button>
@@ -212,7 +214,7 @@ export default function PetDetail() {
                     ? "bg-red-50 text-red-500 scale-110"
                     : "bg-muted/50 hover:bg-red-50 text-muted-foreground hover:text-red-500",
                 )}
-                aria-label="Favourite"
+                aria-label={t("petDetail.favourite")}
               >
                 <Heart
                   className={cn(
@@ -227,37 +229,37 @@ export default function PetDetail() {
           {/* Pet info grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             <div className="bg-card border border-border p-4 rounded-2xl flex flex-col gap-1 text-center">
-              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Gender</span>
+              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">{t("petDetail.gender")}</span>
               <span className="font-bold text-foreground capitalize">{pet.gender}</span>
             </div>
             <div className="bg-card border border-border p-4 rounded-2xl flex flex-col gap-1 text-center">
-              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Age</span>
-              <span className="font-bold text-foreground">{Math.floor(pet.ageMonths / 12)}y {pet.ageMonths % 12}m</span>
+              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">{t("petDetail.age")}</span>
+              <span className="font-bold text-foreground">{Math.floor(pet.ageMonths / 12)}{t("petDetail.ageYearShort")} {pet.ageMonths % 12}{t("petDetail.ageMonthShort")}</span>
             </div>
             <div className="bg-card border border-border p-4 rounded-2xl flex flex-col gap-1 text-center">
-              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Size</span>
+              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">{t("petDetail.size")}</span>
               <span className="font-bold text-foreground capitalize">{pet.size}</span>
             </div>
             <div className="bg-card border border-border p-4 rounded-2xl flex flex-col gap-1 text-center">
-              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Location</span>
+              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">{t("petDetail.location")}</span>
               <span className="font-bold text-foreground">{pet.city}</span>
             </div>
           </div>
 
           {/* Health & Care */}
           <div className="bg-card border border-border p-6 rounded-3xl mb-6 space-y-4">
-            <h3 className="font-display font-bold text-xl">Health & Care</h3>
+            <h3 className="font-display font-bold text-xl">{t("petDetail.healthCare")}</h3>
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className={cn("w-5 h-5", pet.sterilized ? "text-secondary" : "text-muted-foreground")} />
                 <span className={pet.sterilized ? "text-foreground font-medium" : "text-muted-foreground"}>
-                  {pet.sterilized ? "Sterilized / Neutered" : "Not Sterilized"}
+                  {pet.sterilized ? t("petDetail.sterilized") : t("petDetail.notSterilized")}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <CheckCircle2 className={cn("w-5 h-5", pet.yearlyVaccines ? "text-secondary" : "text-muted-foreground")} />
                 <span className={pet.yearlyVaccines ? "text-foreground font-medium" : "text-muted-foreground"}>
-                  {pet.yearlyVaccines ? "Up to date on vaccinations" : "Needs vaccinations"}
+                  {pet.yearlyVaccines ? t("petDetail.upToDateVaccines") : t("petDetail.needsVaccines")}
                 </span>
               </div>
             </div>
@@ -271,7 +273,7 @@ export default function PetDetail() {
                 disabled={adoptMutation.isPending}
                 className="flex-1 bg-primary hover:bg-primary/90 text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 disabled:opacity-50"
               >
-                {adoptMutation.isPending ? "Sending..." : "Request for Adoption"}
+                {adoptMutation.isPending ? t("petDetail.sending") : t("petDetail.requestAdoption")}
               </button>
             )}
             {(pet.purpose === "foster" || pet.purpose === "both") && (
@@ -280,14 +282,14 @@ export default function PetDetail() {
                 disabled={fosterMutation.isPending}
                 className="flex-1 bg-secondary hover:bg-secondary/90 text-white py-4 rounded-2xl font-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 disabled:opacity-50"
               >
-                {fosterMutation.isPending ? "Sending..." : "Request for Foster"}
+                {fosterMutation.isPending ? t("petDetail.sending") : t("petDetail.requestFoster")}
               </button>
             )}
           </div>
 
           {/* Owner Info */}
           <div className="bg-card border border-border p-6 rounded-3xl">
-            <h3 className="font-display font-bold text-xl mb-4">Owner Info</h3>
+            <h3 className="font-display font-bold text-xl mb-4">{t("petDetail.ownerInfo")}</h3>
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <User className="w-5 h-5 text-muted-foreground shrink-0" />

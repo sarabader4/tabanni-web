@@ -9,6 +9,8 @@ import {
 } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 
 interface PetNotification {
   id: number;
@@ -26,7 +28,7 @@ function useGetMyNotifications() {
     queryKey: ["/api/users/me/notifications"],
     queryFn: async () => {
       const res = await fetch("/api/users/me/notifications", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch notifications");
+      if (!res.ok) throw new Error(i18next.t("profile.failedFetchNotifications"));
       return res.json();
     },
   });
@@ -40,7 +42,7 @@ function useMarkNotificationRead() {
         method: "PATCH",
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to mark as read");
+      if (!res.ok) throw new Error(i18next.t("profile.failedMarkRead"));
       return res.json();
     },
     onSuccess: () => {
@@ -103,7 +105,7 @@ function useGetIncomingAdoptionRequests() {
     queryKey: ["/api/adoption-requests/incoming"],
     queryFn: async () => {
       const res = await fetch("/api/adoption-requests/incoming", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch incoming adoption requests");
+      if (!res.ok) throw new Error(i18next.t("profile.failedFetchIncomingAdoption"));
       return res.json();
     },
   });
@@ -114,7 +116,7 @@ function useGetIncomingFosterRequests() {
     queryKey: ["/api/foster-requests/incoming"],
     queryFn: async () => {
       const res = await fetch("/api/foster-requests/incoming", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch incoming foster requests");
+      if (!res.ok) throw new Error(i18next.t("profile.failedFetchIncomingFoster"));
       return res.json();
     },
   });
@@ -130,7 +132,7 @@ function useUpdateAdoptionRequestStatus() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error("Failed to update adoption request status");
+      if (!res.ok) throw new Error(i18next.t("profile.failedUpdateAdoptionStatus"));
       return res.json();
     },
     onSuccess: () => {
@@ -149,7 +151,7 @@ function useUpdateFosterRequestStatus() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error("Failed to update foster request status");
+      if (!res.ok) throw new Error(i18next.t("profile.failedUpdateFosterStatus"));
       return res.json();
     },
     onSuccess: () => {
@@ -166,7 +168,7 @@ function useDeleteAdoptionRequest() {
         method: "DELETE",
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to delete adoption request");
+      if (!res.ok) throw new Error(i18next.t("profile.failedDeleteAdoption"));
       return res.json();
     },
     onSuccess: () => {
@@ -183,7 +185,7 @@ function useDeleteFosterRequest() {
         method: "DELETE",
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to delete foster request");
+      if (!res.ok) throw new Error(i18next.t("profile.failedDeleteFoster"));
       return res.json();
     },
     onSuccess: () => {
@@ -202,7 +204,7 @@ function useUpdateAdoptionRequest() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
-      if (!res.ok) throw new Error("Failed to update adoption request");
+      if (!res.ok) throw new Error(i18next.t("profile.failedUpdateAdoption"));
       return res.json();
     },
     onSuccess: () => {
@@ -221,7 +223,7 @@ function useUpdateFosterRequest() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
-      if (!res.ok) throw new Error("Failed to update foster request");
+      if (!res.ok) throw new Error(i18next.t("profile.failedUpdateFoster"));
       return res.json();
     },
     onSuccess: () => {
@@ -240,6 +242,7 @@ interface RequesterProfileModalProps {
 }
 
 function RequesterProfileModal({ request, requestType, onClose, onAccept, onReject, isLoading }: RequesterProfileModalProps) {
+  const { t } = useTranslation();
   const profile = request.requesterProfile;
 
   return (
@@ -247,9 +250,9 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-[#1E2A3A]">Adoption Readiness — {request.requesterName || "Requester"}</h2>
+            <h2 className="text-lg font-bold text-[#1E2A3A]">{t("profile.adoptionReadinessTitle")} — {request.requesterName || t("profile.requester")}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              {requestType === "adoption" ? "Adoption" : "Foster"} request for {request.petName}
+              {requestType === "adoption" ? t("profile.adoption") : t("profile.foster")} {t("profile.requestFor")} {request.petName}
             </p>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
@@ -266,47 +269,47 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
               className="w-12 h-12 rounded-xl object-cover shrink-0"
             />
             <div>
-              <p className="text-xs font-semibold text-blue-600 mb-0.5 uppercase tracking-wide">Pet Requested</p>
-              <p className="font-bold text-sm text-[#1E2A3A]">{request.petName || "Unknown Pet"}</p>
-              <p className="text-xs text-gray-500 capitalize">{requestType === "adoption" ? "Adoption" : "Foster"} request</p>
+              <p className="text-xs font-semibold text-blue-600 mb-0.5 uppercase tracking-wide">{t("profile.petRequested")}</p>
+              <p className="font-bold text-sm text-[#1E2A3A]">{request.petName || t("profile.unknownPet")}</p>
+              <p className="text-xs text-gray-500 capitalize">{requestType === "adoption" ? t("profile.adoption") : t("profile.foster")} {t("profile.requestFor")}</p>
             </div>
           </div>
 
           {request.message && (
             <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
-              <p className="text-xs font-semibold text-orange-700 mb-1">Message from requester</p>
+              <p className="text-xs font-semibold text-orange-700 mb-1">{t("profile.messageFromRequester")}</p>
               <p className="text-sm text-gray-700">{request.message}</p>
             </div>
           )}
 
           {!profile ? (
             <div className="text-center py-8 text-gray-400">
-              <p className="text-sm">No adoption readiness profile found for this requester.</p>
+              <p className="text-sm">{t("profile.noReadinessProfile")}</p>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
               {[
-                ["Area of Residence", profile.areaOfResidence],
-                ["Home Address", profile.homeAddress],
-                ["Occupation", profile.occupation],
-                ["Age", String(profile.age)],
-                ["Main Caregiver", profile.mainCaregiver],
-                ["Home Type", profile.homeType],
-                ["Ownership Type", profile.ownershipType],
-                ["Yard / Outdoor Space", profile.yardType],
-                ["Number of Children", String(profile.childrenCount)],
-                ["Household Objection", profile.householdObjection],
-                ["Daytime Pet Location", profile.dayLocation],
-                ["Nighttime Pet Location", profile.nightLocation],
-                ["Exercise Hours / Day", `${profile.exerciseHours} hr${profile.exerciseHours !== 1 ? "s" : ""}`],
-                ["Current Pets", profile.currentPets || "None"],
-                ["Monthly Cost Estimate", `${profile.monthlyCostEstimation} JD`],
-                ["Financial Responsibility", profile.financialResponsibility],
-                ["Breeding Intention", profile.breedingIntention],
-                ["Spay/Neuter Commitment", profile.spayNeuterCommitment ? "Yes" : "No"],
-                ["Behavior Tolerance", profile.behaviorTolerance || "—"],
-                ["Trauma Handling Comfort", profile.traumaHandlingComfort || "—"],
-                ["Allergies", profile.allergies || "None"],
+                [t("profile.areaOfResidence"), profile.areaOfResidence],
+                [t("profile.homeAddress"), profile.homeAddress],
+                [t("profile.occupation"), profile.occupation],
+                [t("petDetail.age"), String(profile.age)],
+                [t("profile.mainCaregiver"), profile.mainCaregiver],
+                [t("profile.homeType"), profile.homeType],
+                [t("profile.ownershipType"), profile.ownershipType],
+                [t("profile.yardOutdoorSpace"), profile.yardType],
+                [t("profile.numberOfChildren"), String(profile.childrenCount)],
+                [t("profile.householdObjection"), profile.householdObjection],
+                [t("profile.daytimePetLocation"), profile.dayLocation],
+                [t("profile.nighttimePetLocation"), profile.nightLocation],
+                [t("profile.exerciseHoursDay"), `${profile.exerciseHours} hr${profile.exerciseHours !== 1 ? "s" : ""}`],
+                [t("profile.currentPets"), profile.currentPets || "—"],
+                [t("profile.monthlyCostEstimate"), `${profile.monthlyCostEstimation} JD`],
+                [t("profile.financialResponsibility"), profile.financialResponsibility],
+                [t("profile.breedingIntention"), profile.breedingIntention],
+                [t("profile.spayNeuterCommitment"), profile.spayNeuterCommitment ? t("common.yes") : t("common.no")],
+                [t("profile.behaviorTolerance"), profile.behaviorTolerance || "—"],
+                [t("profile.traumaHandlingComfort"), profile.traumaHandlingComfort || "—"],
+                [t("profile.allergies"), profile.allergies || "—"],
               ].map(([label, value]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
@@ -315,29 +318,29 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
               ))}
 
               <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                <p className="text-xs font-semibold text-gray-500 mb-0.5">Adoption Reason</p>
+                <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.adoptionReason")}</p>
                 <p className="text-sm text-[#1E2A3A]">{profile.adoptionReason}</p>
               </div>
               <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                <p className="text-xs font-semibold text-gray-500 mb-0.5">Daily Care Plan</p>
+                <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.dailyCarePlan")}</p>
                 <p className="text-sm text-[#1E2A3A]">{profile.dailyCarePlan}</p>
               </div>
               {profile.previousPetExperience && (
                 <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-gray-500 mb-0.5">Previous Pet Experience</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.previousPetExperience")}</p>
                   <p className="text-sm text-[#1E2A3A]">{profile.previousPetExperience}</p>
                 </div>
               )}
               {profile.travelPlan && (
                 <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-gray-500 mb-0.5">Travel Plan</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.travelPlan")}</p>
                   <p className="text-sm text-[#1E2A3A]">{profile.travelPlan}</p>
                 </div>
               )}
 
               {(profile.activities?.length ?? 0) > 0 && (
                 <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">Activities</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">{t("profile.activities")}</p>
                   <div className="flex flex-wrap gap-1">
                     {profile.activities?.map(a => (
                       <span key={a} className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">{a}</span>
@@ -347,7 +350,7 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
               )}
               {(profile.petPreferences?.length ?? 0) > 0 && (
                 <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">Pet Preferences</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">{t("profile.petPreferences")}</p>
                   <div className="flex flex-wrap gap-1">
                     {profile.petPreferences?.map(p => (
                       <span key={p} className="px-2 py-0.5 bg-secondary/10 text-secondary rounded-full text-xs font-medium">{p}</span>
@@ -357,10 +360,10 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
               )}
               {(profile.trainingExpectations?.length ?? 0) > 0 && (
                 <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">Training Expectations</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">{t("profile.trainingExpectations")}</p>
                   <div className="flex flex-wrap gap-1">
-                    {profile.trainingExpectations?.map(t => (
-                      <span key={t} className="px-2 py-0.5 bg-[#1E2A3A]/10 text-[#1E2A3A] rounded-full text-xs font-medium">{t}</span>
+                    {profile.trainingExpectations?.map(exp => (
+                      <span key={exp} className="px-2 py-0.5 bg-[#1E2A3A]/10 text-[#1E2A3A] rounded-full text-xs font-medium">{exp}</span>
                     ))}
                   </div>
                 </div>
@@ -376,21 +379,21 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
               disabled={isLoading}
               className="flex-1 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Reject"}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : t("profile.reject")}
             </button>
             <button
               onClick={onAccept}
               disabled={isLoading}
               className="flex-1 py-2.5 bg-green-500 text-white rounded-xl text-sm font-semibold hover:bg-green-600 transition-colors disabled:opacity-50"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Accept"}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : t("profile.accept")}
             </button>
           </div>
         )}
         {request.status !== "pending" && (
           <div className="p-5 border-t border-gray-100 shrink-0 text-center">
             <StatusBadge status={request.status} />
-            <p className="text-xs text-gray-400 mt-2">This request has already been {request.status}.</p>
+            <p className="text-xs text-gray-400 mt-2">{t("profile.requestAlreadyProcessed")} {request.status}.</p>
           </div>
         )}
       </div>
@@ -399,6 +402,7 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
 }
 
 function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [profileData, setProfileData] = useState<ReadinessFormData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -457,26 +461,26 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
       <button
         onClick={() => setIsExpanded(v => !v)}
-        className="w-full flex items-center gap-4 p-4 hover:bg-gray-50/70 transition-colors text-left"
+        className="w-full flex items-center gap-4 p-4 hover:bg-gray-50/70 transition-colors text-start"
       >
         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
           <ClipboardList className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-[#1E2A3A]">Adoption Readiness Profile</p>
+          <p className="font-bold text-sm text-[#1E2A3A]">{t("profile.adoptionReadiness")}</p>
           <p className="text-xs text-gray-500 mt-0.5">
-            {loading ? "Loading…" : isComplete ? "Your profile is complete" : "Click to view or update your profile"}
+            {loading ? t("common.loading") : isComplete ? t("profile.readinessCompleted") : t("profile.viewReadinessProfile")}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {profileData && (
             isComplete ? (
               <span className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
-                <CheckCircle2 className="w-3 h-3" /> Complete
+                <CheckCircle2 className="w-3 h-3" /> {t("profile.complete")}
               </span>
             ) : (
               <span className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">
-                <Clock className="w-3 h-3" /> Incomplete
+                <Clock className="w-3 h-3" /> {t("profile.incomplete")}
               </span>
             )
           )}
@@ -493,40 +497,40 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
           ) : !profileData?.areaOfResidence ? (
             <div className="text-center py-8 text-gray-400">
               <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm text-[#1E2A3A] font-semibold mb-1">Profile not filled yet</p>
-              <p className="text-xs mb-4">Fill in your readiness profile so shelters can review your application.</p>
+              <p className="text-sm text-[#1E2A3A] font-semibold mb-1">{t("profile.readinessNotCompleted")}</p>
+              <p className="text-xs mb-4">{t("profile.viewReadinessProfile")}</p>
               <button
                 onClick={onEdit}
                 className="px-5 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors"
               >
-                Fill Out Profile
+                {t("profile.editReadinessProfile")}
               </button>
             </div>
           ) : (
             <>
               <div className="grid sm:grid-cols-2 gap-3 text-sm mb-5">
                 {([
-                  ["Area of Residence", profileData.areaOfResidence],
-                  ["Home Address", profileData.homeAddress],
-                  ["Occupation", profileData.occupation],
-                  ["Age", profileData.age],
-                  ["Main Caregiver", profileData.mainCaregiver],
-                  ["Home Type", profileData.homeType],
-                  ["Ownership Type", profileData.ownershipType],
-                  ["Yard / Outdoor Space", profileData.yardType],
-                  ["Number of Children", profileData.childrenCount],
-                  ["Household Objection", profileData.householdObjection],
-                  ["Daytime Pet Location", profileData.dayLocation],
-                  ["Nighttime Pet Location", profileData.nightLocation],
-                  ["Exercise Hours / Day", profileData.exerciseHours ? `${profileData.exerciseHours} hrs` : ""],
-                  ["Current Pets", profileData.currentPets || "None"],
-                  ["Monthly Cost Estimate", profileData.monthlyCostEstimation ? `${profileData.monthlyCostEstimation} JD` : ""],
-                  ["Financial Responsibility", profileData.financialResponsibility],
-                  ["Breeding Intention", profileData.breedingIntention],
-                  ["Spay/Neuter Commitment", profileData.spayNeuterCommitment ? "Yes" : "No"],
-                  ["Allergies", profileData.allergies || "None"],
-                  ["Behavior Tolerance", profileData.behaviorTolerance || "—"],
-                  ["Trauma Handling", profileData.traumaHandlingComfort || "—"],
+                  [t("profile.areaOfResidence"), profileData.areaOfResidence],
+                  [t("profile.homeAddress"), profileData.homeAddress],
+                  [t("profile.occupation"), profileData.occupation],
+                  [t("petDetail.age"), profileData.age],
+                  [t("profile.mainCaregiver"), profileData.mainCaregiver],
+                  [t("profile.homeType"), profileData.homeType],
+                  [t("profile.ownershipType"), profileData.ownershipType],
+                  [t("profile.yardOutdoorSpace"), profileData.yardType],
+                  [t("profile.numberOfChildren"), profileData.childrenCount],
+                  [t("profile.householdObjection"), profileData.householdObjection],
+                  [t("profile.daytimePetLocation"), profileData.dayLocation],
+                  [t("profile.nighttimePetLocation"), profileData.nightLocation],
+                  [t("profile.exerciseHoursDay"), profileData.exerciseHours ? `${profileData.exerciseHours} hrs` : ""],
+                  [t("profile.currentPets"), profileData.currentPets || "—"],
+                  [t("profile.monthlyCostEstimate"), profileData.monthlyCostEstimation ? `${profileData.monthlyCostEstimation} JD` : ""],
+                  [t("profile.financialResponsibility"), profileData.financialResponsibility],
+                  [t("profile.breedingIntention"), profileData.breedingIntention],
+                  [t("profile.spayNeuterCommitment"), profileData.spayNeuterCommitment ? t("common.yes") : t("common.no")],
+                  [t("profile.allergies"), profileData.allergies || "—"],
+                  [t("profile.behaviorTolerance"), profileData.behaviorTolerance || "—"],
+                  [t("profile.traumaHandlingComfort"), profileData.traumaHandlingComfort || "—"],
                 ] as [string, string][]).filter(([, v]) => v).map(([label, value]) => (
                   <div key={label} className="bg-gray-50 rounded-xl p-3">
                     <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
@@ -536,25 +540,25 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
 
                 {profileData.adoptionReason && (
                   <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Adoption Reason</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.adoptionReason")}</p>
                     <p className="text-sm text-[#1E2A3A]">{profileData.adoptionReason}</p>
                   </div>
                 )}
                 {profileData.dailyCarePlan && (
                   <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Daily Care Plan</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.dailyCarePlan")}</p>
                     <p className="text-sm text-[#1E2A3A]">{profileData.dailyCarePlan}</p>
                   </div>
                 )}
                 {profileData.previousPetExperience && (
                   <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Previous Pet Experience</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.previousPetExperience")}</p>
                     <p className="text-sm text-[#1E2A3A]">{profileData.previousPetExperience}</p>
                   </div>
                 )}
                 {(profileData.activities?.length ?? 0) > 0 && (
                   <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">Activities</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-2">{t("profile.activities")}</p>
                     <div className="flex flex-wrap gap-1">
                       {profileData.activities.map(a => (
                         <span key={a} className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">{a}</span>
@@ -564,7 +568,7 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
                 )}
                 {(profileData.petPreferences?.length ?? 0) > 0 && (
                   <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">Pet Preferences</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-2">{t("profile.petPreferences")}</p>
                     <div className="flex flex-wrap gap-1">
                       {profileData.petPreferences.map(p => (
                         <span key={p} className="px-2 py-0.5 bg-secondary/10 text-secondary rounded-full text-xs font-medium">{p}</span>
@@ -574,10 +578,10 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
                 )}
                 {(profileData.trainingExpectations?.length ?? 0) > 0 && (
                   <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">Training Expectations</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-2">{t("profile.trainingExpectations")}</p>
                     <div className="flex flex-wrap gap-1">
-                      {profileData.trainingExpectations.map(t => (
-                        <span key={t} className="px-2 py-0.5 bg-[#1E2A3A]/10 text-[#1E2A3A] rounded-full text-xs font-medium">{t}</span>
+                      {profileData.trainingExpectations.map(exp => (
+                        <span key={exp} className="px-2 py-0.5 bg-[#1E2A3A]/10 text-[#1E2A3A] rounded-full text-xs font-medium">{exp}</span>
                       ))}
                     </div>
                   </div>
@@ -588,7 +592,7 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
                   onClick={onEdit}
                   className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors"
                 >
-                  <Edit2 className="w-4 h-4" /> Edit Profile
+                  <Edit2 className="w-4 h-4" /> {t("profile.editReadinessProfile")}
                 </button>
               </div>
             </>
@@ -618,20 +622,20 @@ function PetDetailModal({ request, requestType, onClose }: { request: MyRequestI
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
+            className="absolute top-3 end-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
           >
             <X className="w-4 h-4 text-gray-700" />
           </button>
-          <div className="absolute bottom-3 left-4">
+          <div className="absolute bottom-3 start-4">
             <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${requestType === "adoption" ? "bg-primary" : "bg-secondary"}`}>
-              {requestType === "adoption" ? "Adoption" : "Foster"} Request
+              {requestType === "adoption" ? t("profile.adoptionRequestLabel") : t("profile.fosterRequestLabel")}
             </span>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5">
           <div className="flex items-start justify-between gap-3 mb-3">
-            <h2 className="text-xl font-bold text-[#1E2A3A]">{request.petName || "Unknown Pet"}</h2>
+            <h2 className="text-xl font-bold text-[#1E2A3A]">{request.petName || t("profile.unknownPet")}</h2>
             <StatusBadge status={request.status} />
           </div>
 
@@ -695,26 +699,48 @@ interface MyRequestItem {
   createdAt: string;
 }
 
-const ACTIVITY_OPTIONS_MODAL = [
-  "Morning walks", "Evening runs", "Hiking", "Swimming", "Dog park visits",
-  "Training sessions", "Playtime indoors", "Agility sports", "Camping", "Road trips",
+const ACTIVITY_OPTION_KEYS: { value: string; key: string }[] = [
+  { value: "Morning walks", key: "profile.actMorningWalks" },
+  { value: "Evening runs", key: "profile.actEveningRuns" },
+  { value: "Hiking", key: "profile.actHiking" },
+  { value: "Swimming", key: "profile.actSwimming" },
+  { value: "Dog park visits", key: "profile.actDogPark" },
+  { value: "Training sessions", key: "profile.actTrainingSessions" },
+  { value: "Playtime indoors", key: "profile.actPlaytimeIndoors" },
+  { value: "Agility sports", key: "profile.actAgilitySports" },
+  { value: "Camping", key: "profile.actCamping" },
+  { value: "Road trips", key: "profile.actRoadTrips" },
 ];
-const PET_PREFERENCE_OPTIONS_MODAL = [
-  "Dogs", "Cats", "Rabbits", "Birds", "Small animals",
-  "Senior pets", "Puppies/kittens", "Mixed breeds", "Purebreds", "Special needs pets",
+const PET_PREFERENCE_OPTION_KEYS: { value: string; key: string }[] = [
+  { value: "Dogs", key: "profile.prefDogs" },
+  { value: "Cats", key: "profile.prefCats" },
+  { value: "Rabbits", key: "profile.prefRabbits" },
+  { value: "Birds", key: "profile.prefBirds" },
+  { value: "Small animals", key: "profile.prefSmallAnimals" },
+  { value: "Senior pets", key: "profile.prefSeniorPets" },
+  { value: "Puppies/kittens", key: "profile.prefPuppiesKittens" },
+  { value: "Mixed breeds", key: "profile.prefMixedBreeds" },
+  { value: "Purebreds", key: "profile.prefPurebreds" },
+  { value: "Special needs pets", key: "profile.prefSpecialNeeds" },
 ];
-const TRAINING_EXPECTATION_OPTIONS_MODAL = [
-  "Basic obedience", "House training", "Leash training", "Socialization",
-  "Advanced commands", "Behavioral correction", "Agility training", "No training expected",
+const TRAINING_EXPECTATION_OPTION_KEYS: { value: string; key: string }[] = [
+  { value: "Basic obedience", key: "profile.trainBasicObedience" },
+  { value: "House training", key: "profile.trainHouseTraining" },
+  { value: "Leash training", key: "profile.trainLeashTraining" },
+  { value: "Socialization", key: "profile.trainSocialization" },
+  { value: "Advanced commands", key: "profile.trainAdvancedCommands" },
+  { value: "Behavioral correction", key: "profile.trainBehavioralCorrection" },
+  { value: "Agility training", key: "profile.trainAgilityTraining" },
+  { value: "No training expected", key: "profile.trainNoTraining" },
 ];
 
 const READINESS_STEPS = [
-  { title: "Personal Info", fields: ["areaOfResidence", "homeAddress", "occupation", "age", "mainCaregiver"] },
-  { title: "Home & Lifestyle", fields: ["homeType", "ownershipType", "yardType", "childrenCount", "householdObjection"] },
-  { title: "Pet Care", fields: ["dayLocation", "nightLocation", "exerciseHours", "currentPets", "previousPetExperience"] },
-  { title: "Adoption Intent", fields: ["adoptionReason", "financialResponsibility", "monthlyCostEstimation", "breedingIntention", "spayNeuterCommitment"] },
-  { title: "Activities & Preferences", fields: ["activities", "petPreferences", "trainingExpectations"] },
-  { title: "Commitments", fields: ["allergies", "behaviorTolerance", "traumaHandlingComfort", "dailyCarePlan", "travelPlan", "confirmed"] },
+  { title: "profile.stepPersonalInfo", fields: ["areaOfResidence", "homeAddress", "occupation", "age", "mainCaregiver"] },
+  { title: "profile.stepHomeLifestyle", fields: ["homeType", "ownershipType", "yardType", "childrenCount", "householdObjection"] },
+  { title: "profile.stepPetCare", fields: ["dayLocation", "nightLocation", "exerciseHours", "currentPets", "previousPetExperience"] },
+  { title: "profile.stepAdoptionIntent", fields: ["adoptionReason", "financialResponsibility", "monthlyCostEstimation", "breedingIntention", "spayNeuterCommitment"] },
+  { title: "profile.stepActivitiesPrefs", fields: ["activities", "petPreferences", "trainingExpectations"] },
+  { title: "profile.stepCommitments", fields: ["allergies", "behaviorTolerance", "traumaHandlingComfort", "dailyCarePlan", "travelPlan", "confirmed"] },
 ];
 
 interface ReadinessFormData {
@@ -751,40 +777,41 @@ interface ReadinessFormData {
 
 type ReadinessFormErrors = Partial<Record<keyof ReadinessFormData, string>>;
 
-function validateReadinessStep(step: number, form: ReadinessFormData): ReadinessFormErrors {
+function validateReadinessStep(step: number, form: ReadinessFormData, t: (key: string) => string): ReadinessFormErrors {
   const errors: ReadinessFormErrors = {};
+  const req = t("profile.errRequired");
   if (step === 0) {
-    if (!form.areaOfResidence.trim()) errors.areaOfResidence = "Required";
-    if (!form.homeAddress.trim()) errors.homeAddress = "Required";
-    if (!form.occupation.trim()) errors.occupation = "Required";
-    if (!form.age || Number(form.age) < 18) errors.age = "Must be at least 18";
-    if (!form.mainCaregiver.trim()) errors.mainCaregiver = "Required";
+    if (!form.areaOfResidence.trim()) errors.areaOfResidence = req;
+    if (!form.homeAddress.trim()) errors.homeAddress = req;
+    if (!form.occupation.trim()) errors.occupation = req;
+    if (!form.age || Number(form.age) < 18) errors.age = t("profile.errAge18");
+    if (!form.mainCaregiver.trim()) errors.mainCaregiver = req;
   }
   if (step === 1) {
-    if (!form.homeType) errors.homeType = "Required";
-    if (!form.ownershipType) errors.ownershipType = "Required";
-    if (!form.yardType) errors.yardType = "Required";
-    if (!form.householdObjection) errors.householdObjection = "Required";
+    if (!form.homeType) errors.homeType = req;
+    if (!form.ownershipType) errors.ownershipType = req;
+    if (!form.yardType) errors.yardType = req;
+    if (!form.householdObjection) errors.householdObjection = req;
   }
   if (step === 2) {
-    if (!form.dayLocation.trim()) errors.dayLocation = "Required";
-    if (!form.nightLocation.trim()) errors.nightLocation = "Required";
-    if (form.exerciseHours === "" || Number(form.exerciseHours) < 0) errors.exerciseHours = "Required";
+    if (!form.dayLocation.trim()) errors.dayLocation = req;
+    if (!form.nightLocation.trim()) errors.nightLocation = req;
+    if (form.exerciseHours === "" || Number(form.exerciseHours) < 0) errors.exerciseHours = req;
   }
   if (step === 3) {
-    if (!form.adoptionReason.trim()) errors.adoptionReason = "Required";
-    if (!form.financialResponsibility.trim()) errors.financialResponsibility = "Required";
-    if (form.monthlyCostEstimation === "" || Number(form.monthlyCostEstimation) < 0) errors.monthlyCostEstimation = "Required";
-    if (!form.breedingIntention) errors.breedingIntention = "Required";
+    if (!form.adoptionReason.trim()) errors.adoptionReason = req;
+    if (!form.financialResponsibility.trim()) errors.financialResponsibility = req;
+    if (form.monthlyCostEstimation === "" || Number(form.monthlyCostEstimation) < 0) errors.monthlyCostEstimation = req;
+    if (!form.breedingIntention) errors.breedingIntention = req;
   }
   if (step === 4) {
-    if (form.activities.length === 0) errors.activities = "Select at least one activity";
-    if (form.petPreferences.length === 0) errors.petPreferences = "Select at least one preference";
-    if (form.trainingExpectations.length === 0) errors.trainingExpectations = "Select at least one training expectation";
+    if (form.activities.length === 0) errors.activities = t("profile.errSelectActivity");
+    if (form.petPreferences.length === 0) errors.petPreferences = t("profile.errSelectPreference");
+    if (form.trainingExpectations.length === 0) errors.trainingExpectations = t("profile.errSelectTraining");
   }
   if (step === 5) {
-    if (!form.dailyCarePlan.trim()) errors.dailyCarePlan = "Required";
-    if (!form.confirmed) errors.confirmed = "You must confirm to proceed";
+    if (!form.dailyCarePlan.trim()) errors.dailyCarePlan = req;
+    if (!form.confirmed) errors.confirmed = t("profile.errConfirm");
   }
   return errors;
 }
@@ -801,6 +828,7 @@ interface MyRequestDetailModalProps {
 }
 
 function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRequestDetailModalProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
@@ -888,7 +916,7 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
 
   const handleNext = () => {
     if (!profileForm) return;
-    const errs = validateReadinessStep(step, profileForm);
+    const errs = validateReadinessStep(step, profileForm, t);
     if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
     setFormErrors({});
     setStep(s => s + 1);
@@ -901,7 +929,7 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
 
   const handleSave = async () => {
     if (!profileForm) return;
-    const errs = validateReadinessStep(step, profileForm);
+    const errs = validateReadinessStep(step, profileForm, t);
     if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
     setIsSaving(true);
     try {
@@ -935,7 +963,7 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
         throw new Error(err.message ?? "Failed to update request");
       }
       queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
-      toast({ title: "Request updated successfully" });
+      toast({ title: t("profile.requestUpdated") });
       onClose();
     } catch (err) {
       toast({ title: err instanceof Error ? err.message : "Failed to save", variant: "destructive" });
@@ -951,10 +979,10 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
       } else {
         await deleteFoster.mutateAsync(request.id);
       }
-      toast({ title: "Request deleted" });
+      toast({ title: t("profile.requestDeletedSuccess") });
       onDeleted();
     } catch {
-      toast({ title: "Failed to delete request", variant: "destructive" });
+      toast({ title: t("profile.deleteRequestFailed"), variant: "destructive" });
     }
   };
 
@@ -971,15 +999,15 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               />
               <div>
                 <h2 className="font-display text-lg font-bold text-[#1E2A3A]">
-                  {requestType === "adoption" ? "Adoption" : "Foster"} Request — {request.petName || "Unknown Pet"}
+                  {requestType === "adoption" ? t("profile.adoption") : t("profile.foster")} — {request.petName || t("petDetail.unknown")}
                 </h2>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={request.status} />
-                  {!isPending && <span className="text-xs text-gray-400">Read-only — editing only available for pending requests</span>}
+                  {!isPending && <span className="text-xs text-gray-400">{t("profile.readOnlyNote")}</span>}
                 </div>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">Step {step + 1} of {READINESS_STEPS.length} — {READINESS_STEPS[step].title}</p>
+            <p className="text-sm text-muted-foreground">{t("profile.stepOf", { n: step + 1, total: READINESS_STEPS.length })} — {t(READINESS_STEPS[step].title)}</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors">
             <X className="w-5 h-5" />
@@ -1005,42 +1033,45 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               {step === 0 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Message to Pet Owner</label>
+                    <label className={rfLabelClass}>{t("profile.labelMessageOwner")}</label>
                     <textarea
                       rows={3}
                       className={rfFieldClass}
                       disabled={!isPending}
                       value={requestMessage}
                       onChange={e => setRequestMessage(e.target.value)}
-                      placeholder="Add a personal note to the pet owner..."
+                      placeholder={t("profile.placeholderMessageOwner")}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">This message is specific to this request. Only editable while status is pending.</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("profile.hintMessageOwner")}</p>
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Area of Residence *</label>
+                    <label className={rfLabelClass}>{t("profile.areaOfResidence")} *</label>
                     <input className={rfFieldClass} disabled={!isPending} value={profileForm.areaOfResidence} onChange={e => set("areaOfResidence", e.target.value)} />
                     {formErrors.areaOfResidence && <p className={rfErrorClass}>{formErrors.areaOfResidence}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Home Address *</label>
+                    <label className={rfLabelClass}>{t("profile.homeAddress")} *</label>
                     <input className={rfFieldClass} disabled={!isPending} value={profileForm.homeAddress} onChange={e => set("homeAddress", e.target.value)} />
                     {formErrors.homeAddress && <p className={rfErrorClass}>{formErrors.homeAddress}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Occupation *</label>
+                    <label className={rfLabelClass}>{t("profile.occupation")} *</label>
                     <input className={rfFieldClass} disabled={!isPending} value={profileForm.occupation} onChange={e => set("occupation", e.target.value)} />
                     {formErrors.occupation && <p className={rfErrorClass}>{formErrors.occupation}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Age *</label>
+                    <label className={rfLabelClass}>{t("profile.labelAge")} *</label>
                     <input type="number" min={18} max={120} className={rfFieldClass} disabled={!isPending} value={profileForm.age} onChange={e => set("age", e.target.value)} />
                     {formErrors.age && <p className={rfErrorClass}>{formErrors.age}</p>}
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Main Caregiver *</label>
+                    <label className={rfLabelClass}>{t("profile.mainCaregiver")} *</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.mainCaregiver} onChange={e => set("mainCaregiver", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Myself</option><option>Spouse / Partner</option><option>Family member</option><option>Shared responsibility</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Myself">{t("profile.optMyself")}</option>
+                      <option value="Spouse / Partner">{t("profile.optSpousePartner")}</option>
+                      <option value="Family member">{t("profile.optFamilyMember")}</option>
+                      <option value="Shared responsibility">{t("profile.optSharedResp")}</option>
                     </select>
                     {formErrors.mainCaregiver && <p className={rfErrorClass}>{formErrors.mainCaregiver}</p>}
                   </div>
@@ -1050,38 +1081,50 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               {step === 1 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
-                    <label className={rfLabelClass}>Home Type *</label>
+                    <label className={rfLabelClass}>{t("profile.homeType")} *</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.homeType} onChange={e => set("homeType", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Apartment</option><option>Villa</option><option>House</option><option>Townhouse</option><option>Studio</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Apartment">{t("profile.optApartment")}</option>
+                      <option value="Villa">{t("profile.optVilla")}</option>
+                      <option value="House">{t("profile.optHouse")}</option>
+                      <option value="Townhouse">{t("profile.optTownhouse")}</option>
+                      <option value="Studio">{t("profile.optStudio")}</option>
                     </select>
                     {formErrors.homeType && <p className={rfErrorClass}>{formErrors.homeType}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Ownership Type *</label>
+                    <label className={rfLabelClass}>{t("profile.ownershipType")} *</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.ownershipType} onChange={e => set("ownershipType", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Owner</option><option>Renting</option><option>Family home</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Owner">{t("profile.optOwner")}</option>
+                      <option value="Renting">{t("profile.optRenting")}</option>
+                      <option value="Family home">{t("profile.optFamilyHome")}</option>
                     </select>
                     {formErrors.ownershipType && <p className={rfErrorClass}>{formErrors.ownershipType}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Yard / Outdoor Space *</label>
+                    <label className={rfLabelClass}>{t("profile.yardOutdoorSpace")} *</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.yardType} onChange={e => set("yardType", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>No outdoor space</option><option>Small balcony</option><option>Large balcony</option><option>Small yard</option><option>Large yard / garden</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="No outdoor space">{t("profile.optNoOutdoor")}</option>
+                      <option value="Small balcony">{t("profile.optSmallBalcony")}</option>
+                      <option value="Large balcony">{t("profile.optLargeBalcony")}</option>
+                      <option value="Small yard">{t("profile.optSmallYard")}</option>
+                      <option value="Large yard / garden">{t("profile.optLargeYard")}</option>
                     </select>
                     {formErrors.yardType && <p className={rfErrorClass}>{formErrors.yardType}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Number of Children in Home</label>
+                    <label className={rfLabelClass}>{t("profile.numberOfChildren")}</label>
                     <input type="number" min={0} className={rfFieldClass} disabled={!isPending} value={profileForm.childrenCount} onChange={e => set("childrenCount", e.target.value)} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Any household member object to having a pet? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelHouseholdObjection")} *</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.householdObjection} onChange={e => set("householdObjection", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>No, everyone agrees</option><option>Some are hesitant but open</option><option>Yes, there may be resistance</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="No, everyone agrees">{t("profile.optNoObjection")}</option>
+                      <option value="Some are hesitant but open">{t("profile.optHesitant")}</option>
+                      <option value="Yes, there may be resistance">{t("profile.optResistance")}</option>
                     </select>
                     {formErrors.householdObjection && <p className={rfErrorClass}>{formErrors.householdObjection}</p>}
                   </div>
@@ -1091,33 +1134,40 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               {step === 2 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
-                    <label className={rfLabelClass}>Where will the pet spend daytime? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelDayLocation")} *</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.dayLocation} onChange={e => set("dayLocation", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Indoors with family</option><option>Indoors alone</option><option>Outdoors in yard</option><option>Mix of indoor/outdoor</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Indoors with family">{t("profile.optIndoorsFamily")}</option>
+                      <option value="Indoors alone">{t("profile.optIndoorsAlone")}</option>
+                      <option value="Outdoors in yard">{t("profile.optOutdoorsYard")}</option>
+                      <option value="Mix of indoor/outdoor">{t("profile.optMixIndoor")}</option>
                     </select>
                     {formErrors.dayLocation && <p className={rfErrorClass}>{formErrors.dayLocation}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Where will the pet sleep at night? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelNightLocation")} *</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.nightLocation} onChange={e => set("nightLocation", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>In bedroom</option><option>In living room</option><option>In crate</option><option>Outdoors</option><option>Dedicated pet room</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="In bedroom">{t("profile.optBedroom")}</option>
+                      <option value="In living room">{t("profile.optLivingRoom")}</option>
+                      <option value="In crate">{t("profile.optCrate")}</option>
+                      <option value="Outdoors">{t("profile.optOutdoors")}</option>
+                      <option value="Dedicated pet room">{t("profile.optPetRoom")}</option>
                     </select>
                     {formErrors.nightLocation && <p className={rfErrorClass}>{formErrors.nightLocation}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Exercise hours per day *</label>
+                    <label className={rfLabelClass}>{t("profile.exerciseHoursDay")} *</label>
                     <input type="number" min={0} max={24} className={rfFieldClass} disabled={!isPending} value={profileForm.exerciseHours} onChange={e => set("exerciseHours", e.target.value)} />
                     {formErrors.exerciseHours && <p className={rfErrorClass}>{formErrors.exerciseHours}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Current pets at home</label>
-                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.currentPets} onChange={e => set("currentPets", e.target.value)} placeholder="e.g. 1 dog, 2 cats (or None)" />
+                    <label className={rfLabelClass}>{t("profile.currentPets")}</label>
+                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.currentPets} onChange={e => set("currentPets", e.target.value)} placeholder={t("profile.placeholderCurrentPets")} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Previous pet experience</label>
-                    <textarea rows={3} className={rfFieldClass} disabled={!isPending} value={profileForm.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} placeholder="Describe your experience with pets..." />
+                    <label className={rfLabelClass}>{t("profile.previousPetExperience")}</label>
+                    <textarea rows={3} className={rfFieldClass} disabled={!isPending} value={profileForm.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} placeholder={t("profile.placeholderPrevExperience")} />
                   </div>
                 </div>
               )}
@@ -1125,34 +1175,39 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               {step === 3 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Why do you want to adopt? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelAdoptionReason")} *</label>
                     <textarea rows={3} className={rfFieldClass} disabled={!isPending} value={profileForm.adoptionReason} onChange={e => set("adoptionReason", e.target.value)} />
                     {formErrors.adoptionReason && <p className={rfErrorClass}>{formErrors.adoptionReason}</p>}
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Who will be financially responsible? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelFinancialResp")} *</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.financialResponsibility} onChange={e => set("financialResponsibility", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Myself</option><option>Partner / Spouse</option><option>Shared</option><option>Family</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Myself">{t("profile.optMyself")}</option>
+                      <option value="Partner / Spouse">{t("profile.optPartnerSpouse")}</option>
+                      <option value="Shared">{t("profile.optShared")}</option>
+                      <option value="Family">{t("profile.optFamily")}</option>
                     </select>
                     {formErrors.financialResponsibility && <p className={rfErrorClass}>{formErrors.financialResponsibility}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Estimated monthly cost (JD) *</label>
+                    <label className={rfLabelClass}>{t("profile.labelMonthlyCost")} *</label>
                     <input type="number" min={0} className={rfFieldClass} disabled={!isPending} value={profileForm.monthlyCostEstimation} onChange={e => set("monthlyCostEstimation", e.target.value)} />
                     {formErrors.monthlyCostEstimation && <p className={rfErrorClass}>{formErrors.monthlyCostEstimation}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Intention to breed? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelBreedingIntent")} *</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.breedingIntention} onChange={e => set("breedingIntention", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>No, not planning to breed</option><option>Possibly in the future</option><option>Yes, planning to breed</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="No, not planning to breed">{t("profile.optNoBreed")}</option>
+                      <option value="Possibly in the future">{t("profile.optMaybeBreed")}</option>
+                      <option value="Yes, planning to breed">{t("profile.optYesBreed")}</option>
                     </select>
                     {formErrors.breedingIntention && <p className={rfErrorClass}>{formErrors.breedingIntention}</p>}
                   </div>
                   <div className="sm:col-span-2 flex items-center gap-3">
                     <input type="checkbox" id="spay-modal" checked={profileForm.spayNeuterCommitment} disabled={!isPending} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FF6B35]" />
-                    <label htmlFor="spay-modal" className="text-sm text-foreground">I commit to spaying/neutering the pet if not already done</label>
+                    <label htmlFor="spay-modal" className="text-sm text-foreground">{t("profile.labelSpayCommit")}</label>
                   </div>
                 </div>
               )}
@@ -1160,37 +1215,37 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               {step === 4 && (
                 <div className="space-y-6">
                   <div>
-                    <label className={rfLabelClass}>Activities you enjoy *</label>
+                    <label className={rfLabelClass}>{t("profile.labelActivities")} *</label>
                     {formErrors.activities && <p className={rfErrorClass}>{formErrors.activities}</p>}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                      {ACTIVITY_OPTIONS_MODAL.map(opt => (
-                        <button key={opt} type="button" disabled={!isPending} onClick={() => toggleArr("activities", opt)}
-                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.activities.includes(opt) ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
-                          {opt}
+                      {ACTIVITY_OPTION_KEYS.map(({ value, key }) => (
+                        <button key={value} type="button" disabled={!isPending} onClick={() => toggleArr("activities", value)}
+                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.activities.includes(value) ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
+                          {t(key)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Pet preferences *</label>
+                    <label className={rfLabelClass}>{t("profile.labelPetPrefs")} *</label>
                     {formErrors.petPreferences && <p className={rfErrorClass}>{formErrors.petPreferences}</p>}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                      {PET_PREFERENCE_OPTIONS_MODAL.map(opt => (
-                        <button key={opt} type="button" disabled={!isPending} onClick={() => toggleArr("petPreferences", opt)}
-                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.petPreferences.includes(opt) ? "bg-secondary text-white border-secondary" : "bg-white border-border hover:border-secondary/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
-                          {opt}
+                      {PET_PREFERENCE_OPTION_KEYS.map(({ value, key }) => (
+                        <button key={value} type="button" disabled={!isPending} onClick={() => toggleArr("petPreferences", value)}
+                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.petPreferences.includes(value) ? "bg-secondary text-white border-secondary" : "bg-white border-border hover:border-secondary/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
+                          {t(key)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Training expectations *</label>
+                    <label className={rfLabelClass}>{t("profile.labelTrainingExp")} *</label>
                     {formErrors.trainingExpectations && <p className={rfErrorClass}>{formErrors.trainingExpectations}</p>}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                      {TRAINING_EXPECTATION_OPTIONS_MODAL.map(opt => (
-                        <button key={opt} type="button" disabled={!isPending} onClick={() => toggleArr("trainingExpectations", opt)}
-                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(opt) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
-                          {opt}
+                      {TRAINING_EXPECTATION_OPTION_KEYS.map(({ value, key }) => (
+                        <button key={value} type="button" disabled={!isPending} onClick={() => toggleArr("trainingExpectations", value)}
+                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(value) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
+                          {t(key)}
                         </button>
                       ))}
                     </div>
@@ -1201,40 +1256,43 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               {step === 5 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
-                    <label className={rfLabelClass}>Allergies</label>
-                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.allergies} onChange={e => set("allergies", e.target.value)} placeholder="Describe or write None" />
+                    <label className={rfLabelClass}>{t("profile.allergies")}</label>
+                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.allergies} onChange={e => set("allergies", e.target.value)} placeholder={t("profile.placeholderAllergies")} />
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Behavior challenges you can tolerate</label>
+                    <label className={rfLabelClass}>{t("profile.labelBehaviorTolerance")}</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.behaviorTolerance} onChange={e => set("behaviorTolerance", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>None — I prefer a well-behaved pet</option>
-                      <option>Minor issues (chewing, jumping)</option>
-                      <option>Moderate issues with proper training</option>
-                      <option>Significant behavioral challenges</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="None — I prefer a well-behaved pet">{t("profile.optBehavNone")}</option>
+                      <option value="Minor issues (chewing, jumping)">{t("profile.optBehavMinor")}</option>
+                      <option value="Moderate issues with proper training">{t("profile.optBehavModerate")}</option>
+                      <option value="Significant behavioral challenges">{t("profile.optBehavSignificant")}</option>
                     </select>
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Comfort handling a pet with trauma</label>
+                    <label className={rfLabelClass}>{t("profile.labelTraumaComfort")}</label>
                     <select className={rfFieldClass} disabled={!isPending} value={profileForm.traumaHandlingComfort} onChange={e => set("traumaHandlingComfort", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Not comfortable</option><option>Somewhat comfortable</option><option>Comfortable with guidance</option><option>Very comfortable</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Not comfortable">{t("profile.optTraumaNot")}</option>
+                      <option value="Somewhat comfortable">{t("profile.optTraumaSomewhat")}</option>
+                      <option value="Comfortable with guidance">{t("profile.optTraumaComfort")}</option>
+                      <option value="Very comfortable">{t("profile.optTraumaVery")}</option>
                     </select>
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Travel plan for your pet</label>
-                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.travelPlan} onChange={e => set("travelPlan", e.target.value)} placeholder="e.g. Stay with family, pet hotel..." />
+                    <label className={rfLabelClass}>{t("profile.travelPlan")}</label>
+                    <input className={rfFieldClass} disabled={!isPending} value={profileForm.travelPlan} onChange={e => set("travelPlan", e.target.value)} placeholder={t("profile.placeholderTravelPlan")} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Daily care plan *</label>
-                    <textarea rows={3} className={rfFieldClass} disabled={!isPending} value={profileForm.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} placeholder="Describe your daily routine for the pet..." />
+                    <label className={rfLabelClass}>{t("profile.dailyCarePlan")} *</label>
+                    <textarea rows={3} className={rfFieldClass} disabled={!isPending} value={profileForm.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} placeholder={t("profile.placeholderDailyCare")} />
                     {formErrors.dailyCarePlan && <p className={rfErrorClass}>{formErrors.dailyCarePlan}</p>}
                   </div>
                   <div className="sm:col-span-2 bg-primary/5 border border-primary/20 rounded-2xl p-4">
                     <div className="flex items-start gap-3">
                       <input type="checkbox" id="confirmed-modal" checked={profileForm.confirmed} disabled={!isPending} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FF6B35]" />
                       <label htmlFor="confirmed-modal" className="text-sm text-foreground leading-relaxed">
-                        I confirm that all information provided is accurate and that I understand the responsibilities of pet adoption/fostering.
+                        {t("profile.labelConfirm")}
                       </label>
                     </div>
                     {formErrors.confirmed && <p className={rfErrorClass}>{formErrors.confirmed}</p>}
@@ -1253,27 +1311,27 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
             >
               <Trash2 className="w-4 h-4" />
-              Delete Request
+              {t("profile.deleteRequest")}
             </button>
             {step > 0 && (
               <button onClick={handleBack} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:bg-muted/50 text-sm font-semibold transition-colors">
-                <ChevronLeft className="w-4 h-4" /> Back
+                <ChevronLeft className="w-4 h-4 rtl:rotate-180" /> {t("common.back")}
               </button>
             )}
           </div>
 
           {step < READINESS_STEPS.length - 1 ? (
             <button onClick={handleNext} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
-              Next <ChevronRight className="w-4 h-4" />
+              {t("common.next")} <ChevronRight className="w-4 h-4 rtl:rotate-180" />
             </button>
           ) : isPending ? (
             <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              Save Changes
+              {t("profile.saveChanges")}
             </button>
           ) : (
             <button onClick={onClose} className="px-6 py-2.5 rounded-xl bg-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-300 transition-all">
-              Close
+              {t("common.close")}
             </button>
           )}
         </div>
@@ -1286,15 +1344,15 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                 <Trash2 className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-[#1E2A3A]">Delete Request</h3>
+              <h3 className="text-lg font-bold text-[#1E2A3A]">{t("profile.deleteRequest")}</h3>
             </div>
-            <p className="text-sm text-gray-500 mb-6">Are you sure you want to delete this request? This cannot be undone.</p>
+            <p className="text-sm text-gray-500 mb-6">{t("profile.deleteConfirmDesc")}</p>
             <div className="flex gap-3">
               <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#1E2A3A] hover:bg-gray-50 transition-colors">
-                Cancel
+                {t("common.cancel")}
               </button>
               <button onClick={handleDelete} disabled={isDeleting} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-50">
-                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Delete"}
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : t("common.delete")}
               </button>
             </div>
           </div>
@@ -1304,6 +1362,7 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
   );
 }
 function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
@@ -1383,7 +1442,7 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
 
   const handleNext = () => {
     if (!profileForm) return;
-    const errs = validateReadinessStep(step, profileForm);
+    const errs = validateReadinessStep(step, profileForm, t);
     if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
     setFormErrors({});
     setStep(s => s + 1);
@@ -1396,7 +1455,7 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
 
   const handleSave = async () => {
     if (!profileForm) return;
-    const errs = validateReadinessStep(step, profileForm);
+    const errs = validateReadinessStep(step, profileForm, t);
     if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
     setIsSaving(true);
     try {
@@ -1417,7 +1476,7 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
         throw new Error(err.message ?? "Failed to save profile");
       }
       queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
-      toast({ title: "Adoption readiness form saved!" });
+      toast({ title: t("profile.readinessFormSaved") });
       onClose();
     } catch (err) {
       toast({ title: err instanceof Error ? err.message : "Failed to save", variant: "destructive" });
@@ -1431,8 +1490,8 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
       <div className="bg-[#FFF8F3] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-6 pt-6 pb-3 shrink-0">
           <div>
-            <h2 className="font-display text-lg font-bold text-[#1E2A3A]">Adoption Readiness Form</h2>
-            <p className="text-sm text-muted-foreground">Step {step + 1} of {READINESS_STEPS.length} — {READINESS_STEPS[step].title}</p>
+            <h2 className="font-display text-lg font-bold text-[#1E2A3A]">{t("profile.adoptionReadinessFormTitle")}</h2>
+            <p className="text-sm text-muted-foreground">{t("profile.stepOf", { n: step + 1, total: READINESS_STEPS.length })} — {t(READINESS_STEPS[step].title)}</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors">
             <X className="w-5 h-5" />
@@ -1458,30 +1517,33 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
               {step === 0 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
-                    <label className={rfLabelClass}>Area of Residence *</label>
+                    <label className={rfLabelClass}>{t("profile.areaOfResidence")} *</label>
                     <input className={rfFieldClass} value={profileForm.areaOfResidence} onChange={e => set("areaOfResidence", e.target.value)} />
                     {formErrors.areaOfResidence && <p className={rfErrorClass}>{formErrors.areaOfResidence}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Home Address *</label>
+                    <label className={rfLabelClass}>{t("profile.homeAddress")} *</label>
                     <input className={rfFieldClass} value={profileForm.homeAddress} onChange={e => set("homeAddress", e.target.value)} />
                     {formErrors.homeAddress && <p className={rfErrorClass}>{formErrors.homeAddress}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Occupation *</label>
+                    <label className={rfLabelClass}>{t("profile.occupation")} *</label>
                     <input className={rfFieldClass} value={profileForm.occupation} onChange={e => set("occupation", e.target.value)} />
                     {formErrors.occupation && <p className={rfErrorClass}>{formErrors.occupation}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Age *</label>
+                    <label className={rfLabelClass}>{t("profile.labelAge")} *</label>
                     <input type="number" min={18} max={120} className={rfFieldClass} value={profileForm.age} onChange={e => set("age", e.target.value)} />
                     {formErrors.age && <p className={rfErrorClass}>{formErrors.age}</p>}
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Main Caregiver *</label>
+                    <label className={rfLabelClass}>{t("profile.mainCaregiver")} *</label>
                     <select className={rfFieldClass} value={profileForm.mainCaregiver} onChange={e => set("mainCaregiver", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Myself</option><option>Spouse / Partner</option><option>Family member</option><option>Shared responsibility</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Myself">{t("profile.optMyself")}</option>
+                      <option value="Spouse / Partner">{t("profile.optSpousePartner")}</option>
+                      <option value="Family member">{t("profile.optFamilyMember")}</option>
+                      <option value="Shared responsibility">{t("profile.optSharedResp")}</option>
                     </select>
                     {formErrors.mainCaregiver && <p className={rfErrorClass}>{formErrors.mainCaregiver}</p>}
                   </div>
@@ -1491,38 +1553,50 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
               {step === 1 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
-                    <label className={rfLabelClass}>Home Type *</label>
+                    <label className={rfLabelClass}>{t("profile.homeType")} *</label>
                     <select className={rfFieldClass} value={profileForm.homeType} onChange={e => set("homeType", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Apartment</option><option>Villa</option><option>House</option><option>Townhouse</option><option>Studio</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Apartment">{t("profile.optApartment")}</option>
+                      <option value="Villa">{t("profile.optVilla")}</option>
+                      <option value="House">{t("profile.optHouse")}</option>
+                      <option value="Townhouse">{t("profile.optTownhouse")}</option>
+                      <option value="Studio">{t("profile.optStudio")}</option>
                     </select>
                     {formErrors.homeType && <p className={rfErrorClass}>{formErrors.homeType}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Ownership Type *</label>
+                    <label className={rfLabelClass}>{t("profile.ownershipType")} *</label>
                     <select className={rfFieldClass} value={profileForm.ownershipType} onChange={e => set("ownershipType", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Owner</option><option>Renting</option><option>Family home</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Owner">{t("profile.optOwner")}</option>
+                      <option value="Renting">{t("profile.optRenting")}</option>
+                      <option value="Family home">{t("profile.optFamilyHome")}</option>
                     </select>
                     {formErrors.ownershipType && <p className={rfErrorClass}>{formErrors.ownershipType}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Yard / Outdoor Space *</label>
+                    <label className={rfLabelClass}>{t("profile.yardOutdoorSpace")} *</label>
                     <select className={rfFieldClass} value={profileForm.yardType} onChange={e => set("yardType", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>No outdoor space</option><option>Small balcony</option><option>Large balcony</option><option>Small yard</option><option>Large yard / garden</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="No outdoor space">{t("profile.optNoOutdoor")}</option>
+                      <option value="Small balcony">{t("profile.optSmallBalcony")}</option>
+                      <option value="Large balcony">{t("profile.optLargeBalcony")}</option>
+                      <option value="Small yard">{t("profile.optSmallYard")}</option>
+                      <option value="Large yard / garden">{t("profile.optLargeYard")}</option>
                     </select>
                     {formErrors.yardType && <p className={rfErrorClass}>{formErrors.yardType}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Number of Children in Home</label>
+                    <label className={rfLabelClass}>{t("profile.numberOfChildren")}</label>
                     <input type="number" min={0} className={rfFieldClass} value={profileForm.childrenCount} onChange={e => set("childrenCount", e.target.value)} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Any household member object to having a pet? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelHouseholdObjection")} *</label>
                     <select className={rfFieldClass} value={profileForm.householdObjection} onChange={e => set("householdObjection", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>No, everyone agrees</option><option>Some are hesitant but open</option><option>Yes, there may be resistance</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="No, everyone agrees">{t("profile.optNoObjection")}</option>
+                      <option value="Some are hesitant but open">{t("profile.optHesitant")}</option>
+                      <option value="Yes, there may be resistance">{t("profile.optResistance")}</option>
                     </select>
                     {formErrors.householdObjection && <p className={rfErrorClass}>{formErrors.householdObjection}</p>}
                   </div>
@@ -1532,33 +1606,40 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
               {step === 2 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
-                    <label className={rfLabelClass}>Where will the pet spend daytime? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelDayLocation")} *</label>
                     <select className={rfFieldClass} value={profileForm.dayLocation} onChange={e => set("dayLocation", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Indoors with family</option><option>Indoors alone</option><option>Outdoors in yard</option><option>Mix of indoor/outdoor</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Indoors with family">{t("profile.optIndoorsFamily")}</option>
+                      <option value="Indoors alone">{t("profile.optIndoorsAlone")}</option>
+                      <option value="Outdoors in yard">{t("profile.optOutdoorsYard")}</option>
+                      <option value="Mix of indoor/outdoor">{t("profile.optMixIndoor")}</option>
                     </select>
                     {formErrors.dayLocation && <p className={rfErrorClass}>{formErrors.dayLocation}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Where will the pet sleep at night? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelNightLocation")} *</label>
                     <select className={rfFieldClass} value={profileForm.nightLocation} onChange={e => set("nightLocation", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>In bedroom</option><option>In living room</option><option>In crate</option><option>Outdoors</option><option>Dedicated pet room</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="In bedroom">{t("profile.optBedroom")}</option>
+                      <option value="In living room">{t("profile.optLivingRoom")}</option>
+                      <option value="In crate">{t("profile.optCrate")}</option>
+                      <option value="Outdoors">{t("profile.optOutdoors")}</option>
+                      <option value="Dedicated pet room">{t("profile.optPetRoom")}</option>
                     </select>
                     {formErrors.nightLocation && <p className={rfErrorClass}>{formErrors.nightLocation}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Exercise hours per day *</label>
+                    <label className={rfLabelClass}>{t("profile.exerciseHoursDay")} *</label>
                     <input type="number" min={0} max={24} className={rfFieldClass} value={profileForm.exerciseHours} onChange={e => set("exerciseHours", e.target.value)} />
                     {formErrors.exerciseHours && <p className={rfErrorClass}>{formErrors.exerciseHours}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Current pets at home</label>
-                    <input className={rfFieldClass} value={profileForm.currentPets} onChange={e => set("currentPets", e.target.value)} placeholder="e.g. 1 dog, 2 cats (or None)" />
+                    <label className={rfLabelClass}>{t("profile.currentPets")}</label>
+                    <input className={rfFieldClass} value={profileForm.currentPets} onChange={e => set("currentPets", e.target.value)} placeholder={t("profile.placeholderCurrentPets")} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Previous pet experience</label>
-                    <textarea rows={3} className={rfFieldClass} value={profileForm.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} placeholder="Describe your experience with pets..." />
+                    <label className={rfLabelClass}>{t("profile.previousPetExperience")}</label>
+                    <textarea rows={3} className={rfFieldClass} value={profileForm.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} placeholder={t("profile.placeholderPrevExperience")} />
                   </div>
                 </div>
               )}
@@ -1566,34 +1647,39 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
               {step === 3 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Why do you want to adopt? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelAdoptionReason")} *</label>
                     <textarea rows={3} className={rfFieldClass} value={profileForm.adoptionReason} onChange={e => set("adoptionReason", e.target.value)} />
                     {formErrors.adoptionReason && <p className={rfErrorClass}>{formErrors.adoptionReason}</p>}
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Who will be financially responsible? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelFinancialResp")} *</label>
                     <select className={rfFieldClass} value={profileForm.financialResponsibility} onChange={e => set("financialResponsibility", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Myself</option><option>Partner / Spouse</option><option>Shared</option><option>Family</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Myself">{t("profile.optMyself")}</option>
+                      <option value="Partner / Spouse">{t("profile.optPartnerSpouse")}</option>
+                      <option value="Shared">{t("profile.optShared")}</option>
+                      <option value="Family">{t("profile.optFamily")}</option>
                     </select>
                     {formErrors.financialResponsibility && <p className={rfErrorClass}>{formErrors.financialResponsibility}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Estimated monthly cost (JD) *</label>
+                    <label className={rfLabelClass}>{t("profile.labelMonthlyCost")} *</label>
                     <input type="number" min={0} className={rfFieldClass} value={profileForm.monthlyCostEstimation} onChange={e => set("monthlyCostEstimation", e.target.value)} />
                     {formErrors.monthlyCostEstimation && <p className={rfErrorClass}>{formErrors.monthlyCostEstimation}</p>}
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Intention to breed? *</label>
+                    <label className={rfLabelClass}>{t("profile.labelBreedingIntent")} *</label>
                     <select className={rfFieldClass} value={profileForm.breedingIntention} onChange={e => set("breedingIntention", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>No, not planning to breed</option><option>Possibly in the future</option><option>Yes, planning to breed</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="No, not planning to breed">{t("profile.optNoBreed")}</option>
+                      <option value="Possibly in the future">{t("profile.optMaybeBreed")}</option>
+                      <option value="Yes, planning to breed">{t("profile.optYesBreed")}</option>
                     </select>
                     {formErrors.breedingIntention && <p className={rfErrorClass}>{formErrors.breedingIntention}</p>}
                   </div>
                   <div className="sm:col-span-2 flex items-center gap-3">
                     <input type="checkbox" id="spay-readiness" checked={profileForm.spayNeuterCommitment} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FF6B35]" />
-                    <label htmlFor="spay-readiness" className="text-sm text-foreground">I commit to spaying/neutering the pet if not already done</label>
+                    <label htmlFor="spay-readiness" className="text-sm text-foreground">{t("profile.labelSpayCommit")}</label>
                   </div>
                 </div>
               )}
@@ -1601,37 +1687,37 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
               {step === 4 && (
                 <div className="space-y-6">
                   <div>
-                    <label className={rfLabelClass}>Activities you enjoy *</label>
+                    <label className={rfLabelClass}>{t("profile.labelActivities")} *</label>
                     {formErrors.activities && <p className={rfErrorClass}>{formErrors.activities}</p>}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                      {ACTIVITY_OPTIONS_MODAL.map(opt => (
-                        <button key={opt} type="button" onClick={() => toggleArr("activities", opt)}
-                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.activities.includes(opt) ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/50"}`}>
-                          {opt}
+                      {ACTIVITY_OPTION_KEYS.map(({ value, key }) => (
+                        <button key={value} type="button" onClick={() => toggleArr("activities", value)}
+                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.activities.includes(value) ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/50"}`}>
+                          {t(key)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Pet preferences *</label>
+                    <label className={rfLabelClass}>{t("profile.labelPetPrefs")} *</label>
                     {formErrors.petPreferences && <p className={rfErrorClass}>{formErrors.petPreferences}</p>}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                      {PET_PREFERENCE_OPTIONS_MODAL.map(opt => (
-                        <button key={opt} type="button" onClick={() => toggleArr("petPreferences", opt)}
-                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.petPreferences.includes(opt) ? "bg-secondary text-white border-secondary" : "bg-white border-border hover:border-secondary/50"}`}>
-                          {opt}
+                      {PET_PREFERENCE_OPTION_KEYS.map(({ value, key }) => (
+                        <button key={value} type="button" onClick={() => toggleArr("petPreferences", value)}
+                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.petPreferences.includes(value) ? "bg-secondary text-white border-secondary" : "bg-white border-border hover:border-secondary/50"}`}>
+                          {t(key)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Training expectations *</label>
+                    <label className={rfLabelClass}>{t("profile.labelTrainingExp")} *</label>
                     {formErrors.trainingExpectations && <p className={rfErrorClass}>{formErrors.trainingExpectations}</p>}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                      {TRAINING_EXPECTATION_OPTIONS_MODAL.map(opt => (
-                        <button key={opt} type="button" onClick={() => toggleArr("trainingExpectations", opt)}
-                          className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(opt) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"}`}>
-                          {opt}
+                      {TRAINING_EXPECTATION_OPTION_KEYS.map(({ value, key }) => (
+                        <button key={value} type="button" onClick={() => toggleArr("trainingExpectations", value)}
+                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(value) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"}`}>
+                          {t(key)}
                         </button>
                       ))}
                     </div>
@@ -1642,40 +1728,43 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
               {step === 5 && (
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
-                    <label className={rfLabelClass}>Allergies</label>
-                    <input className={rfFieldClass} value={profileForm.allergies} onChange={e => set("allergies", e.target.value)} placeholder="Describe or write None" />
+                    <label className={rfLabelClass}>{t("profile.allergies")}</label>
+                    <input className={rfFieldClass} value={profileForm.allergies} onChange={e => set("allergies", e.target.value)} placeholder={t("profile.placeholderAllergies")} />
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Behavior challenges you can tolerate</label>
+                    <label className={rfLabelClass}>{t("profile.labelBehaviorTolerance")}</label>
                     <select className={rfFieldClass} value={profileForm.behaviorTolerance} onChange={e => set("behaviorTolerance", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>None — I prefer a well-behaved pet</option>
-                      <option>Minor issues (chewing, jumping)</option>
-                      <option>Moderate issues with proper training</option>
-                      <option>Significant behavioral challenges</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="None — I prefer a well-behaved pet">{t("profile.optBehavNone")}</option>
+                      <option value="Minor issues (chewing, jumping)">{t("profile.optBehavMinor")}</option>
+                      <option value="Moderate issues with proper training">{t("profile.optBehavModerate")}</option>
+                      <option value="Significant behavioral challenges">{t("profile.optBehavSignificant")}</option>
                     </select>
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Comfort handling a pet with trauma</label>
+                    <label className={rfLabelClass}>{t("profile.labelTraumaComfort")}</label>
                     <select className={rfFieldClass} value={profileForm.traumaHandlingComfort} onChange={e => set("traumaHandlingComfort", e.target.value)}>
-                      <option value="">Select...</option>
-                      <option>Not comfortable</option><option>Somewhat comfortable</option><option>Comfortable with guidance</option><option>Very comfortable</option>
+                      <option value="">{t("profile.selectDots")}</option>
+                      <option value="Not comfortable">{t("profile.optTraumaNot")}</option>
+                      <option value="Somewhat comfortable">{t("profile.optTraumaSomewhat")}</option>
+                      <option value="Comfortable with guidance">{t("profile.optTraumaComfort")}</option>
+                      <option value="Very comfortable">{t("profile.optTraumaVery")}</option>
                     </select>
                   </div>
                   <div>
-                    <label className={rfLabelClass}>Travel plan for your pet</label>
-                    <input className={rfFieldClass} value={profileForm.travelPlan} onChange={e => set("travelPlan", e.target.value)} placeholder="e.g. Stay with family, pet hotel..." />
+                    <label className={rfLabelClass}>{t("profile.travelPlan")}</label>
+                    <input className={rfFieldClass} value={profileForm.travelPlan} onChange={e => set("travelPlan", e.target.value)} placeholder={t("profile.placeholderTravelPlan")} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>Daily care plan *</label>
-                    <textarea rows={3} className={rfFieldClass} value={profileForm.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} placeholder="Describe your daily routine for the pet..." />
+                    <label className={rfLabelClass}>{t("profile.dailyCarePlan")} *</label>
+                    <textarea rows={3} className={rfFieldClass} value={profileForm.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} placeholder={t("profile.placeholderDailyCare")} />
                     {formErrors.dailyCarePlan && <p className={rfErrorClass}>{formErrors.dailyCarePlan}</p>}
                   </div>
                   <div className="sm:col-span-2 bg-primary/5 border border-primary/20 rounded-2xl p-4">
                     <div className="flex items-start gap-3">
                       <input type="checkbox" id="confirmed-readiness" checked={profileForm.confirmed} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FF6B35]" />
                       <label htmlFor="confirmed-readiness" className="text-sm text-foreground leading-relaxed">
-                        I confirm that all information provided is accurate and that I understand the responsibilities of pet adoption/fostering.
+                        {t("profile.labelConfirm")}
                       </label>
                     </div>
                     {formErrors.confirmed && <p className={rfErrorClass}>{formErrors.confirmed}</p>}
@@ -1690,18 +1779,18 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
           <div>
             {step > 0 && (
               <button onClick={handleBack} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:bg-muted/50 text-sm font-semibold transition-colors">
-                <ChevronLeft className="w-4 h-4" /> Back
+                <ChevronLeft className="w-4 h-4 rtl:rotate-180" /> {t("common.back")}
               </button>
             )}
           </div>
           {step < READINESS_STEPS.length - 1 ? (
             <button onClick={handleNext} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
-              Next <ChevronRight className="w-4 h-4" />
+              {t("common.next")} <ChevronRight className="w-4 h-4 rtl:rotate-180" />
             </button>
           ) : (
             <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              Save Form
+              {t("profile.saveForm")}
             </button>
           )}
         </div>
@@ -1719,14 +1808,14 @@ import {
 } from "libphonenumber-js";
 
 const sidebarLinks = [
-  { label: "Profile", icon: User },
-  { label: "My Pets", icon: PawPrint },
-  { label: "Applications", icon: Inbox },
-  { label: "My Requests", icon: FileText },
-  { label: "Favourite", icon: Heart },
-  { label: "Notifications", icon: Bell },
-  { label: "Volunteer", icon: Users },
-  { label: "Lost&Found", icon: MapPin },
+  { label: "Profile", tabKey: "tabProfile", icon: User },
+  { label: "My Pets", tabKey: "tabMyPets", icon: PawPrint },
+  { label: "Applications", tabKey: "tabApplications", icon: Inbox },
+  { label: "My Requests", tabKey: "tabMyRequests", icon: FileText },
+  { label: "Favourite", tabKey: "tabFavourite", icon: Heart },
+  { label: "Notifications", tabKey: "tabNotifications", icon: Bell },
+  { label: "Volunteer", tabKey: "tabVolunteer", icon: Users },
+  { label: "Lost&Found", tabKey: "tabLostFound", icon: MapPin },
 ];
 
 const REGION_NAMES = new Intl.DisplayNames(["en"], { type: "region" });
@@ -1933,7 +2022,7 @@ function CountryPhoneDropdown({
                         setOpen(false);
                         triggerRef.current?.focus();
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors hover:bg-gray-50 ${
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-start transition-colors hover:bg-gray-50 ${
                         c.code === selectedCountry.code ? "bg-primary/5 font-semibold" : ""
                       } ${idx === focusedIndex ? "bg-gray-100 outline-none" : ""}`}
                     >
@@ -2017,21 +2106,21 @@ interface ErrorsState {
 }
 
 function validateEmail(email: string): string | undefined {
-  if (!email.trim()) return "Email is required";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Invalid email address";
+  if (!email.trim()) return i18next.t("profile.errEmailRequired");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return i18next.t("profile.errEmailInvalid");
   return undefined;
 }
 
 function validatePhone(phone: string, countryCode: CountryCode): string | undefined {
-  if (!phone.trim()) return "Phone number is required";
+  if (!phone.trim()) return i18next.t("profile.errPhoneRequired");
   const parsed = parsePhoneNumberFromString(phone, countryCode);
-  if (!parsed || !parsed.isValid()) return "Invalid phone number for selected country";
+  if (!parsed || !parsed.isValid()) return i18next.t("profile.errPhoneInvalid");
   return undefined;
 }
 
 function validatePassword(password: string): string | undefined {
   if (!password || password === PASSWORD_SENTINEL) return undefined;
-  if (password.length < 8) return "Password must be at least 8 characters";
+  if (password.length < 8) return i18next.t("profile.errPasswordLength");
   return undefined;
 }
 
@@ -2050,22 +2139,22 @@ function getPasswordStrength(password: string): PasswordStrength | null {
   return "strong";
 }
 
-const STRENGTH_CONFIG: Record<PasswordStrength, { label: string; color: string; bg: string; width: string }> = {
-  weak:   { label: "Weak",   color: "text-red-500",    bg: "bg-red-400",    width: "w-1/3" },
-  medium: { label: "Medium", color: "text-yellow-500",  bg: "bg-yellow-400", width: "w-2/3" },
-  strong: { label: "Strong", color: "text-green-500",   bg: "bg-green-500",  width: "w-full" },
+const STRENGTH_CONFIG: Record<PasswordStrength, { labelKey: string; color: string; bg: string; width: string }> = {
+  weak:   { labelKey: "profile.strengthWeak",   color: "text-red-500",    bg: "bg-red-400",    width: "w-1/3" },
+  medium: { labelKey: "profile.strengthMedium", color: "text-yellow-500",  bg: "bg-yellow-400", width: "w-2/3" },
+  strong: { labelKey: "profile.strengthStrong", color: "text-green-500",   bg: "bg-green-500",  width: "w-full" },
 };
 
 function validateForm(form: FormState): ErrorsState {
   const errors: ErrorsState = {};
-  if (!form.fullName.trim()) errors.fullName = "Full name is required";
+  if (!form.fullName.trim()) errors.fullName = i18next.t("profile.errFullNameRequired");
   const emailErr = validateEmail(form.email);
   if (emailErr) errors.email = emailErr;
   const pwErr = validatePassword(form.password);
   if (pwErr) errors.password = pwErr;
   const phoneErr = validatePhone(form.phone, form.country.code);
   if (phoneErr) errors.phone = phoneErr;
-  if (!form.city.trim()) errors.city = "City is required";
+  if (!form.city.trim()) errors.city = i18next.t("profile.errCityRequired");
   return errors;
 }
 
@@ -2093,6 +2182,7 @@ interface AddPetModalProps {
 }
 
 function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const createPet = useCreatePet();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -2137,21 +2227,21 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
 
   const validateSection1 = () => {
     const e: Record<string, string> = {};
-    if (!form.name.trim()) e.name = "Pet name is required";
-    if (!form.type) e.type = "Type is required";
-    if (!form.breed.trim()) e.breed = "Breed is required";
-    if (!form.birthday) e.birthday = "Birthdate is required";
-    if (!form.gender) e.gender = "Gender is required";
-    if (!form.weightKg.trim()) e.weightKg = "Weight is required";
-    if (!form.story.trim()) e.story = "Pet story is required";
-    if (imageFiles.length === 0) e.images = "At least one photo is required";
+    if (!form.name.trim()) e.name = t("profile.addPetErrName");
+    if (!form.type) e.type = t("profile.addPetErrType");
+    if (!form.breed.trim()) e.breed = t("profile.addPetErrBreed");
+    if (!form.birthday) e.birthday = t("profile.addPetErrBirthday");
+    if (!form.gender) e.gender = t("profile.addPetErrGender");
+    if (!form.weightKg.trim()) e.weightKg = t("profile.addPetErrWeight");
+    if (!form.story.trim()) e.story = t("profile.addPetErrStory");
+    if (imageFiles.length === 0) e.images = t("profile.addPetErrImages");
     return e;
   };
 
   const validateSection2 = () => {
     const e: Record<string, string> = {};
-    if (!form.whatsappUrl.trim()) e.whatsappUrl = "WhatsApp URL is required";
-    if (!form.purpose) e.purpose = "Availability type is required";
+    if (!form.whatsappUrl.trim()) e.whatsappUrl = t("profile.addPetErrWhatsapp");
+    if (!form.purpose) e.purpose = t("profile.addPetErrPurpose");
     return e;
   };
 
@@ -2231,12 +2321,12 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
       },
       {
         onSuccess: () => {
-          toast({ title: "Your pet has been submitted for review" });
+          toast({ title: t("profile.addPetSuccess") });
           onSuccess();
           onClose();
         },
         onError: () => {
-          toast({ title: "Failed to submit pet. Please try again.", variant: "destructive" });
+          toast({ title: t("profile.addPetError"), variant: "destructive" });
         },
       }
     );
@@ -2254,9 +2344,9 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-[#1E2A3A]">Add a Pet</h2>
+            <h2 className="text-lg font-bold text-[#1E2A3A]">{t("profile.addPet")}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              {section === 1 ? "Section 1 of 2 — Pet Information" : "Section 2 of 2 — Owner Information"}
+              {section === 1 ? t("profile.addPetSection1") : t("profile.addPetSection2")}
             </p>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
@@ -2269,36 +2359,36 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
             <div className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Pet Name *</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetName")} *</label>
                   <input
                     value={form.name}
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                    onBlur={() => setTouched(t => ({ ...t, name: true }))}
+                    onBlur={() => setTouched(prev => ({ ...prev, name: true }))}
                     className={inputCls("name")}
-                    placeholder="e.g. Buddy"
+                    placeholder={t("profile.addPetPlaceholderName")}
                   />
                   {touched.name && errors.name && <p className="text-xs text-red-500 mt-0.5">{errors.name}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Type *</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetType")} *</label>
                   <select
                     value={form.type}
                     onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
                     className={inputCls("type")}
                   >
-                    {["dog", "cat", "rabbit", "bird", "other"].map(t => (
-                      <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                    {["dog", "cat", "rabbit", "bird", "other"].map(tp => (
+                      <option key={tp} value={tp} className="capitalize">{tp.charAt(0).toUpperCase() + tp.slice(1)}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Breed *</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetBreed")} *</label>
                   <input
                     value={form.breed}
                     onChange={e => setForm(f => ({ ...f, breed: e.target.value }))}
-                    onBlur={() => setTouched(t => ({ ...t, breed: true }))}
+                    onBlur={() => setTouched(prev => ({ ...prev, breed: true }))}
                     className={inputCls("breed")}
                     placeholder="e.g. Labrador"
                   />
@@ -2306,12 +2396,12 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Birthdate *</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetBirthdate")} *</label>
                   <input
                     type="date"
                     value={form.birthday}
                     onChange={e => setForm(f => ({ ...f, birthday: e.target.value }))}
-                    onBlur={() => setTouched(t => ({ ...t, birthday: true }))}
+                    onBlur={() => setTouched(prev => ({ ...prev, birthday: true }))}
                     max={new Date().toISOString().split("T")[0]}
                     className={inputCls("birthday")}
                   />
@@ -2319,33 +2409,33 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Age (auto-calculated)</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetAge")}</label>
                   <input
                     value={ageDisplay}
                     readOnly
                     className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-default outline-none"
-                    placeholder="Select birthdate"
+                    placeholder={t("profile.addPetSelectBirthdate")}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Gender *</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetGender")} *</label>
                   <select
                     value={form.gender}
                     onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}
                     className={inputCls("gender")}
                   >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="male">{t("profile.male")}</option>
+                    <option value="female">{t("profile.female")}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Weight (kg) *</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetWeight")} *</label>
                   <input
                     value={form.weightKg}
                     onChange={e => setForm(f => ({ ...f, weightKg: e.target.value }))}
-                    onBlur={() => setTouched(t => ({ ...t, weightKg: true }))}
+                    onBlur={() => setTouched(prev => ({ ...prev, weightKg: true }))}
                     className={inputCls("weightKg")}
                     placeholder="e.g. 5.2"
                     type="number"
@@ -2358,7 +2448,7 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-2">Sterilized *</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-2">{t("profile.addPetSterilized")} *</label>
                   <div className="flex gap-2">
                     {[true, false].map(val => (
                       <button
@@ -2371,14 +2461,14 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
                             : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                         }`}
                       >
-                        {val ? "Yes" : "No"}
+                        {val ? t("common.yes") : t("common.no")}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-2">Yearly Vaccines *</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-2">{t("profile.addPetYearlyVaccines")} *</label>
                   <div className="flex gap-2">
                     {[true, false].map(val => (
                       <button
@@ -2391,7 +2481,7 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
                             : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                         }`}
                       >
-                        {val ? "Yes" : "No"}
+                        {val ? t("common.yes") : t("common.no")}
                       </button>
                     ))}
                   </div>
@@ -2399,20 +2489,20 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Pet Story *</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetStory")} *</label>
                 <textarea
                   value={form.story}
                   onChange={e => setForm(f => ({ ...f, story: e.target.value }))}
-                  onBlur={() => setTouched(t => ({ ...t, story: true }))}
+                  onBlur={() => setTouched(prev => ({ ...prev, story: true }))}
                   rows={3}
                   className={`${inputCls("story")} resize-none`}
-                  placeholder="Tell us about your pet's personality, history, and what makes them special..."
+                  placeholder={t("profile.addPetStoryPlaceholder")}
                 />
                 {touched.story && errors.story && <p className="text-xs text-red-500 mt-0.5">{errors.story}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-2">Photos *</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-2">{t("profile.addPetPhotos")} *</label>
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors hover:bg-gray-50 ${
@@ -2420,8 +2510,8 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
                   }`}
                 >
                   <Camera className="w-6 h-6 mx-auto mb-1.5 text-gray-300" />
-                  <p className="text-sm text-gray-500">Click to upload photos</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Multiple photos allowed</p>
+                  <p className="text-sm text-gray-500">{t("profile.addPetClickUpload")}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t("profile.addPetMultiplePhotos")}</p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -2456,7 +2546,7 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
                   onClick={handleNext}
                   className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
                 >
-                  Next: Owner Info →
+                  {t("profile.addPetNext")}
                 </button>
               </div>
             </div>
@@ -2465,7 +2555,7 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
           {section === 2 && (
             <div className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Your Name</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetYourName")}</label>
                 <input
                   value={userName}
                   readOnly
@@ -2474,11 +2564,11 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">WhatsApp URL *</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetWhatsapp")} *</label>
                 <input
                   value={form.whatsappUrl}
                   onChange={e => setForm(f => ({ ...f, whatsappUrl: e.target.value }))}
-                  onBlur={() => setTouched(t => ({ ...t, whatsappUrl: true }))}
+                  onBlur={() => setTouched(prev => ({ ...prev, whatsappUrl: true }))}
                   className={inputCls("whatsappUrl")}
                   placeholder="https://wa.me/9627xxxxxxxx"
                   type="url"
@@ -2486,16 +2576,16 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
                 {touched.whatsappUrl && errors.whatsappUrl && (
                   <p className="text-xs text-red-500 mt-0.5">{errors.whatsappUrl}</p>
                 )}
-                <p className="text-xs text-gray-400 mt-1">Format: https://wa.me/[country code][number]</p>
+                <p className="text-xs text-gray-400 mt-1">{t("profile.addPetWhatsappFormat")}</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-2">Availability *</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-2">{t("profile.addPetAvailability")} *</label>
                 <div className="flex gap-2">
                   {[
-                    { value: "adopt", label: "Adoption" },
-                    { value: "foster", label: "Foster" },
-                    { value: "both", label: "Both" },
+                    { value: "adopt", label: t("profile.addPetAdoption") },
+                    { value: "foster", label: t("profile.addPetFoster") },
+                    { value: "both", label: t("profile.addPetBoth") },
                   ].map(opt => (
                     <button
                       key={opt.value}
@@ -2519,7 +2609,7 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
                   onClick={() => setSection(1)}
                   className="px-5 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
                 >
-                  ← Back
+                  {t("profile.addPetBack")}
                 </button>
                 <button
                   type="submit"
@@ -2527,9 +2617,9 @@ function AddPetModal({ onClose, onSuccess, userName }: AddPetModalProps) {
                   className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
                   {createPet.isPending ? (
-                    <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</span>
+                    <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t("common.submitting")}</span>
                   ) : (
-                    "Submit Pet"
+                    t("profile.addPetSubmit")
                   )}
                 </button>
               </div>
@@ -2563,7 +2653,7 @@ function useGetMyVolunteerApplication() {
     queryFn: async () => {
       const res = await fetch("/api/volunteer-applications/me", { credentials: "include" });
       if (res.status === 404) return null;
-      if (!res.ok) throw new Error("Failed to fetch volunteer application");
+      if (!res.ok) throw new Error(i18next.t("profile.failedFetchVolunteer"));
       return res.json();
     },
   });
@@ -2632,6 +2722,7 @@ interface VolunteerApplicationModalProps {
 }
 
 function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileData }: VolunteerApplicationModalProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const submitMutation = useSubmitVolunteerApplication();
   const updateMutation = useUpdateVolunteerApplication();
@@ -2654,15 +2745,15 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
 
   function validate(data: VolunteerFormData): Partial<Record<keyof VolunteerFormData, string>> {
     const errs: Partial<Record<keyof VolunteerFormData, string>> = {};
-    if (!data.name.trim()) errs.name = "Name is required";
-    if (!data.phone.trim()) errs.phone = "Phone is required";
-    else if (!phoneRegex.test(data.phone.trim())) errs.phone = "Invalid phone format (digits, spaces, +, -, () allowed)";
-    if (!data.email.trim()) errs.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) errs.email = "Invalid email address";
-    if (!data.city.trim()) errs.city = "City is required";
-    if (!data.address.trim()) errs.address = "Address is required";
-    if (!data.skills.trim()) errs.skills = "Skills are required";
-    if (!data.motivation.trim()) errs.motivation = "Please tell us why you want to join";
+    if (!data.name.trim()) errs.name = t("profile.volErrName");
+    if (!data.phone.trim()) errs.phone = t("profile.volErrPhone");
+    else if (!phoneRegex.test(data.phone.trim())) errs.phone = t("profile.volErrPhoneFormat");
+    if (!data.email.trim()) errs.email = t("profile.volErrEmail");
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) errs.email = t("profile.volErrEmailFormat");
+    if (!data.city.trim()) errs.city = t("profile.volErrCity");
+    if (!data.address.trim()) errs.address = t("profile.volErrAddress");
+    if (!data.skills.trim()) errs.skills = t("profile.volErrSkills");
+    if (!data.motivation.trim()) errs.motivation = t("profile.volErrMotivation");
     return errs;
   }
 
@@ -2689,14 +2780,14 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
     try {
       if (isResubmit) {
         await updateMutation.mutateAsync(form);
-        toast({ title: "Application resubmitted!", description: "We'll review your updated application soon." });
+        toast({ title: t("profile.volResubmitted"), description: t("profile.volReviewSoon") });
       } else {
         await submitMutation.mutateAsync(form);
-        toast({ title: "Application submitted!", description: "We'll review your application and get back to you soon." });
+        toast({ title: t("profile.volSubmitted"), description: t("profile.volReviewSoon") });
       }
       setSubmitted(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to submit application";
+      const msg = err instanceof Error ? err.message : t("profile.volSubmitError");
       toast({ title: msg, variant: "destructive" });
     }
   }
@@ -2717,15 +2808,15 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-8 h-8 text-green-500" />
           </div>
-          <h2 className="text-xl font-bold text-[#1E2A3A] mb-2">Application Submitted!</h2>
+          <h2 className="text-xl font-bold text-[#1E2A3A] mb-2">{t("profile.volSubmitted")}</h2>
           <p className="text-sm text-gray-500 mb-6">
-            Thank you for your interest in volunteering with Tabanni. We'll review your application and get back to you soon.
+            {t("profile.volSubmittedDesc")}
           </p>
           <button
             onClick={onClose}
             className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
       </div>
@@ -2738,9 +2829,9 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
         <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
           <div>
             <h2 className="text-lg font-bold text-[#1E2A3A]">
-              {isResubmit ? "Edit & Resubmit Application" : "Join Organization"}
+              {isResubmit ? t("profile.editResubmitApplication") : t("profile.joinOrganization")}
             </h2>
-            <p className="text-xs text-gray-400 mt-0.5">Apply to volunteer with Tabanni</p>
+            <p className="text-xs text-gray-400 mt-0.5">{t("profile.volModalSubtitle")}</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5 text-gray-500" />
@@ -2751,7 +2842,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
           <div className="p-5 space-y-5">
             {/* Application Type */}
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-2">Application Type *</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-2">{t("profile.applicationType")} *</label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -2764,7 +2855,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
                 >
                   <Users className={`w-6 h-6 ${form.applicationType === "member" ? "text-primary" : "text-gray-400"}`} />
                   <span className={`text-sm font-semibold ${form.applicationType === "member" ? "text-primary" : "text-gray-600"}`}>
-                    Become a Member
+                    {t("profile.becomeAMember")}
                   </span>
                 </button>
                 <button
@@ -2778,7 +2869,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
                 >
                   <Heart className={`w-6 h-6 ${form.applicationType === "volunteer_activity" ? "text-primary" : "text-gray-400"}`} />
                   <span className={`text-sm font-semibold ${form.applicationType === "volunteer_activity" ? "text-primary" : "text-gray-600"}`}>
-                    One-time Activity
+                    {t("profile.oneTimeActivity")}
                   </span>
                 </button>
               </div>
@@ -2787,20 +2878,20 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
             {/* Auto-filled fields */}
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Full Name *</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.fullName")} *</label>
                 <input
                   className={inputCls("name")}
                   value={form.name}
                   onChange={e => setField("name", e.target.value)}
                   onBlur={() => touch("name")}
-                  placeholder="Your full name"
+                  placeholder={t("profile.fullName")}
                 />
                 {touchedFields.has("name") && formErrors.name && (
                   <p className="text-xs text-red-500 mt-0.5">{formErrors.name}</p>
                 )}
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone *</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.phone")} *</label>
                 <input
                   className={inputCls("phone")}
                   value={form.phone}
@@ -2813,7 +2904,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
                 )}
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Email *</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.email")} *</label>
                 <input
                   type="email"
                   className={inputCls("email")}
@@ -2827,7 +2918,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
                 )}
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">City *</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.city")} *</label>
                 <input
                   className={inputCls("city")}
                   value={form.city}
@@ -2842,13 +2933,13 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Address *</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.address")} *</label>
               <input
                 className={inputCls("address")}
                 value={form.address}
                 onChange={e => setField("address", e.target.value)}
                 onBlur={() => touch("address")}
-                placeholder="Your full address"
+                placeholder={t("profile.address")}
               />
               {touchedFields.has("address") && formErrors.address && (
                 <p className="text-xs text-red-500 mt-0.5">{formErrors.address}</p>
@@ -2856,13 +2947,13 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Skills *</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.skills")} *</label>
               <input
                 className={inputCls("skills")}
                 value={form.skills}
                 onChange={e => setField("skills", e.target.value)}
                 onBlur={() => touch("skills")}
-                placeholder="e.g. Animal care, first aid, photography..."
+                placeholder={t("profile.volSkillsPlaceholder")}
               />
               {touchedFields.has("skills") && formErrors.skills && (
                 <p className="text-xs text-red-500 mt-0.5">{formErrors.skills}</p>
@@ -2870,14 +2961,14 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Why do you want to join Tabanni? *</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.volWhyJoin")} *</label>
               <textarea
                 rows={4}
                 className={inputCls("motivation")}
                 value={form.motivation}
                 onChange={e => setField("motivation", e.target.value)}
                 onBlur={() => touch("motivation")}
-                placeholder="Tell us about your motivation to volunteer..."
+                placeholder={t("profile.volMotivationPlaceholder")}
               />
               {touchedFields.has("motivation") && formErrors.motivation && (
                 <p className="text-xs text-red-500 mt-0.5">{formErrors.motivation}</p>
@@ -2891,7 +2982,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
               onClick={onClose}
               className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
@@ -2900,9 +2991,9 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Submitting...
+                  <Loader2 className="w-4 h-4 animate-spin" /> {t("common.submitting")}
                 </span>
-              ) : isResubmit ? "Resubmit Application" : "Submit Application"}
+              ) : isResubmit ? t("profile.volResubmitBtn") : t("profile.volSubmitBtn")}
             </button>
           </div>
         </form>
@@ -2912,6 +3003,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
 }
 
 function VolunteerSection({ profile }: { profile: { fullName?: string | null; email?: string | null; phone?: string | null; city?: string | null } | null }) {
+  const { t } = useTranslation();
   const { data: application, isLoading } = useGetMyVolunteerApplication();
   const [showModal, setShowModal] = useState(false);
 
@@ -2925,47 +3017,47 @@ function VolunteerSection({ profile }: { profile: { fullName?: string | null; em
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">Volunteer</h2>
+      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.tabVolunteer")}</h2>
 
       {!application ? (
         <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8 text-primary" />
           </div>
-          <h3 className="font-bold text-[#1E2A3A] mb-2">Make a Difference</h3>
+          <h3 className="font-bold text-[#1E2A3A] mb-2">{t("profile.volunteerMakeDifference")}</h3>
           <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
-            Join the Tabanni team as a member or volunteer for a one-time activity. Help animals find their forever homes.
+            {t("profile.volunteerDescription")}
           </p>
           <button
             onClick={() => setShowModal(true)}
             className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
           >
-            Join Organization
+            {t("profile.joinOrganization")}
           </button>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Application Type</p>
+              <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{t("profile.applicationType")}</p>
               <p className="font-bold text-[#1E2A3A]">
-                {application.applicationType === "member" ? "Become a Member" : "One-time Volunteer Activity"}
+                {application.applicationType === "member" ? t("profile.becomeAMember") : t("profile.oneTimeVolunteer")}
               </p>
             </div>
             <div className="shrink-0">
               {application.status === "pending" && (
                 <span className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">
-                  <Clock className="w-3.5 h-3.5" /> Pending Review
+                  <Clock className="w-3.5 h-3.5" /> {t("profile.pendingReview")}
                 </span>
               )}
               {application.status === "accepted" && (
                 <span className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-bold">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Accepted
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {t("profile.accepted")}
                 </span>
               )}
               {application.status === "rejected" && (
                 <span className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-600 rounded-full text-xs font-bold">
-                  <XCircle className="w-3.5 h-3.5" /> Rejected
+                  <XCircle className="w-3.5 h-3.5" /> {t("profile.rejected")}
                 </span>
               )}
             </div>
@@ -2973,36 +3065,36 @@ function VolunteerSection({ profile }: { profile: { fullName?: string | null; em
 
           {application.status === "pending" && (
             <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-sm text-yellow-800">
-              Your application is under review. We'll notify you once it's been processed.
+              {t("profile.applicationPendingMsg")}
             </div>
           )}
 
           {application.status === "accepted" && (
             <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-sm text-green-800">
-              Congratulations! Your application has been accepted. Welcome to the Tabanni team!
+              {t("profile.applicationAcceptedMsg")}
             </div>
           )}
 
           {application.status === "rejected" && (
             <div className="space-y-3">
               <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-800">
-                Unfortunately, your application was not accepted this time. You can update your details and resubmit below.
+                {t("profile.applicationRejectedMsg")}
               </div>
               <button
                 onClick={() => setShowModal(true)}
                 className="w-full py-2.5 border-2 border-primary text-primary rounded-xl font-bold text-sm hover:bg-primary/5 transition-colors"
               >
-                Edit & Resubmit Application
+                {t("profile.editResubmitApplication")}
               </button>
             </div>
           )}
 
           <div className="mt-4 grid sm:grid-cols-2 gap-3 text-sm">
             {[
-              ["Name", application.name],
-              ["Email", application.email],
-              ["Phone", application.phone],
-              ["City", application.city],
+              [t("profile.name"), application.name],
+              [t("profile.email"), application.email],
+              [t("profile.phone"), application.phone],
+              [t("profile.city"), application.city],
             ].map(([label, value]) => (
               <div key={label} className="bg-gray-50 rounded-xl p-3">
                 <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
@@ -3010,21 +3102,21 @@ function VolunteerSection({ profile }: { profile: { fullName?: string | null; em
               </div>
             ))}
             <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-              <p className="text-xs font-semibold text-gray-500 mb-0.5">Address</p>
+              <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.address")}</p>
               <p className="text-sm text-[#1E2A3A]">{application.address}</p>
             </div>
             <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-              <p className="text-xs font-semibold text-gray-500 mb-0.5">Skills</p>
+              <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.skills")}</p>
               <p className="text-sm text-[#1E2A3A]">{application.skills}</p>
             </div>
             <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
-              <p className="text-xs font-semibold text-gray-500 mb-0.5">Motivation</p>
+              <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.motivation")}</p>
               <p className="text-sm text-[#1E2A3A]">{application.motivation}</p>
             </div>
           </div>
 
           <p className="text-xs text-gray-400 mt-4">
-            Submitted on {new Date(application.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+            {t("profile.submittedOn")} {new Date(application.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
           </p>
         </div>
       )}
@@ -3072,6 +3164,7 @@ const NO_TOUCHED: TouchedState = {
 };
 
 export default function Profile() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { logout } = useAuth();
   const [, setLocation] = useLocation();
@@ -3183,9 +3276,9 @@ export default function Profile() {
       setShowPassword(false);
       setPasswordChanged(false);
       setTouched(NO_TOUCHED);
-      toast({ title: "Profile saved successfully." });
+      toast({ title: t("profile.profileSaved") });
     } catch {
-      toast({ title: "Failed to save profile", variant: "destructive" });
+      toast({ title: t("profile.profileSaveError"), variant: "destructive" });
     }
   };
 
@@ -3194,7 +3287,7 @@ export default function Profile() {
     setLocation("/");
   };
 
-  const displayName = profile?.fullName || "User";
+  const displayName = profile?.fullName || t("profile.user");
   const avatarLetter = displayName.charAt(0).toUpperCase();
 
   const readOnlyClass = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#1E2A3A] outline-none bg-gray-50 text-gray-500 cursor-default";
@@ -3231,7 +3324,7 @@ export default function Profile() {
                 onClick={() => { setActiveTab("Profile"); handleEdit(); }}
                 className="flex items-center gap-1 mt-1.5 bg-white/10 hover:bg-white/20 rounded-full px-3 py-1 text-xs transition-colors"
               >
-                <Edit2 className="w-3 h-3" /> Edit Profile
+                <Edit2 className="w-3 h-3" /> {t("profile.editProfile")}
               </button>
             </div>
 
@@ -3248,7 +3341,7 @@ export default function Profile() {
                     }`}
                   >
                     <Icon className="w-4 h-4" />
-                    {link.label}
+                    {t(`profile.${link.tabKey}`)}
                   </button>
                 );
               })}
@@ -3258,7 +3351,7 @@ export default function Profile() {
                   className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors text-red-300 hover:bg-red-500/20 hover:text-red-200"
                 >
                   <LogOut className="w-4 h-4" />
-                  Log Out
+                  {t("profile.logOut")}
                 </button>
               </div>
             </nav>
@@ -3288,14 +3381,14 @@ export default function Profile() {
                   <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {/* Full Name */}
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-gray-500">Full Name</label>
+                      <label className="text-xs font-semibold text-gray-500">{t("profile.fullName")}</label>
                       <input
                         value={form.fullName}
                         disabled={!isEditing}
                         onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                         onBlur={() => handleBlur("fullName")}
                         className={fieldClass("fullName")}
-                        placeholder={isEditing ? "Your full name" : ""}
+                        placeholder={isEditing ? t("profile.placeholderFullName") : ""}
                       />
                       {isEditing && touched.fullName && errors.fullName && (
                         <p className="text-xs text-red-500">{errors.fullName}</p>
@@ -3304,7 +3397,7 @@ export default function Profile() {
 
                     {/* Email */}
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-gray-500">Email</label>
+                      <label className="text-xs font-semibold text-gray-500">{t("profile.email")}</label>
                       <input
                         type="email"
                         value={form.email}
@@ -3312,7 +3405,7 @@ export default function Profile() {
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                         onBlur={() => handleBlur("email")}
                         className={fieldClass("email")}
-                        placeholder={isEditing ? "your@email.com" : ""}
+                        placeholder={isEditing ? t("profile.placeholderEmail") : ""}
                       />
                       {isEditing && touched.email && errors.email && (
                         <p className="text-xs text-red-500">{errors.email}</p>
@@ -3322,9 +3415,9 @@ export default function Profile() {
                     {/* Password */}
                     <div className="space-y-1">
                       <div className="flex items-baseline justify-between">
-                        <label className="text-xs font-semibold text-gray-500">Password</label>
+                        <label className="text-xs font-semibold text-gray-500">{t("profile.password")}</label>
                         {isEditing && (
-                          <span className="text-[10px] text-gray-400">Change password (optional)</span>
+                          <span className="text-[10px] text-gray-400">{t("profile.changePasswordOptional")}</span>
                         )}
                       </div>
                       <div className="relative">
@@ -3347,16 +3440,16 @@ export default function Profile() {
                               setForm({ ...form, password: PASSWORD_SENTINEL });
                             }
                           }}
-                          className={`${fieldClass("password")} pr-10`}
-                          placeholder={isEditing && passwordChanged ? "Enter new password" : ""}
+                          className={`${fieldClass("password")} pe-10`}
+                          placeholder={isEditing && passwordChanged ? t("profile.placeholderNewPassword") : ""}
                         />
                         {isEditing && passwordChanged && (
                           <button
                             type="button"
                             tabIndex={-1}
                             onClick={() => setShowPassword((v) => !v)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            aria-label={showPassword ? t("profile.hidePassword") : t("profile.showPassword")}
                           >
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
@@ -3375,7 +3468,7 @@ export default function Profile() {
                               <div className={`h-full ${cfg.bg} ${cfg.width} rounded-full transition-all duration-300`} />
                             </div>
                             <p className={`text-[10px] font-semibold ${cfg.color}`}>
-                              Password strength: {cfg.label}
+                              {t("profile.strengthPassword")} {t(cfg.labelKey)}
                             </p>
                           </div>
                         );
@@ -3401,26 +3494,26 @@ export default function Profile() {
 
                     {/* Country */}
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-gray-500">Country</label>
+                      <label className="text-xs font-semibold text-gray-500">{t("profile.country")}</label>
                       <input
                         value={form.country.name}
                         disabled
                         readOnly
                         className={readOnlyClass}
                       />
-                      <p className="text-xs text-gray-400">Country is set via the phone field above.</p>
+                      <p className="text-xs text-gray-400">{t("profile.countryHint")}</p>
                     </div>
 
                     {/* City */}
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-gray-500">City</label>
+                      <label className="text-xs font-semibold text-gray-500">{t("profile.city")}</label>
                       <input
                         value={form.city}
                         disabled={!isEditing}
                         onChange={(e) => setForm({ ...form, city: e.target.value })}
                         onBlur={() => handleBlur("city")}
                         className={fieldClass("city")}
-                        placeholder={isEditing ? "Your city" : ""}
+                        placeholder={isEditing ? t("profile.placeholderCity") : ""}
                       />
                       {isEditing && touched.city && errors.city && (
                         <p className="text-xs text-red-500">{errors.city}</p>
@@ -3435,7 +3528,7 @@ export default function Profile() {
                           onClick={handleEdit}
                           className="px-12 py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
                         >
-                          Edit Profile
+                          {t("profile.editProfile")}
                         </button>
                       ) : (
                         <>
@@ -3444,14 +3537,14 @@ export default function Profile() {
                             onClick={handleCancel}
                             className="px-8 py-3 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
                           >
-                            Cancel
+                            {t("profile.cancel")}
                           </button>
                           <button
                             type="submit"
                             disabled={!isFormValid || updateMutation.isPending}
                             className="px-12 py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {updateMutation.isPending ? "Saving..." : "Save"}
+                            {updateMutation.isPending ? t("profile.saving") : t("profile.saveChanges")}
                           </button>
                         </>
                       )}
@@ -3478,28 +3571,28 @@ export default function Profile() {
                 ) : (
                   <div>
                     <div className="flex items-center justify-between mb-5">
-                      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">My Pets</h2>
+                      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.myPets")}</h2>
                       <button
                         onClick={() => setShowAddPetModal(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
                       >
-                        <Plus className="w-4 h-4" /> Add Pet
+                        <Plus className="w-4 h-4" /> {t("profile.addPet")}
                       </button>
                     </div>
                     {(!myPets || myPets.length === 0) ? (
                       <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                         <PawPrint className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                        <p className="text-base font-semibold text-[#1E2A3A]">No pets listed yet</p>
-                        <p className="text-sm mt-1">Click "Add Pet" to submit a pet for adoption or fostering.</p>
+                        <p className="text-base font-semibold text-[#1E2A3A]">{t("profile.noPets")}</p>
+                        <p className="text-sm mt-1">{t("profile.addPet")}</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {(myPets as (Pet & { rejected?: boolean })[]).map((pet) => {
                           const approvalStatus = pet.rejected ? "rejected" : pet.approved ? "approved" : "pending";
                           const badgeMap = {
-                            approved: { color: "bg-green-100 text-green-700", icon: CheckCircle2, label: "Approved" },
-                            pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock, label: "Pending" },
-                            rejected: { color: "bg-red-100 text-red-600", icon: XCircle, label: "Rejected" },
+                            approved: { color: "bg-green-100 text-green-700", icon: CheckCircle2, label: t("profile.approved") },
+                            pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock, label: t("profile.pending") },
+                            rejected: { color: "bg-red-100 text-red-600", icon: XCircle, label: t("profile.rejected") },
                           };
                           const badge = badgeMap[approvalStatus];
                           const BadgeIcon = badge.icon;
@@ -3539,8 +3632,8 @@ export default function Profile() {
               ) : (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="font-display font-bold text-lg text-[#1E2A3A]">Applications</h2>
-                    <p className="text-sm text-gray-500 mt-0.5">Incoming requests from people wanting to adopt or foster your pets.</p>
+                    <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.applications")}</h2>
+                    <p className="text-sm text-gray-500 mt-0.5">{t("profile.noRequests")}</p>
                   </div>
 
                   {(() => {
@@ -3549,28 +3642,28 @@ export default function Profile() {
                     return visibleAdoption.length === 0 && visibleFoster.length === 0 ? (
                       <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                         <Inbox className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                        <p className="text-lg font-semibold text-[#1E2A3A]">No incoming requests yet</p>
-                        <p className="text-sm mt-1">When someone requests to adopt or foster your pet, it will show here.</p>
+                        <p className="text-lg font-semibold text-[#1E2A3A]">{t("profile.noRequests")}</p>
+                        <p className="text-sm mt-1">{t("profile.noRequests")}</p>
                       </div>
                     ) : (
                       <>
                         {visibleAdoption.length > 0 && (
                           <div>
-                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Adoption Requests</h3>
+                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">{t("profile.adoptionRequests")}</h3>
                             <div className="space-y-2">
                               {visibleAdoption.map((req) => (
                                 <button
                                   key={req.id}
                                   onClick={() => setSelectedIncomingRequest({ request: req, type: "adoption" })}
-                                  className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/30 hover:shadow-sm transition-all text-left"
+                                  className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/30 hover:shadow-sm transition-all text-start"
                                 >
                                   <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
                                     {(req.requesterName || "?").charAt(0).toUpperCase()}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.requesterName || "Unknown Applicant"}</p>
+                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.requesterName || t("profile.unknownApplicant")}</p>
                                     <p className="text-xs text-gray-500 mt-0.5">
-                                      Wants to adopt <span className="font-semibold text-[#1E2A3A]">{req.petName || "your pet"}</span>
+                                      {t("profile.wantsToAdopt")} <span className="font-semibold text-[#1E2A3A]">{req.petName || t("profile.yourPet")}</span>
                                     </p>
                                     <p className="text-xs text-gray-400 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
                                   </div>
@@ -3586,21 +3679,21 @@ export default function Profile() {
 
                         {visibleFoster.length > 0 && (
                           <div>
-                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Foster Requests</h3>
+                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">{t("profile.fosterRequests")}</h3>
                             <div className="space-y-2">
                               {visibleFoster.map((req) => (
                                 <button
                                   key={req.id}
                                   onClick={() => setSelectedIncomingRequest({ request: req, type: "foster" })}
-                                  className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/30 hover:shadow-sm transition-all text-left"
+                                  className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/30 hover:shadow-sm transition-all text-start"
                                 >
                                   <div className="w-11 h-11 rounded-full bg-secondary/10 flex items-center justify-center shrink-0 text-secondary font-bold text-sm">
                                     {(req.requesterName || "?").charAt(0).toUpperCase()}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.requesterName || "Unknown Applicant"}</p>
+                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.requesterName || t("profile.unknownApplicant")}</p>
                                     <p className="text-xs text-gray-500 mt-0.5">
-                                      Wants to foster <span className="font-semibold text-[#1E2A3A]">{req.petName || "your pet"}</span>
+                                      {t("profile.wantsToFoster")} <span className="font-semibold text-[#1E2A3A]">{req.petName || t("profile.yourPet")}</span>
                                     </p>
                                     <p className="text-xs text-gray-400 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
                                   </div>
@@ -3629,8 +3722,8 @@ export default function Profile() {
               ) : (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="font-display font-bold text-lg text-[#1E2A3A]">My Requests</h2>
-                    <p className="text-sm text-gray-500 mt-0.5">Your adoption and foster requests.</p>
+                    <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.myRequests")}</h2>
+                    <p className="text-sm text-gray-500 mt-0.5">{t("profile.noMyRequests")}</p>
                   </div>
 
                   <ReadinessProfileSection onEdit={() => setShowReadinessForm(true)} />
@@ -3638,17 +3731,17 @@ export default function Profile() {
                   {!applications?.adoptionRequests?.length && !applications?.fosterRequests?.length ? (
                     <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                       <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p className="text-lg font-semibold text-[#1E2A3A]">No requests yet</p>
-                      <p className="text-sm mt-1">You haven't submitted any adoption or foster requests yet.</p>
+                      <p className="text-lg font-semibold text-[#1E2A3A]">{t("profile.noMyRequests")}</p>
+                      <p className="text-sm mt-1">{t("profile.noMyRequests")}</p>
                       <Link href="/adopt" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
-                        Browse Pets
+                        {t("adopt.title")}
                       </Link>
                     </div>
                   ) : (
                     <>
                       {(applications?.adoptionRequests?.length ?? 0) > 0 && (
                         <div>
-                          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Adoption Requests</h3>
+                          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">{t("profile.adoptionRequests")}</h3>
                           <div className="space-y-3">
                             {applications?.adoptionRequests?.map((req) => {
                               const ageLabel = req.petAgeMonths != null
@@ -3668,7 +3761,7 @@ export default function Profile() {
                                     className="w-14 h-14 rounded-xl object-cover shrink-0"
                                   />
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || "Unknown Pet"}</p>
+                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || t("profile.unknownPet")}</p>
                                     <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                                       {req.petType && <span className="text-xs capitalize text-gray-500">{req.petType}</span>}
                                       {ageLabel && <span className="text-xs text-gray-400">· {ageLabel}</span>}
@@ -3681,7 +3774,7 @@ export default function Profile() {
                                     <button
                                       onClick={e => { e.stopPropagation(); setDeletingRequest({ id: req.id, type: "adoption" }); }}
                                       className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                                      title="Delete request"
+                                      title={t("profile.deleteRequest")}
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
@@ -3695,7 +3788,7 @@ export default function Profile() {
 
                       {(applications?.fosterRequests?.length ?? 0) > 0 && (
                         <div>
-                          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Foster Requests</h3>
+                          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">{t("profile.fosterRequests")}</h3>
                           <div className="space-y-3">
                             {applications?.fosterRequests?.map((req) => {
                               const ageLabel = req.petAgeMonths != null
@@ -3715,7 +3808,7 @@ export default function Profile() {
                                     className="w-14 h-14 rounded-xl object-cover shrink-0"
                                   />
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || "Unknown Pet"}</p>
+                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || t("profile.unknownPet")}</p>
                                     <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                                       {req.petType && <span className="text-xs capitalize text-gray-500">{req.petType}</span>}
                                       {ageLabel && <span className="text-xs text-gray-400">· {ageLabel}</span>}
@@ -3728,7 +3821,7 @@ export default function Profile() {
                                     <button
                                       onClick={e => { e.stopPropagation(); setDeletingRequest({ id: req.id, type: "foster" }); }}
                                       className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                                      title="Delete request"
+                                      title={t("profile.deleteRequest")}
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
@@ -3754,15 +3847,15 @@ export default function Profile() {
               ) : !favourites || favourites.length === 0 ? (
                 <div className="text-center py-16 text-gray-400">
                   <Heart className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p className="text-lg font-semibold text-[#1E2A3A]">No favourites yet</p>
-                  <p className="text-sm mt-1">Save pets to your favourites while browsing.</p>
+                  <p className="text-lg font-semibold text-[#1E2A3A]">{t("profile.noFavourites")}</p>
+                  <p className="text-sm mt-1">{t("profile.noFavourites")}</p>
                   <Link href="/adopt" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
-                    Browse Pets
+                    {t("adopt.title")}
                   </Link>
                 </div>
               ) : (
                 <div>
-                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">Saved Pets</h2>
+                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">{t("profile.favourites")}</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {favourites.map((pet) => (
                       <Link key={pet.id} href={`/pets/${pet.id}`}>
@@ -3787,7 +3880,7 @@ export default function Profile() {
             {/* ── Notifications Tab ── */}
             {activeTab === "Notifications" && (
               <div className="space-y-4">
-                <h2 className="font-display font-bold text-lg text-[#1E2A3A]">Notifications</h2>
+                <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.notifications")}</h2>
                 {notifLoading ? (
                   <div className="flex items-center justify-center py-16">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -3795,8 +3888,8 @@ export default function Profile() {
                 ) : !notifications || notifications.length === 0 ? (
                   <div className="text-center py-10 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400">
                     <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p className="font-semibold text-[#1E2A3A]">No notifications yet</p>
-                    <p className="text-sm mt-1">You'll be notified when your pet submissions are reviewed.</p>
+                    <p className="font-semibold text-[#1E2A3A]">{t("profile.noNotifications")}</p>
+                    <p className="text-sm mt-1">{t("profile.noNotifications")}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -3804,7 +3897,7 @@ export default function Profile() {
                       <button
                         key={notif.id}
                         onClick={() => { if (!notif.read) markRead.mutate(notif.id); }}
-                        className={`w-full text-left flex items-start gap-4 p-4 rounded-xl border transition-colors ${
+                        className={`w-full text-start flex items-start gap-4 p-4 rounded-xl border transition-colors ${
                           notif.read
                             ? "bg-white border-gray-100 opacity-70"
                             : "bg-primary/5 border-primary/20 hover:bg-primary/10"
@@ -3821,14 +3914,14 @@ export default function Profile() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-sm text-[#1E2A3A]">
-                              {notif.petName ?? "Your pet"}
+                              {notif.petName ?? t("profile.yourPet")}
                             </span>
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
                               notif.status === "accepted"
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-500"
                             }`}>
-                              {notif.status === "accepted" ? "Accepted" : "Rejected"}
+                              {notif.status === "accepted" ? t("profile.notifAccepted") : t("profile.notifRejected")}
                             </span>
                             {!notif.read && (
                               <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
@@ -3852,13 +3945,13 @@ export default function Profile() {
                 </div>
               ) : (
                 <div>
-                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">Recent Lost & Found Reports</h2>
+                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">{t("profile.myLostFound")}</h2>
                   {!lostFoundData?.reports || lostFoundData.reports.length === 0 ? (
                     <div className="text-center py-16 text-gray-400">
                       <MapPin className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p className="text-lg font-semibold text-[#1E2A3A]">No reports yet</p>
+                      <p className="text-lg font-semibold text-[#1E2A3A]">{t("profile.noReports")}</p>
                       <Link href="/lost-found" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
-                        View Lost & Found
+                        {t("lostFound.title")}
                       </Link>
                     </div>
                   ) : (
@@ -3871,8 +3964,8 @@ export default function Profile() {
                               alt={report.name}
                               className="w-full h-24 object-cover"
                             />
-                            <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-xs font-bold ${report.reportType === "lost" ? "bg-red-500" : "bg-[#00B8A0]"}`}>
-                              {report.reportType === "lost" ? "LOST" : "FOUND"}
+                            <span className={`absolute top-2 start-2 px-2 py-0.5 rounded-full text-white text-xs font-bold ${report.reportType === "lost" ? "bg-red-500" : "bg-[#00B8A0]"}`}>
+                              {report.reportType === "lost" ? t("lostFound.lost") : t("lostFound.found")}
                             </span>
                           </div>
                           <div className="p-3">
@@ -3885,7 +3978,7 @@ export default function Profile() {
                   )}
                   <div className="mt-4 text-center">
                     <Link href="/lost-found" className="text-primary text-sm font-bold hover:underline">
-                      View All Reports →
+                      {t("profile.viewAllReports")} →
                     </Link>
                   </div>
                 </div>
@@ -3916,10 +4009,10 @@ export default function Profile() {
             } else {
               await updateFosterStatus.mutateAsync({ id: selectedIncomingRequest.request.id, status: "approved" });
             }
-            toast({ title: "Request accepted", description: `${selectedIncomingRequest.request.petName} has been marked as ${selectedIncomingRequest.type === "adoption" ? "adopted" : "fostered"}.` });
+            toast({ title: t("profile.requestAccepted"), description: selectedIncomingRequest.type === "adoption" ? t("profile.markedAsAdopted", { pet: selectedIncomingRequest.request.petName }) : t("profile.markedAsFostered", { pet: selectedIncomingRequest.request.petName }) });
             setSelectedIncomingRequest(null);
           } catch {
-            toast({ title: "Failed to accept request", variant: "destructive" });
+            toast({ title: t("profile.failedToAccept"), variant: "destructive" });
           }
         }}
         onReject={async () => {
@@ -3929,10 +4022,10 @@ export default function Profile() {
             } else {
               await updateFosterStatus.mutateAsync({ id: selectedIncomingRequest.request.id, status: "rejected" });
             }
-            toast({ title: "Request rejected" });
+            toast({ title: t("profile.requestRejected") });
             setSelectedIncomingRequest(null);
           } catch {
-            toast({ title: "Failed to reject request", variant: "destructive" });
+            toast({ title: t("profile.failedToReject"), variant: "destructive" });
           }
         }}
       />
@@ -3960,15 +4053,15 @@ export default function Profile() {
             <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
               <Trash2 className="w-5 h-5 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-[#1E2A3A]">Delete Request</h3>
+            <h3 className="text-lg font-bold text-[#1E2A3A]">{t("profile.deleteRequest")}</h3>
           </div>
-          <p className="text-sm text-gray-500 mb-6">Are you sure you want to delete this request? This cannot be undone.</p>
+          <p className="text-sm text-gray-500 mb-6">{t("profile.deleteRequest")}</p>
           <div className="flex gap-3">
             <button
               onClick={() => setDeletingRequest(null)}
               className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#1E2A3A] hover:bg-gray-50 transition-colors"
             >
-              Cancel
+              {t("profile.cancel")}
             </button>
             <button
               onClick={async () => {
@@ -3978,10 +4071,10 @@ export default function Profile() {
                   } else {
                     await deleteFosterMutation.mutateAsync(deletingRequest.id);
                   }
-                  toast({ title: "Request deleted" });
+                  toast({ title: t("profile.requestDeletedToast") });
                   setDeletingRequest(null);
                 } catch {
-                  toast({ title: "Failed to delete request", variant: "destructive" });
+                  toast({ title: t("profile.failedToDeleteRequest"), variant: "destructive" });
                 }
               }}
               disabled={deleteAdoptionMutation.isPending || deleteFosterMutation.isPending}
@@ -3989,7 +4082,7 @@ export default function Profile() {
             >
               {(deleteAdoptionMutation.isPending || deleteFosterMutation.isPending) ? (
                 <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-              ) : "Delete"}
+              ) : t("profile.deleteConfirmBtn")}
             </button>
           </div>
         </div>
@@ -4004,21 +4097,21 @@ export default function Profile() {
             <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
               <LogOut className="w-5 h-5 text-red-500" />
             </div>
-            <h2 className="text-lg font-bold text-[#1E2A3A]">Log Out</h2>
+            <h2 className="text-lg font-bold text-[#1E2A3A]">{t("profile.logoutTitle")}</h2>
           </div>
-          <p className="text-sm text-gray-500 mb-6">Are you sure you want to log out?</p>
+          <p className="text-sm text-gray-500 mb-6">{t("profile.logoutDesc")}</p>
           <div className="flex gap-3">
             <button
               onClick={() => setShowLogoutDialog(false)}
               className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#1E2A3A] hover:bg-gray-50 transition-colors"
             >
-              Cancel
+              {t("profile.cancel")}
             </button>
             <button
               onClick={handleLogoutConfirm}
               className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"
             >
-              Confirm
+              {t("profile.logoutConfirm")}
             </button>
           </div>
         </div>

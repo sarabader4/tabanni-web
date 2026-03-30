@@ -1,58 +1,55 @@
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Shop() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background">
-      {/* Discover Section */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
         <h1 className="font-display text-3xl md:text-4xl font-bold text-[#1E2A3A] text-center mb-10">
-          Discover Something You'll Love!
+          {t("shop.title")}
         </h1>
 
         <div className="grid md:grid-cols-2 gap-6 mb-16">
-          {/* Mlabbas Shop */}
           <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#00B8A0", minHeight: "200px" }}>
             <div className="p-8 relative z-10">
-              <h2 className="font-display font-bold text-2xl text-white mb-1">Mlabbas Shop</h2>
-              <p className="text-white/80 text-sm mb-8">Support Through Shopping ✨</p>
+              <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.mlabbasShop")}</h2>
+              <p className="text-white/80 text-sm mb-8">{t("shop.mlabbasSub")}</p>
               <button className="flex items-center gap-2 bg-white text-[#1E2A3A] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
-                Go to shop <ArrowRight className="w-4 h-4" />
+                {t("shop.goToShop")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </button>
             </div>
             <img
               src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&q=80"
               alt="Dog"
-              className="absolute right-0 bottom-0 w-40 h-40 object-cover object-top opacity-80"
+              className="absolute end-0 bottom-0 w-40 h-40 object-cover object-top opacity-80"
               style={{ borderTopLeftRadius: "1rem" }}
             />
           </div>
 
-          {/* PetsJo Shop */}
           <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#FF6B35", minHeight: "200px" }}>
             <div className="p-8 relative z-10">
-              <h2 className="font-display font-bold text-2xl text-white mb-1">PetsJo Shop</h2>
-              <p className="text-white/80 text-sm mb-8">Your cart makes tails wag 🐾</p>
+              <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.petsjoShop")}</h2>
+              <p className="text-white/80 text-sm mb-8">{t("shop.petsjoSub")}</p>
               <button className="flex items-center gap-2 bg-white text-[#1E2A3A] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
-                Go to shop <ArrowRight className="w-4 h-4" />
+                {t("shop.goToShop")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </button>
             </div>
             <img
               src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80"
               alt="Pets"
-              className="absolute right-0 bottom-0 w-44 h-36 object-cover opacity-80"
+              className="absolute end-0 bottom-0 w-44 h-36 object-cover opacity-80"
               style={{ borderTopLeftRadius: "1rem" }}
             />
           </div>
         </div>
 
-        {/* Lend Us Your Support */}
         <h2 className="font-display text-2xl md:text-3xl font-bold text-[#1E2A3A] text-center mb-6">
-          Lend Us Your Support
+          {t("shop.lendSupport")}
         </h2>
 
         <div className="space-y-4">
-          {/* Donate card */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-6">
             <div className="w-24 h-20 rounded-xl overflow-hidden flex-shrink-0">
               <img
@@ -63,10 +60,10 @@ export default function Shop() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[#1E2A3A] text-sm leading-relaxed mb-1">
-                Your support whether supplies or a small donation can make a big difference in a pet's life.
+                {t("shop.donateDesc")}
               </p>
               <Link href="/donate" className="inline-flex items-center gap-1.5 text-primary font-bold text-sm hover:gap-2.5 transition-all">
-                Help Now <ArrowRight className="w-4 h-4" />
+                {t("shop.helpNow")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>
             </div>
             <div className="hidden sm:block opacity-10">
@@ -76,14 +73,13 @@ export default function Shop() {
             </div>
           </div>
 
-          {/* Foster card */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-6">
             <div className="flex-1 min-w-0">
               <p className="text-[#1E2A3A] text-sm leading-relaxed mb-1">
-                Open your home for a little while, and you could change a pet's whole world with a bit of safety, warmth, and love.
+                {t("shop.fosterDesc")}
               </p>
               <Link href="/foster" className="inline-flex items-center gap-1.5 text-[#00B8A0] font-bold text-sm hover:gap-2.5 transition-all">
-                Become a Foster <ArrowRight className="w-4 h-4" />
+                {t("shop.becomeAFoster")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>
             </div>
             <div className="w-24 h-20 rounded-xl overflow-hidden flex-shrink-0">

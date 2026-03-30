@@ -1,8 +1,10 @@
 import { useListGalleryPosts } from "@workspace/api-client-react";
 import { Loader2, PawPrint } from "lucide-react";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export default function Gallery() {
+  const { t } = useTranslation();
   const { data: posts, isLoading, isError } = useListGalleryPosts({ limit: 50 });
 
   if (isLoading) {
@@ -16,8 +18,8 @@ export default function Gallery() {
   if (isError) {
     return (
       <div className="flex items-center justify-center py-32 flex-col gap-4">
-        <p className="text-red-500 font-bold text-lg">Failed to load stories</p>
-        <p className="text-gray-400 text-sm">Please try refreshing the page.</p>
+        <p className="text-red-500 font-bold text-lg">{t("gallery.failedLoad")}</p>
+        <p className="text-gray-400 text-sm">{t("gallery.failedLoadSub")}</p>
       </div>
     );
   }
@@ -52,7 +54,7 @@ export default function Gallery() {
             href={`/gallery/${post.id}`}
             className="inline-block px-4 py-1.5 border border-gray-200 rounded-full text-xs font-semibold text-[#1E2A3A] hover:border-primary hover:text-primary transition-colors"
           >
-            Read More
+            {t("gallery.readMore")}
           </Link>
         </div>
       </div>
@@ -64,7 +66,7 @@ export default function Gallery() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {(!posts || posts.length === 0) ? (
           <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">No stories yet. Check back soon!</p>
+            <p className="text-gray-400 text-lg">{t("gallery.noStories")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">

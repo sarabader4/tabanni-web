@@ -2,24 +2,65 @@ import React, { useState } from "react";
 import { X, ChevronRight, ChevronLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { useAuth, apiFetch } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface OnboardingModalProps {
   onClose: () => void;
 }
 
-const ACTIVITY_OPTIONS = [
-  "Morning walks", "Evening runs", "Hiking", "Swimming", "Dog park visits",
-  "Training sessions", "Playtime indoors", "Agility sports", "Camping", "Road trips",
+const ACTIVITY_OPTION_KEYS: { value: string; key: string }[] = [
+  { value: "Morning walks", key: "profile.actMorningWalks" },
+  { value: "Evening runs", key: "profile.actEveningRuns" },
+  { value: "Hiking", key: "profile.actHiking" },
+  { value: "Swimming", key: "profile.actSwimming" },
+  { value: "Dog park visits", key: "profile.actDogPark" },
+  { value: "Training sessions", key: "profile.actTrainingSessions" },
+  { value: "Playtime indoors", key: "profile.actPlaytimeIndoors" },
+  { value: "Agility sports", key: "profile.actAgilitySports" },
+  { value: "Camping", key: "profile.actCamping" },
+  { value: "Road trips", key: "profile.actRoadTrips" },
 ];
 
-const PET_PREFERENCE_OPTIONS = [
-  "Dogs", "Cats", "Rabbits", "Birds", "Small animals",
-  "Senior pets", "Puppies/kittens", "Mixed breeds", "Purebreds", "Special needs pets",
+const PET_PREFERENCE_OPTION_KEYS: { value: string; key: string }[] = [
+  { value: "Dogs", key: "profile.prefDogs" },
+  { value: "Cats", key: "profile.prefCats" },
+  { value: "Rabbits", key: "profile.prefRabbits" },
+  { value: "Birds", key: "profile.prefBirds" },
+  { value: "Small animals", key: "profile.prefSmallAnimals" },
+  { value: "Senior pets", key: "profile.prefSeniorPets" },
+  { value: "Puppies/kittens", key: "profile.prefPuppiesKittens" },
+  { value: "Mixed breeds", key: "profile.prefMixedBreeds" },
+  { value: "Purebreds", key: "profile.prefPurebreds" },
+  { value: "Special needs pets", key: "profile.prefSpecialNeeds" },
 ];
 
-const TRAINING_EXPECTATION_OPTIONS = [
-  "Basic obedience", "House training", "Leash training", "Socialization",
-  "Advanced commands", "Behavioral correction", "Agility training", "No training expected",
+const TRAINING_EXPECTATION_OPTION_KEYS: { value: string; key: string }[] = [
+  { value: "Basic obedience", key: "profile.trainBasicObedience" },
+  { value: "House training", key: "profile.trainHouseTraining" },
+  { value: "Leash training", key: "profile.trainLeashTraining" },
+  { value: "Socialization", key: "profile.trainSocialization" },
+  { value: "Advanced commands", key: "profile.trainAdvancedCommands" },
+  { value: "Behavioral correction", key: "profile.trainBehavioralCorrection" },
+  { value: "Agility training", key: "profile.trainAgilityTraining" },
+  { value: "No training expected", key: "profile.trainNoTraining" },
+];
+
+const STEP_TITLE_KEYS = [
+  "profile.stepPersonalInfo",
+  "profile.stepHomeLifestyle",
+  "profile.stepPetCare",
+  "profile.stepAdoptionIntent",
+  "profile.stepActivitiesPrefs",
+  "profile.stepCommitments",
+];
+
+const STEP_FIELDS = [
+  ["areaOfResidence", "homeAddress", "occupation", "age", "mainCaregiver"],
+  ["homeType", "ownershipType", "yardType", "childrenCount", "householdObjection"],
+  ["dayLocation", "nightLocation", "exerciseHours", "currentPets", "previousPetExperience"],
+  ["adoptionReason", "financialResponsibility", "monthlyCostEstimation", "breedingIntention", "spayNeuterCommitment"],
+  ["activities", "petPreferences", "trainingExpectations"],
+  ["allergies", "behaviorTolerance", "traumaHandlingComfort", "dailyCarePlan", "travelPlan", "confirmed"],
 ];
 
 interface FormData {
@@ -86,51 +127,42 @@ const initialForm: FormData = {
   confirmed: false,
 };
 
-const STEPS = [
-  { title: "Personal Info", fields: ["areaOfResidence", "homeAddress", "occupation", "age", "mainCaregiver"] },
-  { title: "Home & Lifestyle", fields: ["homeType", "ownershipType", "yardType", "childrenCount", "householdObjection"] },
-  { title: "Pet Care", fields: ["dayLocation", "nightLocation", "exerciseHours", "currentPets", "previousPetExperience"] },
-  { title: "Adoption Intent", fields: ["adoptionReason", "financialResponsibility", "monthlyCostEstimation", "breedingIntention", "spayNeuterCommitment"] },
-  { title: "Activities & Preferences", fields: ["activities", "petPreferences", "trainingExpectations"] },
-  { title: "Commitments", fields: ["allergies", "behaviorTolerance", "traumaHandlingComfort", "dailyCarePlan", "travelPlan", "confirmed"] },
-];
-
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
-function validateStep(step: number, form: FormData): FormErrors {
+function validateStep(step: number, form: FormData, t: (key: string) => string): FormErrors {
   const errors: FormErrors = {};
   if (step === 0) {
-    if (!form.areaOfResidence.trim()) errors.areaOfResidence = "Required";
-    if (!form.homeAddress.trim()) errors.homeAddress = "Required";
-    if (!form.occupation.trim()) errors.occupation = "Required";
-    if (!form.age || Number(form.age) < 18) errors.age = "Must be at least 18";
-    if (!form.mainCaregiver.trim()) errors.mainCaregiver = "Required";
+    if (!form.areaOfResidence.trim()) errors.areaOfResidence = t("profile.errRequired");
+    if (!form.homeAddress.trim()) errors.homeAddress = t("profile.errRequired");
+    if (!form.occupation.trim()) errors.occupation = t("profile.errRequired");
+    if (!form.age || Number(form.age) < 18) errors.age = t("profile.errAge18");
+    if (!form.mainCaregiver.trim()) errors.mainCaregiver = t("profile.errRequired");
   }
   if (step === 1) {
-    if (!form.homeType) errors.homeType = "Required";
-    if (!form.ownershipType) errors.ownershipType = "Required";
-    if (!form.yardType) errors.yardType = "Required";
-    if (!form.householdObjection) errors.householdObjection = "Required";
+    if (!form.homeType) errors.homeType = t("profile.errRequired");
+    if (!form.ownershipType) errors.ownershipType = t("profile.errRequired");
+    if (!form.yardType) errors.yardType = t("profile.errRequired");
+    if (!form.householdObjection) errors.householdObjection = t("profile.errRequired");
   }
   if (step === 2) {
-    if (!form.dayLocation.trim()) errors.dayLocation = "Required";
-    if (!form.nightLocation.trim()) errors.nightLocation = "Required";
-    if (form.exerciseHours === "" || Number(form.exerciseHours) < 0) errors.exerciseHours = "Required";
+    if (!form.dayLocation.trim()) errors.dayLocation = t("profile.errRequired");
+    if (!form.nightLocation.trim()) errors.nightLocation = t("profile.errRequired");
+    if (form.exerciseHours === "" || Number(form.exerciseHours) < 0) errors.exerciseHours = t("profile.errRequired");
   }
   if (step === 3) {
-    if (!form.adoptionReason.trim()) errors.adoptionReason = "Required";
-    if (!form.financialResponsibility.trim()) errors.financialResponsibility = "Required";
-    if (form.monthlyCostEstimation === "" || Number(form.monthlyCostEstimation) < 0) errors.monthlyCostEstimation = "Required";
-    if (!form.breedingIntention) errors.breedingIntention = "Required";
+    if (!form.adoptionReason.trim()) errors.adoptionReason = t("profile.errRequired");
+    if (!form.financialResponsibility.trim()) errors.financialResponsibility = t("profile.errRequired");
+    if (form.monthlyCostEstimation === "" || Number(form.monthlyCostEstimation) < 0) errors.monthlyCostEstimation = t("profile.errRequired");
+    if (!form.breedingIntention) errors.breedingIntention = t("profile.errRequired");
   }
   if (step === 4) {
-    if (form.activities.length === 0) errors.activities = "Select at least one activity";
-    if (form.petPreferences.length === 0) errors.petPreferences = "Select at least one preference";
-    if (form.trainingExpectations.length === 0) errors.trainingExpectations = "Select at least one training expectation";
+    if (form.activities.length === 0) errors.activities = t("profile.errSelectActivity");
+    if (form.petPreferences.length === 0) errors.petPreferences = t("profile.errSelectPreference");
+    if (form.trainingExpectations.length === 0) errors.trainingExpectations = t("profile.errSelectTraining");
   }
   if (step === 5) {
-    if (!form.dailyCarePlan.trim()) errors.dailyCarePlan = "Required";
-    if (!form.confirmed) errors.confirmed = "You must confirm to proceed";
+    if (!form.dailyCarePlan.trim()) errors.dailyCarePlan = t("profile.errRequired");
+    if (!form.confirmed) errors.confirmed = t("profile.errConfirm");
   }
   return errors;
 }
@@ -142,6 +174,7 @@ const errorClass = "text-xs text-red-500 mt-1";
 export default function OnboardingModal({ onClose }: OnboardingModalProps) {
   const { markOnboardingComplete, skipOnboarding } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -163,7 +196,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
   };
 
   const handleNext = () => {
-    const errs = validateStep(step, form);
+    const errs = validateStep(step, form, t);
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setErrors({});
     setStep(s => s + 1);
@@ -175,7 +208,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
   };
 
   const handleSubmit = async () => {
-    const errs = validateStep(step, form);
+    const errs = validateStep(step, form, t);
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setIsSubmitting(true);
     try {
@@ -190,17 +223,17 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
         }),
       });
       setSubmitted(true);
-      toast({ title: "Onboarding complete!", description: "You can now submit adoption and foster requests." });
+      toast({ title: t("onboarding.toastTitle"), description: t("onboarding.toastDesc") });
       setTimeout(() => {
         markOnboardingComplete();
       }, 1500);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       if (msg.includes("already")) {
-        toast({ title: "Already submitted", description: "Your onboarding form has already been submitted." });
+        toast({ title: t("onboarding.alreadyTitle"), description: t("onboarding.alreadyDesc") });
         markOnboardingComplete();
       } else {
-        toast({ title: "Error", description: msg, variant: "destructive" });
+        toast({ title: t("common.error"), description: msg, variant: "destructive" });
       }
     } finally {
       setIsSubmitting(false);
@@ -219,8 +252,8 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
           <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10 text-secondary" />
           </div>
-          <h2 className="font-display text-2xl font-bold text-foreground mb-3">All set!</h2>
-          <p className="text-muted-foreground">Your adoption profile is complete. You're ready to submit adoption and foster requests.</p>
+          <h2 className="font-display text-2xl font-bold text-foreground mb-3">{t("onboarding.allSet")}</h2>
+          <p className="text-muted-foreground">{t("onboarding.profileComplete")}</p>
         </div>
       </div>
     );
@@ -232,13 +265,15 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-8 pt-8 pb-4 shrink-0">
           <div>
-            <h2 className="font-display text-2xl font-bold text-foreground">Adoption Readiness Form</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">Step {step + 1} of {STEPS.length} — {STEPS[step].title}</p>
+            <h2 className="font-display text-2xl font-bold text-foreground">{t("onboarding.title")}</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {t("onboarding.stepProgress", { n: step + 1, total: STEP_TITLE_KEYS.length, title: t(STEP_TITLE_KEYS[step]) })}
+            </p>
           </div>
           <button
             onClick={handleSkip}
             className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors"
-            aria-label="Skip"
+            aria-label={t("onboarding.skipForNow")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -249,16 +284,16 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
           <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-primary rounded-full transition-all duration-300"
-              style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+              style={{ width: `${((step + 1) / STEP_TITLE_KEYS.length) * 100}%` }}
             />
           </div>
           <div className="flex justify-between mt-2">
-            {STEPS.map((s, i) => (
+            {STEP_TITLE_KEYS.map((key, i) => (
               <span
                 key={i}
                 className={`text-xs font-medium hidden sm:block transition-colors ${i <= step ? "text-primary" : "text-muted-foreground"}`}
               >
-                {s.title}
+                {t(key)}
               </span>
             ))}
           </div>
@@ -269,33 +304,33 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
           {step === 0 && (
             <div className="grid sm:grid-cols-2 gap-5">
               <div>
-                <label className={labelClass}>Area of Residence *</label>
-                <input className={fieldClass} placeholder="e.g. Amman, Khalda" value={form.areaOfResidence} onChange={e => set("areaOfResidence", e.target.value)} />
+                <label className={labelClass}>{t("profile.areaOfResidence")} *</label>
+                <input className={fieldClass} placeholder={t("profile.placeholderArea")} value={form.areaOfResidence} onChange={e => set("areaOfResidence", e.target.value)} />
                 {errors.areaOfResidence && <p className={errorClass}>{errors.areaOfResidence}</p>}
               </div>
               <div>
-                <label className={labelClass}>Home Address *</label>
-                <input className={fieldClass} placeholder="Street, neighborhood" value={form.homeAddress} onChange={e => set("homeAddress", e.target.value)} />
+                <label className={labelClass}>{t("profile.homeAddress")} *</label>
+                <input className={fieldClass} placeholder={t("profile.placeholderAddress")} value={form.homeAddress} onChange={e => set("homeAddress", e.target.value)} />
                 {errors.homeAddress && <p className={errorClass}>{errors.homeAddress}</p>}
               </div>
               <div>
-                <label className={labelClass}>Occupation *</label>
-                <input className={fieldClass} placeholder="e.g. Software Engineer" value={form.occupation} onChange={e => set("occupation", e.target.value)} />
+                <label className={labelClass}>{t("profile.occupation")} *</label>
+                <input className={fieldClass} placeholder={t("profile.placeholderOccupation")} value={form.occupation} onChange={e => set("occupation", e.target.value)} />
                 {errors.occupation && <p className={errorClass}>{errors.occupation}</p>}
               </div>
               <div>
-                <label className={labelClass}>Age *</label>
-                <input type="number" min={18} max={120} className={fieldClass} placeholder="Must be 18+" value={form.age} onChange={e => set("age", e.target.value)} />
+                <label className={labelClass}>{t("profile.labelAge")} *</label>
+                <input type="number" min={18} max={120} className={fieldClass} placeholder={t("profile.placeholderAge18")} value={form.age} onChange={e => set("age", e.target.value)} />
                 {errors.age && <p className={errorClass}>{errors.age}</p>}
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Main Caregiver *</label>
+                <label className={labelClass}>{t("profile.mainCaregiver")} *</label>
                 <select className={fieldClass} value={form.mainCaregiver} onChange={e => set("mainCaregiver", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>Myself</option>
-                  <option>Spouse / Partner</option>
-                  <option>Family member</option>
-                  <option>Shared responsibility</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="Myself">{t("profile.optMyself")}</option>
+                  <option value="Spouse / Partner">{t("profile.optSpousePartner")}</option>
+                  <option value="Family member">{t("profile.optFamilyMember")}</option>
+                  <option value="Shared responsibility">{t("profile.optSharedResp")}</option>
                 </select>
                 {errors.mainCaregiver && <p className={errorClass}>{errors.mainCaregiver}</p>}
               </div>
@@ -305,50 +340,50 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
           {step === 1 && (
             <div className="grid sm:grid-cols-2 gap-5">
               <div>
-                <label className={labelClass}>Home Type *</label>
+                <label className={labelClass}>{t("profile.homeType")} *</label>
                 <select className={fieldClass} value={form.homeType} onChange={e => set("homeType", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>Apartment</option>
-                  <option>Villa</option>
-                  <option>House</option>
-                  <option>Townhouse</option>
-                  <option>Studio</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="Apartment">{t("profile.optApartment")}</option>
+                  <option value="Villa">{t("profile.optVilla")}</option>
+                  <option value="House">{t("profile.optHouse")}</option>
+                  <option value="Townhouse">{t("profile.optTownhouse")}</option>
+                  <option value="Studio">{t("profile.optStudio")}</option>
                 </select>
                 {errors.homeType && <p className={errorClass}>{errors.homeType}</p>}
               </div>
               <div>
-                <label className={labelClass}>Ownership Type *</label>
+                <label className={labelClass}>{t("profile.ownershipType")} *</label>
                 <select className={fieldClass} value={form.ownershipType} onChange={e => set("ownershipType", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>Owner</option>
-                  <option>Renting</option>
-                  <option>Family home</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="Owner">{t("profile.optOwner")}</option>
+                  <option value="Renting">{t("profile.optRenting")}</option>
+                  <option value="Family home">{t("profile.optFamilyHome")}</option>
                 </select>
                 {errors.ownershipType && <p className={errorClass}>{errors.ownershipType}</p>}
               </div>
               <div>
-                <label className={labelClass}>Yard / Outdoor Space *</label>
+                <label className={labelClass}>{t("profile.yardOutdoorSpace")} *</label>
                 <select className={fieldClass} value={form.yardType} onChange={e => set("yardType", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>No outdoor space</option>
-                  <option>Small balcony</option>
-                  <option>Large balcony</option>
-                  <option>Small yard</option>
-                  <option>Large yard / garden</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="No outdoor space">{t("profile.optNoOutdoor")}</option>
+                  <option value="Small balcony">{t("profile.optSmallBalcony")}</option>
+                  <option value="Large balcony">{t("profile.optLargeBalcony")}</option>
+                  <option value="Small yard">{t("profile.optSmallYard")}</option>
+                  <option value="Large yard / garden">{t("profile.optLargeYard")}</option>
                 </select>
                 {errors.yardType && <p className={errorClass}>{errors.yardType}</p>}
               </div>
               <div>
-                <label className={labelClass}>Number of Children in Home</label>
+                <label className={labelClass}>{t("profile.numberOfChildren")}</label>
                 <input type="number" min={0} className={fieldClass} value={form.childrenCount} onChange={e => set("childrenCount", e.target.value)} />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Any household member object to having a pet? *</label>
+                <label className={labelClass}>{t("profile.labelHouseholdObjection")} *</label>
                 <select className={fieldClass} value={form.householdObjection} onChange={e => set("householdObjection", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>No, everyone agrees</option>
-                  <option>Some are hesitant but open</option>
-                  <option>Yes, there may be resistance</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="No, everyone agrees">{t("profile.optNoObjection")}</option>
+                  <option value="Some are hesitant but open">{t("profile.optHesitant")}</option>
+                  <option value="Yes, there may be resistance">{t("profile.optResistance")}</option>
                 </select>
                 {errors.householdObjection && <p className={errorClass}>{errors.householdObjection}</p>}
               </div>
@@ -358,40 +393,40 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
           {step === 2 && (
             <div className="grid sm:grid-cols-2 gap-5">
               <div>
-                <label className={labelClass}>Where will the pet spend daytime? *</label>
+                <label className={labelClass}>{t("profile.labelDayLocation")} *</label>
                 <select className={fieldClass} value={form.dayLocation} onChange={e => set("dayLocation", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>Indoors with family</option>
-                  <option>Indoors alone</option>
-                  <option>Outdoors in yard</option>
-                  <option>Mix of indoor/outdoor</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="Indoors with family">{t("profile.optIndoorsFamily")}</option>
+                  <option value="Indoors alone">{t("profile.optIndoorsAlone")}</option>
+                  <option value="Outdoors in yard">{t("profile.optOutdoorsYard")}</option>
+                  <option value="Mix of indoor/outdoor">{t("profile.optMixIndoor")}</option>
                 </select>
                 {errors.dayLocation && <p className={errorClass}>{errors.dayLocation}</p>}
               </div>
               <div>
-                <label className={labelClass}>Where will the pet sleep at night? *</label>
+                <label className={labelClass}>{t("profile.labelNightLocation")} *</label>
                 <select className={fieldClass} value={form.nightLocation} onChange={e => set("nightLocation", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>In bedroom</option>
-                  <option>In living room</option>
-                  <option>In crate</option>
-                  <option>Outdoors</option>
-                  <option>Dedicated pet room</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="In bedroom">{t("profile.optBedroom")}</option>
+                  <option value="In living room">{t("profile.optLivingRoom")}</option>
+                  <option value="In crate">{t("profile.optCrate")}</option>
+                  <option value="Outdoors">{t("profile.optOutdoors")}</option>
+                  <option value="Dedicated pet room">{t("profile.optPetRoom")}</option>
                 </select>
                 {errors.nightLocation && <p className={errorClass}>{errors.nightLocation}</p>}
               </div>
               <div>
-                <label className={labelClass}>Exercise hours per day for the pet *</label>
-                <input type="number" min={0} max={24} className={fieldClass} placeholder="e.g. 2" value={form.exerciseHours} onChange={e => set("exerciseHours", e.target.value)} />
+                <label className={labelClass}>{t("profile.exerciseHoursDay")} *</label>
+                <input type="number" min={0} max={24} className={fieldClass} placeholder={t("profile.placeholderExercise")} value={form.exerciseHours} onChange={e => set("exerciseHours", e.target.value)} />
                 {errors.exerciseHours && <p className={errorClass}>{errors.exerciseHours}</p>}
               </div>
               <div>
-                <label className={labelClass}>Current pets at home</label>
-                <input className={fieldClass} placeholder="e.g. 1 dog, 2 cats (or None)" value={form.currentPets} onChange={e => set("currentPets", e.target.value)} />
+                <label className={labelClass}>{t("profile.currentPets")}</label>
+                <input className={fieldClass} placeholder={t("profile.placeholderCurrentPets")} value={form.currentPets} onChange={e => set("currentPets", e.target.value)} />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Previous pet experience</label>
-                <textarea rows={3} className={fieldClass} placeholder="Describe your experience with pets..." value={form.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} />
+                <label className={labelClass}>{t("profile.previousPetExperience")}</label>
+                <textarea rows={3} className={fieldClass} placeholder={t("profile.placeholderPrevExperience")} value={form.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} />
               </div>
             </div>
           )}
@@ -399,33 +434,33 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
           {step === 3 && (
             <div className="grid sm:grid-cols-2 gap-5">
               <div className="sm:col-span-2">
-                <label className={labelClass}>Why do you want to adopt? *</label>
-                <textarea rows={3} className={fieldClass} placeholder="Share your motivation..." value={form.adoptionReason} onChange={e => set("adoptionReason", e.target.value)} />
+                <label className={labelClass}>{t("profile.labelAdoptionReason")} *</label>
+                <textarea rows={3} className={fieldClass} placeholder={t("profile.placeholderAdoptReason")} value={form.adoptionReason} onChange={e => set("adoptionReason", e.target.value)} />
                 {errors.adoptionReason && <p className={errorClass}>{errors.adoptionReason}</p>}
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Who will be financially responsible for the pet? *</label>
+                <label className={labelClass}>{t("profile.labelFinancialResp")} *</label>
                 <select className={fieldClass} value={form.financialResponsibility} onChange={e => set("financialResponsibility", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>Myself</option>
-                  <option>Partner / Spouse</option>
-                  <option>Shared</option>
-                  <option>Family</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="Myself">{t("profile.optMyself")}</option>
+                  <option value="Partner / Spouse">{t("profile.optPartnerSpouse")}</option>
+                  <option value="Shared">{t("profile.optShared")}</option>
+                  <option value="Family">{t("profile.optFamily")}</option>
                 </select>
                 {errors.financialResponsibility && <p className={errorClass}>{errors.financialResponsibility}</p>}
               </div>
               <div>
-                <label className={labelClass}>Estimated monthly cost (JD) *</label>
-                <input type="number" min={0} className={fieldClass} placeholder="e.g. 50" value={form.monthlyCostEstimation} onChange={e => set("monthlyCostEstimation", e.target.value)} />
+                <label className={labelClass}>{t("profile.labelMonthlyCost")} *</label>
+                <input type="number" min={0} className={fieldClass} placeholder={t("profile.placeholderMonthlyCost")} value={form.monthlyCostEstimation} onChange={e => set("monthlyCostEstimation", e.target.value)} />
                 {errors.monthlyCostEstimation && <p className={errorClass}>{errors.monthlyCostEstimation}</p>}
               </div>
               <div>
-                <label className={labelClass}>Intention to breed? *</label>
+                <label className={labelClass}>{t("profile.labelBreedingIntent")} *</label>
                 <select className={fieldClass} value={form.breedingIntention} onChange={e => set("breedingIntention", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>No, not planning to breed</option>
-                  <option>Possibly in the future</option>
-                  <option>Yes, planning to breed</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="No, not planning to breed">{t("profile.optNoBreed")}</option>
+                  <option value="Possibly in the future">{t("profile.optMaybeBreed")}</option>
+                  <option value="Yes, planning to breed">{t("profile.optYesBreed")}</option>
                 </select>
                 {errors.breedingIntention && <p className={errorClass}>{errors.breedingIntention}</p>}
               </div>
@@ -438,7 +473,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
                   className="w-4 h-4 accent-[#FF6B35]"
                 />
                 <label htmlFor="spay" className="text-sm text-foreground">
-                  I commit to spaying/neutering the pet if not already done
+                  {t("profile.labelSpayCommit")}
                 </label>
               </div>
             </div>
@@ -447,63 +482,63 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
           {step === 4 && (
             <div className="space-y-6">
               <div>
-                <label className={labelClass}>Activities you enjoy (select all that apply) *</label>
+                <label className={labelClass}>{t("profile.labelActivities")} *</label>
                 {errors.activities && <p className={errorClass}>{errors.activities}</p>}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                  {ACTIVITY_OPTIONS.map(opt => (
+                  {ACTIVITY_OPTION_KEYS.map(({ value, key }) => (
                     <button
-                      key={opt}
+                      key={value}
                       type="button"
-                      onClick={() => toggleArray("activities", opt)}
+                      onClick={() => toggleArray("activities", value)}
                       className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
-                        form.activities.includes(opt)
+                        form.activities.includes(value)
                           ? "bg-primary text-white border-primary"
                           : "bg-white border-border hover:border-primary/50"
                       }`}
                     >
-                      {opt}
+                      {t(key)}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className={labelClass}>Pet preferences (select all that apply) *</label>
+                <label className={labelClass}>{t("profile.labelPetPrefs")} *</label>
                 {errors.petPreferences && <p className={errorClass}>{errors.petPreferences}</p>}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                  {PET_PREFERENCE_OPTIONS.map(opt => (
+                  {PET_PREFERENCE_OPTION_KEYS.map(({ value, key }) => (
                     <button
-                      key={opt}
+                      key={value}
                       type="button"
-                      onClick={() => toggleArray("petPreferences", opt)}
+                      onClick={() => toggleArray("petPreferences", value)}
                       className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
-                        form.petPreferences.includes(opt)
+                        form.petPreferences.includes(value)
                           ? "bg-secondary text-white border-secondary"
                           : "bg-white border-border hover:border-secondary/50"
                       }`}
                     >
-                      {opt}
+                      {t(key)}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className={labelClass}>Training expectations (select all that apply) *</label>
+                <label className={labelClass}>{t("profile.labelTrainingExp")} *</label>
                 {errors.trainingExpectations && <p className={errorClass}>{errors.trainingExpectations}</p>}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                  {TRAINING_EXPECTATION_OPTIONS.map(opt => (
+                  {TRAINING_EXPECTATION_OPTION_KEYS.map(({ value, key }) => (
                     <button
-                      key={opt}
+                      key={value}
                       type="button"
-                      onClick={() => toggleArray("trainingExpectations", opt)}
+                      onClick={() => toggleArray("trainingExpectations", value)}
                       className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
-                        form.trainingExpectations.includes(opt)
+                        form.trainingExpectations.includes(value)
                           ? "bg-[#1E2A3A] text-white border-[#1E2A3A]"
                           : "bg-white border-border hover:border-[#1E2A3A]/50"
                       }`}
                     >
-                      {opt}
+                      {t(key)}
                     </button>
                   ))}
                 </div>
@@ -514,36 +549,36 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
           {step === 5 && (
             <div className="grid sm:grid-cols-2 gap-5">
               <div>
-                <label className={labelClass}>Do you or anyone have allergies to animals?</label>
-                <input className={fieldClass} placeholder="Describe or write None" value={form.allergies} onChange={e => set("allergies", e.target.value)} />
+                <label className={labelClass}>{t("profile.allergies")}</label>
+                <input className={fieldClass} placeholder={t("profile.placeholderAllergies")} value={form.allergies} onChange={e => set("allergies", e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Behavior challenges you can tolerate</label>
+                <label className={labelClass}>{t("profile.labelBehaviorTolerance")}</label>
                 <select className={fieldClass} value={form.behaviorTolerance} onChange={e => set("behaviorTolerance", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>None — I prefer a well-behaved pet</option>
-                  <option>Minor issues (chewing, jumping)</option>
-                  <option>Moderate issues with proper training</option>
-                  <option>Significant behavioral challenges</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="None — I prefer a well-behaved pet">{t("profile.optBehavNone")}</option>
+                  <option value="Minor issues (chewing, jumping)">{t("profile.optBehavMinor")}</option>
+                  <option value="Moderate issues with proper training">{t("profile.optBehavModerate")}</option>
+                  <option value="Significant behavioral challenges">{t("profile.optBehavSignificant")}</option>
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Comfort handling a pet with trauma</label>
+                <label className={labelClass}>{t("profile.labelTraumaComfort")}</label>
                 <select className={fieldClass} value={form.traumaHandlingComfort} onChange={e => set("traumaHandlingComfort", e.target.value)}>
-                  <option value="">Select...</option>
-                  <option>Not comfortable</option>
-                  <option>Somewhat comfortable</option>
-                  <option>Comfortable with guidance</option>
-                  <option>Very comfortable</option>
+                  <option value="">{t("profile.selectDots")}</option>
+                  <option value="Not comfortable">{t("profile.optTraumaNot")}</option>
+                  <option value="Somewhat comfortable">{t("profile.optTraumaSomewhat")}</option>
+                  <option value="Comfortable with guidance">{t("profile.optTraumaComfort")}</option>
+                  <option value="Very comfortable">{t("profile.optTraumaVery")}</option>
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Travel plan for your pet</label>
-                <input className={fieldClass} placeholder="e.g. Stay with family, pet hotel..." value={form.travelPlan} onChange={e => set("travelPlan", e.target.value)} />
+                <label className={labelClass}>{t("profile.travelPlan")}</label>
+                <input className={fieldClass} placeholder={t("profile.placeholderTravelPlan")} value={form.travelPlan} onChange={e => set("travelPlan", e.target.value)} />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Daily care plan *</label>
-                <textarea rows={3} className={fieldClass} placeholder="Describe your daily routine for the pet..." value={form.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} />
+                <label className={labelClass}>{t("profile.dailyCarePlan")} *</label>
+                <textarea rows={3} className={fieldClass} placeholder={t("profile.placeholderDailyCare")} value={form.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} />
                 {errors.dailyCarePlan && <p className={errorClass}>{errors.dailyCarePlan}</p>}
               </div>
               <div className="sm:col-span-2 bg-primary/5 border border-primary/20 rounded-2xl p-4">
@@ -556,7 +591,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
                     className="w-4 h-4 mt-0.5 accent-[#FF6B35]"
                   />
                   <label htmlFor="confirmed" className="text-sm text-foreground leading-relaxed">
-                    I confirm that all information provided is accurate and that I understand the responsibilities of pet adoption/fostering. I commit to providing a safe, loving, and permanent home.
+                    {t("profile.labelConfirm")}
                   </label>
                 </div>
                 {errors.confirmed && <p className={errorClass}>{errors.confirmed}</p>}
@@ -573,24 +608,24 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
                 onClick={handleBack}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border hover:bg-muted/50 text-sm font-semibold transition-colors"
               >
-                <ChevronLeft className="w-4 h-4" /> Back
+                <ChevronLeft className="w-4 h-4 rtl:rotate-180" /> {t("common.back")}
               </button>
             ) : (
               <button
                 onClick={handleSkip}
                 className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
               >
-                Skip for now
+                {t("onboarding.skipForNow")}
               </button>
             )}
           </div>
 
-          {step < STEPS.length - 1 ? (
+          {step < STEP_TITLE_KEYS.length - 1 ? (
             <button
               onClick={handleNext}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5"
             >
-              Next <ChevronRight className="w-4 h-4" />
+              {t("common.next")} <ChevronRight className="w-4 h-4 rtl:rotate-180" />
             </button>
           ) : (
             <button
@@ -599,7 +634,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              Submit Application
+              {t("onboarding.submitApp")}
             </button>
           )}
         </div>

@@ -1,8 +1,10 @@
 import { useParams, Link } from "wouter";
 import { useGetGalleryPost, useListGalleryPosts } from "@workspace/api-client-react";
 import { ArrowLeft, Loader2, PawPrint } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function GalleryDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const postId = Number(id);
   const { data: post, isLoading, isError } = useGetGalleryPost(postId);
@@ -21,10 +23,10 @@ export default function GalleryDetail() {
   if (isError) {
     return (
       <div className="max-w-3xl mx-auto text-center py-20">
-        <h2 className="text-2xl font-display font-bold mb-2 text-red-500">Failed to load story</h2>
-        <p className="text-gray-400 mb-6">Please try again later.</p>
+        <h2 className="text-2xl font-display font-bold mb-2 text-red-500">{t("galleryDetail.failedLoad")}</h2>
+        <p className="text-gray-400 mb-6">{t("galleryDetail.failedLoadSub")}</p>
         <Link href="/gallery" className="text-primary hover:underline font-medium">
-          ← Back to Gallery
+          ← {t("galleryDetail.backToGallery")}
         </Link>
       </div>
     );
@@ -33,9 +35,9 @@ export default function GalleryDetail() {
   if (!post) {
     return (
       <div className="max-w-3xl mx-auto text-center py-20">
-        <h2 className="text-3xl font-display font-bold mb-4 text-[#1E2A3A]">Story Not Found</h2>
+        <h2 className="text-3xl font-display font-bold mb-4 text-[#1E2A3A]">{t("galleryDetail.notFound")}</h2>
         <Link href="/gallery" className="text-primary hover:underline font-medium">
-          ← Back to Gallery
+          ← {t("galleryDetail.backToGallery")}
         </Link>
       </div>
     );
@@ -48,7 +50,7 @@ export default function GalleryDetail() {
           href="/gallery"
           className="inline-flex items-center gap-2 text-gray-500 hover:text-[#1E2A3A] font-medium mb-8 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Gallery
+          <ArrowLeft className="w-4 h-4" /> {t("galleryDetail.backToGallery")}
         </Link>
 
         <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
@@ -68,7 +70,7 @@ export default function GalleryDetail() {
               <span className="text-sm font-bold text-[#1E2A3A]">{post.authorName || "tabbanni"}</span>
               {post.createdAt && (
                 <span className="text-xs text-gray-400 ml-auto">
-                  {new Date(post.createdAt).toLocaleDateString("en", {
+                  {new Date(post.createdAt).toLocaleDateString(undefined, {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -87,10 +89,9 @@ export default function GalleryDetail() {
           </div>
         </div>
 
-        {/* You Might Like */}
         {related.length > 0 && (
           <div className="mt-12">
-            <h2 className="font-display text-xl font-bold text-[#1E2A3A] mb-5">You Might Like</h2>
+            <h2 className="font-display text-xl font-bold text-[#1E2A3A] mb-5">{t("galleryDetail.youMightLike")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {related.map((item) => (
                 <Link key={item.id} href={`/gallery/${item.id}`}>

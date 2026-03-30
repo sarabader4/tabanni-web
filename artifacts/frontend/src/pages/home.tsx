@@ -4,8 +4,10 @@ import { ArrowRight, Heart, Shield, Search, Sparkles } from "lucide-react";
 import { useGetFeaturedPets, useGetAdminStats, useListGalleryPosts } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import AIPetMatchWidget from "@/components/ai-pet-match-widget";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
+  const { t } = useTranslation();
   const { data: featuredPets, isLoading: petsLoading } = useGetFeaturedPets();
   const { data: stats } = useGetAdminStats();
   const { data: gallery } = useListGalleryPosts({ limit: 3 });
@@ -23,29 +25,28 @@ export default function Home() {
               className="max-w-2xl"
             >
               <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm mb-6">
-                🐾 Jordan's Premier Pet Platform
+                {t("home.badge")}
               </div>
               <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] text-foreground mb-6">
-                Give them a <br/>
-                <span className="text-gradient">second chance</span> <br/>
-                at love
+                {t("home.heroTitle1")} <br/>
+                <span className="text-gradient">{t("home.heroTitle2")}</span> <br/>
+                {t("home.heroTitle3")}
               </h1>
               <p className="text-lg text-muted-foreground mb-8 max-w-lg leading-relaxed">
-                Adopt or foster a pet today and make a difference in their lives. 
-                Join thousands of families in Jordan who have found their furry best friends.
+                {t("home.heroSubtitle")}
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link 
                   href="/adopt"
                   className="px-8 py-4 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-1 transition-all"
                 >
-                  Adopt a Pet
+                  {t("home.adoptPet")}
                 </Link>
                 <Link 
                   href="/foster"
                   className="px-8 py-4 bg-secondary text-white rounded-2xl font-bold shadow-lg shadow-secondary/25 hover:shadow-xl hover:shadow-secondary/40 hover:-translate-y-1 transition-all"
                 >
-                  Foster a Pet
+                  {t("home.fosterPet")}
                 </Link>
                 <button
                   onClick={() => {
@@ -55,7 +56,7 @@ export default function Home() {
                   style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
                 >
                   <Sparkles className="w-5 h-5" />
-                  AI Pet Match
+                  {t("home.aiPetMatch")}
                 </button>
               </div>
             </motion.div>
@@ -82,12 +83,12 @@ export default function Home() {
         <div className="flex justify-between items-end mb-10">
           <div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Find your perfect match
+              {t("home.findMatch")}
             </h2>
-            <p className="text-muted-foreground">These lovely pets are looking for their forever homes.</p>
+            <p className="text-muted-foreground">{t("home.findMatchSub")}</p>
           </div>
           <Link href="/adopt" className="hidden md:flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
-            See all pets <ArrowRight className="w-5 h-5" />
+            {t("home.seeAllPets")} <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
 
@@ -116,10 +117,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             {[
-              { label: "Pets Available", value: stats?.totalPets || "200+" },
-              { label: "Happy Homes", value: stats?.adoptionsCount || "150+" },
-              { label: "Foster Families", value: "80+" },
-              { label: "Active Members", value: stats?.totalUsers || "500+" }
+              { label: t("home.petsAvailable"), value: stats?.totalPets || "200+" },
+              { label: t("home.happyHomes"), value: stats?.adoptionsCount || "150+" },
+              { label: t("home.fosterFamilies"), value: "80+" },
+              { label: t("home.activeMembers"), value: stats?.totalUsers || "500+" }
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className="text-4xl md:text-5xl font-display font-bold text-white mb-2">{stat.value}</div>
@@ -134,16 +135,16 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            How it works
+            {t("home.howItWorks")}
           </h2>
-          <p className="text-muted-foreground">The journey to finding your new best friend is simple and supported every step of the way.</p>
+          <p className="text-muted-foreground">{t("home.howItWorksSub")}</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {[
-            { icon: Search, title: "Find a Pet", desc: "Browse our database of rescued pets looking for homes in Jordan." },
-            { icon: Heart, title: "Apply", desc: "Submit an adoption or foster application to connect with the pet's owner or shelter." },
-            { icon: Shield, title: "Bring Them Home", desc: "Once approved, welcome your new family member and start a new chapter." },
+            { icon: Search, title: t("home.findAPet"), desc: t("home.findAPetDesc") },
+            { icon: Heart, title: t("home.apply"), desc: t("home.applyDesc") },
+            { icon: Shield, title: t("home.bringHome"), desc: t("home.bringHomeDesc") },
           ].map((step, i) => (
             <div key={i} className="bg-card p-8 rounded-3xl border border-border text-center hover:-translate-y-2 transition-transform duration-300">
               <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -161,12 +162,12 @@ export default function Home() {
         <div className="flex justify-between items-end mb-10">
           <div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Success Stories
+              {t("home.successStories")}
             </h2>
-            <p className="text-muted-foreground">Read about the lives we've changed together.</p>
+            <p className="text-muted-foreground">{t("home.successStoriesSub")}</p>
           </div>
           <Link href="/gallery" className="hidden md:flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
-            View Gallery <ArrowRight className="w-5 h-5" />
+            {t("home.viewGallery")} <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
 

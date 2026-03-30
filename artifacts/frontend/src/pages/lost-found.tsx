@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import { useListLostFoundReports, useCreateLostFoundReport } from "@workspace/api-client-react";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
@@ -8,21 +8,24 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
-const reportSchema = z.object({
+const makeReportSchema = (t: (key: string) => string) => z.object({
   reportType: z.enum(["lost", "found"]),
-  name: z.string().min(1, "Name is required"),
-  type: z.string().min(1, "Type is required"),
+  name: z.string().min(1, t("lostFound.errNameRequired")),
+  type: z.string().min(1, t("lostFound.errTypeRequired")),
   breed: z.string().optional(),
   gender: z.string().optional(),
   color: z.string().optional(),
-  city: z.string().min(1, "City is required"),
+  city: z.string().min(1, t("lostFound.errCityRequired")),
   description: z.string().optional(),
-  reporterName: z.string().min(1, "Your name is required"),
-  reporterPhone: z.string().min(1, "Your phone is required"),
+  reporterName: z.string().min(1, t("lostFound.errReporterNameRequired")),
+  reporterPhone: z.string().min(1, t("lostFound.errReporterPhoneRequired")),
 });
+type ReportFormValues = z.infer<ReturnType<typeof makeReportSchema>>;
 
 export default function LostFound() {
+  const { t, i18n } = useTranslation();
   const [tab, setTab] = useState<"lost" | "found">("lost");
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<FilterBarState>({
@@ -47,19 +50,21 @@ export default function LostFound() {
 
   const createMutation = useCreateLostFoundReport();
 
-  const form = useForm<z.infer<typeof reportSchema>>({
+  const reportSchema = useMemo(() => makeReportSchema(t), [t]);
+
+  const form = useForm<ReportFormValues>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
       reportType: "lost",
       name: "",
-      type: "Dog",
-      city: "Amman",
+      type: "",
+      city: "",
       reporterName: "",
       reporterPhone: "",
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof reportSchema>) => {
+  const onSubmit = async (values: ReportFormValues) => {
     try {
       await createMutation.mutateAsync({
         data: {
@@ -67,12 +72,12 @@ export default function LostFound() {
           imageUrls: ["https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"],
         },
       });
-      toast({ title: "Report submitted successfully." });
+      toast({ title: t("lostFound.reportSubmitted") });
       setIsModalOpen(false);
       form.reset();
       refetch();
     } catch {
-      toast({ title: "Error submitting report", variant: "destructive" });
+      toast({ title: t("lostFound.reportError"), variant: "destructive" });
     }
   };
 
@@ -120,25 +125,25 @@ export default function LostFound() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
         <div className="flex gap-3 items-center">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute start-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Search by name, breed, city..."
-              className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+              placeholder={t("lostFound.searchPlaceholder")}
+              className="w-full bg-white border border-gray-200 rounded-xl ps-12 pe-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
           </div>
           <button
             onClick={() => {
-              form.reset({ reportType: tab, name: "", type: "Dog", city: "Amman", reporterName: "", reporterPhone: "" });
+              form.reset({ reportType: tab, name: "", type: "", city: "", reporterName: "", reporterPhone: "" });
               setIsModalOpen(true);
             }}
             className={`px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-colors whitespace-nowrap text-white ${
               tab === "lost" ? "bg-primary shadow-primary/20 hover:bg-primary/90" : "bg-[#00B8A0] shadow-[#00B8A0]/20 hover:bg-[#00B8A0]/90"
             }`}
           >
-            {tab === "lost" ? "Lost Pet" : "Found Pet"}
+            {tab === "lost" ? t("lostFound.lostPet") : t("lostFound.foundPet")}
           </button>
         </div>
       </div>
@@ -159,7 +164,7 @@ export default function LostFound() {
                 : "text-gray-500 hover:text-[#1E2A3A]"
             }`}
           >
-            Lost Pets
+            {t("lostFound.lostPets")}
           </button>
           <button
             onClick={() => { setTab("found"); setPage(1); }}
@@ -169,7 +174,7 @@ export default function LostFound() {
                 : "text-gray-500 hover:text-[#1E2A3A]"
             }`}
           >
-            Found Pets
+            {t("lostFound.foundPets")}
           </button>
         </div>
       </div>
@@ -178,10 +183,10 @@ export default function LostFound() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
         {isError ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-red-100">
-            <p className="font-bold text-lg text-red-500 mb-2">Failed to load reports</p>
-            <p className="text-gray-400 text-sm mb-4">Please try again.</p>
+            <p className="font-bold text-lg text-red-500 mb-2">{t("lostFound.failedLoad")}</p>
+            <p className="text-gray-400 text-sm mb-4">{t("lostFound.failedLoadSub")}</p>
             <button onClick={() => refetch()} className="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
-              Retry
+              {t("common.retry")}
             </button>
           </div>
         ) : isLoading ? (
@@ -191,9 +196,9 @@ export default function LostFound() {
         ) : reports.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
             <h3 className="font-display font-bold text-xl mb-2 text-[#1E2A3A]">
-              No {tab} reports found
+              {t("lostFound.noReportsFound", { type: tab })}
             </h3>
-            <p className="text-gray-400">There are no {tab} pets matching your filters.</p>
+            <p className="text-gray-400">{t("lostFound.noReportsSub", { type: tab })}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -213,14 +218,14 @@ export default function LostFound() {
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                   />
                   {/* Report type badge */}
-                  <div className={`absolute top-3 left-3 px-2 py-0.5 rounded-full text-white text-xs font-bold ${
+                  <div className={`absolute top-3 start-3 px-2 py-0.5 rounded-full text-white text-xs font-bold ${
                     report.reportType === "lost" ? "bg-red-500" : "bg-[#00B8A0]"
                   }`}>
-                    {report.reportType === "lost" ? "LOST" : "FOUND"}
+                    {report.reportType === "lost" ? t("lostFound.lost") : t("lostFound.found")}
                   </div>
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                    className="absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-400 hover:text-primary transition-all shadow-sm"
+                    className="absolute top-3 end-3 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-400 hover:text-primary transition-all shadow-sm"
                   >
                     <Bookmark className="w-4 h-4" />
                   </button>
@@ -252,7 +257,7 @@ export default function LostFound() {
                     )}
                     {(report.lostDate || report.foundDate) && (
                       <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">
-                        {new Date(report.lostDate || report.foundDate || new Date()).toLocaleDateString("en", {
+                        {new Date(report.lostDate || report.foundDate || new Date()).toLocaleDateString(i18n.language, {
                           day: "numeric",
                           month: "short",
                         })}
@@ -263,7 +268,7 @@ export default function LostFound() {
                     <span className={`block w-full text-center py-2.5 rounded-xl font-bold text-sm transition-colors text-white ${
                       report.reportType === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#00B8A0] hover:bg-[#00B8A0]/90"
                     }`}>
-                      {report.reportType === "lost" ? "Help Me!" : "Help This Pet"}
+                      {report.reportType === "lost" ? t("lostFound.helpMe") : t("lostFound.helpThisPet")}
                     </span>
                   </div>
                 </div>
@@ -276,14 +281,14 @@ export default function LostFound() {
         <div className="flex justify-between items-center mt-8">
           <button
             onClick={() => {
-              form.reset({ reportType: tab, name: "", type: "Dog", city: "Amman", reporterName: "", reporterPhone: "" });
+              form.reset({ reportType: tab, name: "", type: "", city: "", reporterName: "", reporterPhone: "" });
               setIsModalOpen(true);
             }}
             className={`px-6 py-3 rounded-full font-bold text-sm shadow-md transition-colors text-white ${
               tab === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#00B8A0] hover:bg-[#00B8A0]/90"
             }`}
           >
-            {tab === "lost" ? "Report Lost Pet" : "Report Found Pet"}
+            {tab === "lost" ? t("lostFound.reportLostPet") : t("lostFound.reportFoundPet")}
           </button>
           {/* Hide pagination when client-side filtering is active (fetches all results) */}
           {!isClientFiltering && (
@@ -311,68 +316,68 @@ export default function LostFound() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-xl rounded-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display text-2xl">Submit a Report</DialogTitle>
+            <DialogTitle className="font-display text-2xl">{t("lostFound.submitReport")}</DialogTitle>
             <DialogDescription>
-              Provide as many details as possible to help identify the pet.
+              {t("lostFound.submitReportDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className="text-sm font-bold text-[#1E2A3A] mb-2 block">Report Type</label>
+                <label className="text-sm font-bold text-[#1E2A3A] mb-2 block">{t("lostFound.reportType")}</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 bg-gray-50 px-4 py-3 rounded-xl flex-1 cursor-pointer">
                     <input type="radio" value="lost" {...form.register("reportType")} className="accent-primary" />
-                    <span className="text-sm font-medium">I lost a pet</span>
+                    <span className="text-sm font-medium">{t("lostFound.iLostPet")}</span>
                   </label>
                   <label className="flex items-center gap-2 bg-gray-50 px-4 py-3 rounded-xl flex-1 cursor-pointer">
                     <input type="radio" value="found" {...form.register("reportType")} className="accent-[#00B8A0]" />
-                    <span className="text-sm font-medium">I found a pet</span>
+                    <span className="text-sm font-medium">{t("lostFound.iFoundPet")}</span>
                   </label>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold">Pet Name</label>
-                <input {...form.register("name")} placeholder="e.g. Buddy" className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+                <label className="text-sm font-bold">{t("lostFound.petName")}</label>
+                <input {...form.register("name")} placeholder={t("lostFound.placeholderName")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
                 {form.formState.errors.name && (
                   <p className="text-red-500 text-xs">{form.formState.errors.name.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold">Type</label>
-                <input {...form.register("type")} placeholder="Dog, Cat..." className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+                <label className="text-sm font-bold">{t("lostFound.type")}</label>
+                <input {...form.register("type")} placeholder={t("lostFound.placeholderType")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold">Breed</label>
+                <label className="text-sm font-bold">{t("lostFound.breed")}</label>
                 <input {...form.register("breed")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold">Color</label>
+                <label className="text-sm font-bold">{t("lostFound.color")}</label>
                 <input {...form.register("color")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
               <div className="col-span-2 space-y-2">
-                <label className="text-sm font-bold">City</label>
+                <label className="text-sm font-bold">{t("lostFound.city")}</label>
                 <input {...form.register("city")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
               <div className="col-span-2 space-y-2">
-                <label className="text-sm font-bold">Description</label>
+                <label className="text-sm font-bold">{t("lostFound.description")}</label>
                 <textarea {...form.register("description")} className="w-full min-h-[80px] bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold">Your Name</label>
+                <label className="text-sm font-bold">{t("lostFound.yourName")}</label>
                 <input {...form.register("reporterName")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold">Your Phone</label>
+                <label className="text-sm font-bold">{t("lostFound.yourPhone")}</label>
                 <input {...form.register("reporterPhone")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
             </div>
@@ -382,7 +387,7 @@ export default function LostFound() {
               disabled={createMutation.isPending}
               className="w-full mt-4 bg-primary hover:bg-primary/90 text-white py-3.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
             >
-              {createMutation.isPending ? "Submitting..." : "Submit Report"}
+              {createMutation.isPending ? t("lostFound.submitting") : t("lostFound.submitReportBtn")}
             </button>
           </form>
         </DialogContent>

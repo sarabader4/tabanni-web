@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import AIChatWidget from "@/components/ai-chat-widget";
 import { useAuth } from "@/contexts/auth-context";
+import { useTranslation } from "react-i18next";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
@@ -13,6 +14,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useAuth();
+  const { t, i18n } = useTranslation();
+
+  const isArabic = i18n.language === "ar";
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(isArabic ? "en" : "ar");
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,21 +41,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Donate", href: "/donate" },
-    { name: "Lost&Found", href: "/lost-found" },
-    { name: "Shop", href: "/shop" },
-    { name: "About us", href: "/about" },
+    { name: t("nav.home"), href: "/" },
+    { name: t("nav.donate"), href: "/donate" },
+    { name: t("nav.lostFound"), href: "/lost-found" },
+    { name: t("nav.shop"), href: "/shop" },
+    { name: t("nav.about"), href: "/about" },
   ];
 
   const footerLinks = [
-    { name: "Home Page", href: "/" },
-    { name: "Foster", href: "/foster" },
-    { name: "Donate", href: "/donate" },
-    { name: "Shop", href: "/shop" },
-    { name: "Adopt", href: "/adopt" },
-    { name: "About us", href: "/about" },
-    { name: "Lost & Found", href: "/lost-found" },
+    { name: t("footer.homePage"), href: "/" },
+    { name: t("footer.foster"), href: "/foster" },
+    { name: t("footer.donate"), href: "/donate" },
+    { name: t("footer.shop"), href: "/shop" },
+    { name: t("footer.adopt"), href: "/adopt" },
+    { name: t("footer.about"), href: "/about" },
+    { name: t("footer.lostFound"), href: "/lost-found" },
   ];
 
   const initials = user?.fullName
@@ -62,6 +70,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
     await logout();
     navigate("/");
   }, [logout, navigate]);
+
+  const LangToggle = ({ className }: { className?: string }) => (
+    <button
+      onClick={toggleLanguage}
+      className={cn(
+        "flex items-center gap-1.5 rounded-full px-3 py-1.5 cursor-pointer transition-colors",
+        className
+      )}
+      aria-label={t("nav.toggleLanguage")}
+    >
+      {isArabic ? (
+        <>
+          <span className="text-xs font-bold">AR</span>
+          <span className="text-base leading-none">🇸🇦</span>
+        </>
+      ) : (
+        <>
+          <span className="text-xs font-bold">EN</span>
+          <span className="text-base leading-none">🇬🇧</span>
+        </>
+      )}
+    </button>
+  );
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-background">
@@ -90,7 +121,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <nav className="hidden lg:flex items-center gap-7">
               {navLinks.map((link) => (
                 <Link
-                  key={link.name}
+                  key={link.href}
                   href={link.href}
                   className={cn(
                     "text-sm font-semibold transition-colors hover:text-primary relative",
@@ -111,14 +142,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 href="/adopt"
                 className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-full shadow-md shadow-primary/25 hover:bg-primary/90 hover:-translate-y-0.5 transition-all"
               >
-                Adopt Now!
+                {t("nav.adoptNow")}
               </Link>
 
-              {/* EN + Flag */}
-              <div className="flex items-center gap-1.5 bg-gray-100 rounded-full px-3 py-1.5 cursor-pointer hover:bg-gray-200 transition-colors">
-                <span className="text-xs font-bold text-[#1E2A3A]">EN</span>
-                <span className="text-base leading-none">🇬🇧</span>
-              </div>
+              {/* Language Toggle */}
+              <LangToggle className="bg-gray-100 hover:bg-gray-200" />
 
               {/* Bell */}
               <button className="relative p-2 text-[#1E2A3A]/60 hover:text-primary transition-colors">
@@ -141,7 +169,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <span className="text-white text-xs font-bold">{initials}</span>
                       )}
                     </div>
-                    <span className="text-sm font-semibold text-[#1E2A3A]">Hi, {firstName}!</span>
+                    <span className="text-sm font-semibold text-[#1E2A3A]">{t("nav.hi", { name: firstName })}</span>
                     <ChevronDown className={cn("w-3.5 h-3.5 text-[#1E2A3A]/60 transition-transform", userDropdownOpen && "rotate-180")} />
                   </button>
 
@@ -152,7 +180,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 6, scale: 0.96 }}
                         transition={{ duration: 0.12 }}
-                        className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50"
+                        className="absolute end-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50"
                       >
                         <Link
                           href="/profile"
@@ -160,7 +188,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                           className="flex items-center gap-2.5 px-4 py-3 text-sm text-[#1E2A3A] hover:bg-gray-50 transition-colors"
                         >
                           <User className="w-4 h-4 text-[#1E2A3A]/60" />
-                          Profile
+                          {t("nav.profile")}
                         </Link>
                         <Link
                           href="/profile?tab=requests"
@@ -168,7 +196,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                           className="flex items-center gap-2.5 px-4 py-3 text-sm text-[#1E2A3A] hover:bg-gray-50 transition-colors"
                         >
                           <FileText className="w-4 h-4 text-[#1E2A3A]/60" />
-                          My Requests
+                          {t("nav.myRequests")}
                         </Link>
                         <div className="border-t border-gray-100" />
                         <button
@@ -176,7 +204,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                           className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
-                          Logout
+                          {t("nav.logout")}
                         </button>
                       </motion.div>
                     )}
@@ -189,13 +217,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     href="/login"
                     className="px-4 py-2 text-sm font-semibold text-[#1E2A3A] hover:text-primary transition-colors"
                   >
-                    Login
+                    {t("nav.login")}
                   </Link>
                   <Link
                     href="/register"
                     className="px-4 py-2 bg-[#1E2A3A] text-white text-sm font-bold rounded-full hover:bg-[#1E2A3A]/90 transition-all"
                   >
-                    Sign Up
+                    {t("nav.signUp")}
                   </Link>
                 </div>
               )}
@@ -224,7 +252,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <nav className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <Link
-                  key={link.name}
+                  key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
@@ -240,8 +268,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 onClick={() => setMobileMenuOpen(false)}
                 className="mt-4 w-full py-4 text-center bg-primary text-white text-lg font-bold rounded-full shadow-lg shadow-primary/25"
               >
-                Adopt Now!
+                {t("nav.adoptNow")}
               </Link>
+
+              <div className="flex items-center justify-between mt-2">
+                <LangToggle className="bg-gray-100 hover:bg-gray-200" />
+              </div>
 
               {user ? (
                 <div className="mt-2 space-y-2">
@@ -250,13 +282,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-2 py-3 text-[#1E2A3A] font-semibold"
                   >
-                    <User className="w-5 h-5" /> Profile
+                    <User className="w-5 h-5" /> {t("nav.profile")}
                   </Link>
                   <button
                     onClick={() => void handleLogout()}
                     className="flex items-center gap-2 py-3 text-red-500 font-semibold"
                   >
-                    <LogOut className="w-5 h-5" /> Logout
+                    <LogOut className="w-5 h-5" /> {t("nav.logout")}
                   </button>
                 </div>
               ) : (
@@ -266,14 +298,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex-1 py-3 text-center border-2 border-[#1E2A3A] text-[#1E2A3A] font-bold rounded-full"
                   >
-                    Login
+                    {t("nav.login")}
                   </Link>
                   <Link
                     href="/register"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex-1 py-3 text-center bg-[#1E2A3A] text-white font-bold rounded-full"
                   >
-                    Sign Up
+                    {t("nav.signUp")}
                   </Link>
                 </div>
               )}
@@ -303,8 +335,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </span>
               </div>
               <div className="text-white/70 text-sm space-y-1">
-                <p>Amman, Jordan</p>
-                <p>tabbani@gmail.com</p>
+                <p>{t("footer.address")}</p>
+                <p>{t("footer.email")}</p>
               </div>
               <div className="flex gap-3">
                 <a href="#" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
@@ -320,18 +352,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   𝕏
                 </a>
               </div>
-              <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5 w-fit cursor-pointer hover:bg-white/20 transition-colors">
-                <span className="text-xs font-bold">EN</span>
-                <span className="text-sm leading-none">🇬🇧</span>
-              </div>
+              <LangToggle className="bg-white/10 hover:bg-white/20" />
             </div>
 
             {/* Col 2 — Easy to access */}
             <div>
-              <h3 className="font-semibold text-base mb-4">Easy to access</h3>
+              <h3 className="font-semibold text-base mb-4">{t("footer.easyAccess")}</h3>
               <ul className="space-y-2.5">
                 {footerLinks.map((link) => (
-                  <li key={link.name}>
+                  <li key={link.href}>
                     <Link
                       href={link.href}
                       className="text-white/65 hover:text-white text-sm transition-colors"
@@ -345,14 +374,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             {/* Col 3 — Contact Us */}
             <div>
-              <h3 className="font-semibold text-base mb-4">Contact Us</h3>
+              <h3 className="font-semibold text-base mb-4">{t("footer.contactUs")}</h3>
               <form
                 className="space-y-3"
                 onSubmit={(e) => e.preventDefault()}
               >
                 <input
                   type="text"
-                  placeholder="Your Name"
+                  placeholder={t("footer.yourName")}
                   className="w-full bg-white/95 text-[#1E2A3A] rounded-lg px-3 py-2.5 text-sm placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/50"
                 />
                 <div className="flex gap-2">
@@ -361,18 +390,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <span className="text-xs text-[#1E2A3A]/60">+962</span>
                     <input
                       type="tel"
-                      placeholder="XXXXXXXXX"
+                      placeholder={t("footer.phonePlaceholder")}
                       className="bg-transparent text-[#1E2A3A] text-xs flex-1 outline-none placeholder:text-gray-400 min-w-0"
                     />
                   </div>
                   <input
                     type="email"
-                    placeholder="ForExample@gmail.com"
+                    placeholder={t("footer.emailPlaceholder")}
                     className="bg-white/95 text-[#1E2A3A] rounded-lg px-3 py-2.5 text-xs placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/50 flex-1 min-w-0"
                   />
                 </div>
                 <textarea
-                  placeholder="Message"
+                  placeholder={t("footer.message")}
                   rows={3}
                   className="w-full bg-white/95 text-[#1E2A3A] rounded-lg px-3 py-2.5 text-sm placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/50 resize-none"
                 />
@@ -380,7 +409,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   type="submit"
                   className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors"
                 >
-                  Submit
+                  {t("footer.submit")}
                 </button>
               </form>
             </div>
@@ -388,7 +417,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           <div className="mt-10 pt-6 border-t border-white/10 text-center">
             <p className="text-white/40 text-xs">
-              Copyright &copy; 2025 Tabbani Platform. All rights reserved.
+              {t("footer.copyright")}
             </p>
           </div>
         </div>

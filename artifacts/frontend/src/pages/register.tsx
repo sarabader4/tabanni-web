@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { PawPrint, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { useTranslation } from "react-i18next";
 
 export default function Register() {
   const [, navigate] = useLocation();
   const { register } = useAuth();
+  const { t } = useTranslation();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,15 +23,15 @@ export default function Register() {
     setError("");
 
     if (!fullName || !email || !password) {
-      setError("Please fill in all required fields.");
+      setError(t("register.fillRequired"));
       return;
     }
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError(t("register.passwordLength"));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("register.passwordMatch"));
       return;
     }
 
@@ -38,7 +40,7 @@ export default function Register() {
       await register({ fullName, email, phone: phone || undefined, password });
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+      setError(err instanceof Error ? err.message : t("register.registrationFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -55,11 +57,11 @@ export default function Register() {
             </div>
             <span className="font-bold text-2xl text-[#1E2A3A] tracking-tight">tabbani</span>
           </Link>
-          <p className="mt-3 text-[#1E2A3A]/60 text-sm">Create your account to get started.</p>
+          <p className="mt-3 text-[#1E2A3A]/60 text-sm">{t("register.subtitle")}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h1 className="text-xl font-bold text-[#1E2A3A] mb-6">Create Account</h1>
+          <h1 className="text-xl font-bold text-[#1E2A3A] mb-6">{t("register.createAccount")}</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -70,13 +72,13 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
-                Full Name <span className="text-[#FF6B35]">*</span>
+                {t("register.fullName")} <span className="text-[#FF6B35]">{t("register.required")}</span>
               </label>
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Sara Ahmed"
+                placeholder={t("register.placeholderName")}
                 className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
                 autoComplete="name"
                 disabled={isLoading}
@@ -85,13 +87,13 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
-                Email Address <span className="text-[#FF6B35]">*</span>
+                {t("register.emailAddress")} <span className="text-[#FF6B35]">{t("register.required")}</span>
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t("register.placeholderEmail")}
                 className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
                 autoComplete="email"
                 disabled={isLoading}
@@ -100,13 +102,13 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
-                Phone Number <span className="text-[#1E2A3A]/40 font-normal">(optional)</span>
+                {t("register.phoneNumber")} <span className="text-[#1E2A3A]/40 font-normal">{t("register.optional")}</span>
               </label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+962 79 xxxxxxx"
+                placeholder={t("register.placeholderPhone")}
                 className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
                 autoComplete="tel"
                 disabled={isLoading}
@@ -115,14 +117,14 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
-                Password <span className="text-[#FF6B35]">*</span>
+                {t("register.password")} <span className="text-[#FF6B35]">{t("register.required")}</span>
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 6 characters"
+                  placeholder={t("register.minChars")}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 pr-10 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
                   autoComplete="new-password"
                   disabled={isLoading}
@@ -130,7 +132,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1E2A3A] transition-colors"
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1E2A3A] transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -139,13 +141,13 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
-                Confirm Password <span className="text-[#FF6B35]">*</span>
+                {t("register.confirmPassword")} <span className="text-[#FF6B35]">{t("register.required")}</span>
               </label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repeat your password"
+                placeholder={t("register.repeatPassword")}
                 className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
                 autoComplete="new-password"
                 disabled={isLoading}
@@ -160,18 +162,18 @@ export default function Register() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating account...
+                  {t("register.creatingAccount")}
                 </>
               ) : (
-                "Create Account"
+                t("register.createAccount")
               )}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-[#1E2A3A]/60">
-            Already have an account?{" "}
+            {t("register.alreadyHaveAccount")}{" "}
             <Link href="/login" className="text-[#FF6B35] font-semibold hover:underline">
-              Sign In
+              {t("register.signIn")}
             </Link>
           </p>
         </div>
