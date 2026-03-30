@@ -60,9 +60,10 @@ export default function LostFoundDetail() {
     ? new Date(report.createdAt).toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" })
     : null;
 
-  const whatsappPhone = report.reporterPhone?.replace(/\D/g, "");
-  const whatsappLink = whatsappPhone
-    ? `https://wa.me/${whatsappPhone}?text=Hi, I saw your ${isLost ? "lost" : "found"} pet report for ${report.name} on Tabanni.`
+  const whatsappLink = report.whatsappUrl
+    ? `${report.whatsappUrl}?text=Hi, I saw your ${isLost ? "lost" : "found"} pet report for ${report.name} on Tabanni.`
+    : report.reporterPhone
+    ? `https://wa.me/${report.reporterPhone.replace(/\D/g, "")}?text=Hi, I saw your ${isLost ? "lost" : "found"} pet report for ${report.name} on Tabanni.`
     : null;
 
   const handleShare = () => {
@@ -195,6 +196,7 @@ export default function LostFoundDetail() {
                   { label: t("lostFoundDetail.color"), value: report.color },
                   { label: isLost ? t("lostFoundDetail.lostDate") : t("lostFoundDetail.foundDate"), value: formattedDate },
                   { label: t("lostFoundDetail.location"), value: report.city },
+                  { label: "Area", value: report.area },
                 ].filter(r => r.value).map(({ label, value }) => (
                   <div key={label} className="flex justify-between py-2.5">
                     <span className="text-sm text-gray-400 font-medium">{label}</span>

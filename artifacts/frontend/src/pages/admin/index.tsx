@@ -17,6 +17,7 @@ import {
   Menu,
   DollarSign,
   HandHeart,
+  Search,
 } from "lucide-react";
 import {
   LineChart,
@@ -56,6 +57,7 @@ const SIDEBAR_NAV = [
   },
   { label: "Donors", href: "/admin/donors", icon: DollarSign },
   { label: "Volunteers", href: "/admin/volunteers", icon: HandHeart },
+  { label: "Lost & Found", href: "/admin/lost-found", icon: Search },
   { label: "Reports & Analytics", href: "/admin/analytics", icon: BarChart2 },
 ];
 

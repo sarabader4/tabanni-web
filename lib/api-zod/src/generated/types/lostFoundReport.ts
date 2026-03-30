@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { LostFoundReportReportType } from "./lostFoundReportReportType";
+import type { LostFoundReportStatus } from "./lostFoundReportStatus";
 
 export interface LostFoundReport {
   id: number;
@@ -19,6 +20,7 @@ export interface LostFoundReport {
   ageMonths?: number | null;
   size?: string | null;
   city: string;
+  area?: string | null;
   imageUrls: string[];
   description?: string | null;
   lostDate?: string | null;
@@ -26,5 +28,7 @@ export interface LostFoundReport {
   reporterId?: number | null;
   reporterName?: string | null;
   reporterPhone?: string | null;
+  whatsappUrl?: string | null;
+  status: LostFoundReportStatus;
   createdAt: string;
 }

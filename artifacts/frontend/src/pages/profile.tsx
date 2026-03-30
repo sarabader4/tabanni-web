@@ -5,7 +5,7 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useLocation } from "wouter";
 import {
-  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useCreatePet, type Pet,
+  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useDeleteLostFoundReport, useResolveLostFoundReport, useCreatePet, type Pet,
 } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -3178,7 +3178,11 @@ export default function Profile() {
   const { data: favourites, isLoading: favLoading } = useGetMyFavourites();
   const { data: notifications, isLoading: notifLoading } = useGetMyNotifications();
   const markRead = useMarkNotificationRead();
-  const { data: lostFoundData, isLoading: lfLoading } = useListLostFoundReports({ limit: 20 });
+  const { data: lostFoundData, isLoading: lfLoading, refetch: refetchLF } = useListLostFoundReports(
+    user?.id ? { reporterId: user.id, limit: 50 } : { limit: 0 }
+  );
+  const deleteLFMutation = useDeleteLostFoundReport();
+  const resolveLFMutation = useResolveLostFoundReport();
 
   const { data: incomingAdoptionRequests, isLoading: incomingAdoptionLoading } = useGetIncomingAdoptionRequests();
   const { data: incomingFosterRequests, isLoading: incomingFosterLoading } = useGetIncomingFosterRequests();
@@ -3944,43 +3948,118 @@ export default function Profile() {
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
               ) : (
-                <div>
-                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">{t("profile.myLostFound")}</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.myLostFound")}</h2>
+                      <p className="text-sm text-gray-500 mt-0.5">Your submitted reports and their current status.</p>
+                    </div>
+                    <Link href="/lost-found" className="text-sm font-bold text-primary hover:underline">
+                      + New Report
+                    </Link>
+                  </div>
+
+
                   {!lostFoundData?.reports || lostFoundData.reports.length === 0 ? (
-                    <div className="text-center py-16 text-gray-400">
+                    <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                       <MapPin className="w-12 h-12 mx-auto mb-3 opacity-30" />
                       <p className="text-lg font-semibold text-[#1E2A3A]">{t("profile.noReports")}</p>
+                      <p className="text-sm mt-1">Submit a report if you've lost or found a pet.</p>
                       <Link href="/lost-found" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
                         {t("lostFound.title")}
                       </Link>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {lostFoundData.reports.slice(0, 6).map((report) => (
-                        <div key={report.id} className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
-                          <div className="relative">
-                            <img
-                              src={report.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400"}
-                              alt={report.name}
-                              className="w-full h-24 object-cover"
-                            />
-                            <span className={`absolute top-2 start-2 px-2 py-0.5 rounded-full text-white text-xs font-bold ${report.reportType === "lost" ? "bg-red-500" : "bg-[#00B8A0]"}`}>
-                              {report.reportType === "lost" ? t("lostFound.lost") : t("lostFound.found")}
-                            </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {lostFoundData.reports.map((report) => {
+                        const statusMap: Record<string, { label: string; className: string }> = {
+                          pending: { label: "Pending", className: "bg-yellow-100 text-yellow-700" },
+                          approved: { label: "Approved", className: "bg-green-100 text-green-700" },
+                          rejected: { label: "Rejected", className: "bg-red-100 text-red-500" },
+                          resolved: { label: "Resolved", className: "bg-gray-100 text-gray-500" },
+                        };
+                        const badge = statusMap[report.status] ?? { label: report.status, className: "bg-gray-100 text-gray-500" };
+                        const isApproved = report.status === "approved";
+                        return (
+                          <div key={report.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+                            <div className="relative">
+                              <img
+                                src={report.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400"}
+                                alt={report.name}
+                                className="w-full h-32 object-cover"
+                              />
+                              <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-xs font-bold ${report.reportType === "lost" ? "bg-red-500" : "bg-[#00B8A0]"}`}>
+                                {report.reportType === "lost" ? t("lostFound.lost") : t("lostFound.found")}
+                              </span>
+                              <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold ${badge.className}`}>
+                                {badge.label}
+                              </span>
+                            </div>
+                            <div className="p-3">
+                              <p className="font-bold text-sm text-[#1E2A3A]">{report.name}</p>
+                              <p className="text-xs text-gray-400 capitalize">{report.type} · {[report.area, report.city].filter(Boolean).join(", ")}</p>
+                              <p className="text-xs text-gray-300 mt-1">
+                                {report.createdAt ? new Date(report.createdAt).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" }) : ""}
+                              </p>
+                              {isApproved && (
+                                <div className="flex gap-2 mt-2">
+                                  <button
+                                    onClick={async () => {
+                                      if (!confirm(`Mark as resolved?`)) return;
+                                      try {
+                                        await resolveLFMutation.mutateAsync({ id: report.id });
+                                        toast({ title: "Report resolved" });
+                                        refetchLF();
+                                      } catch {
+                                        toast({ title: "Failed to resolve", variant: "destructive" });
+                                      }
+                                    }}
+                                    className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                                  >
+                                    {report.reportType === "lost" ? "Found My Pet" : "Found Owner"}
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (!confirm("Delete this report?")) return;
+                                      try {
+                                        await deleteLFMutation.mutateAsync({ id: report.id });
+                                        toast({ title: "Report deleted" });
+                                        refetchLF();
+                                      } catch {
+                                        toast({ title: "Failed to delete", variant: "destructive" });
+                                      }
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                              {!isApproved && (
+                                <div className="mt-2">
+                                  <button
+                                    onClick={async () => {
+                                      if (!confirm("Delete this report?")) return;
+                                      try {
+                                        await deleteLFMutation.mutateAsync({ id: report.id });
+                                        toast({ title: "Report deleted" });
+                                        refetchLF();
+                                      } catch {
+                                        toast({ title: "Failed to delete", variant: "destructive" });
+                                      }
+                                    }}
+                                    className="w-full py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="p-3">
-                            <p className="font-bold text-sm text-[#1E2A3A]">{report.name}</p>
-                            <p className="text-xs text-gray-400 capitalize">{report.type} · {report.city}</p>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
-                  <div className="mt-4 text-center">
-                    <Link href="/lost-found" className="text-primary text-sm font-bold hover:underline">
-                      {t("profile.viewAllReports")} →
-                    </Link>
-                  </div>
                 </div>
               )
             )}

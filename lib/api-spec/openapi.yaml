@@ -579,6 +579,10 @@ paths:
           in: query
           schema:
             type: number
+        - name: reporterId
+          in: query
+          schema:
+            type: number
       responses:
         "200":
           description: List of reports
@@ -618,6 +622,98 @@ paths:
       responses:
         "200":
           description: Report detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LostFoundReport"
+    delete:
+      operationId: deleteLostFoundReport
+      tags: [lost-found]
+      summary: Delete a lost/found report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /lost-found/{id}/resolve:
+    post:
+      operationId: resolveLostFoundReport
+      tags: [lost-found]
+      summary: Mark a lost/found report as resolved
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Resolved report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LostFoundReport"
+
+  /admin/lost-found:
+    get:
+      operationId: listAdminLostFoundReports
+      tags: [admin]
+      summary: List all lost/found reports (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All reports
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LostFoundListResponse"
+
+  /admin/lost-found/{id}/approve:
+    put:
+      operationId: approveLostFoundReport
+      tags: [admin]
+      summary: Approve a lost/found report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Approved report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LostFoundReport"
+
+  /admin/lost-found/{id}/reject:
+    put:
+      operationId: rejectLostFoundReport
+      tags: [admin]
+      summary: Reject a lost/found report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Rejected report
           content:
             application/json:
               schema:
@@ -1782,6 +1878,9 @@ components:
           nullable: true
         city:
           type: string
+        area:
+          type: string
+          nullable: true
         imageUrls:
           type: array
           items:
@@ -1804,6 +1903,12 @@ components:
         reporterPhone:
           type: string
           nullable: true
+        whatsappUrl:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, rejected, resolved]
         createdAt:
           type: string
       required:
@@ -1813,6 +1918,7 @@ components:
         - type
         - city
         - imageUrls
+        - status
         - createdAt
 
     CreateLostFoundReportInput:
@@ -1839,6 +1945,8 @@ components:
           type: string
         city:
           type: string
+        area:
+          type: string
         imageUrls:
           type: array
           items:
@@ -1854,6 +1962,8 @@ components:
         reporterName:
           type: string
         reporterPhone:
+          type: string
+        whatsappUrl:
           type: string
       required:
         - reportType

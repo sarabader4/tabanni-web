@@ -147,9 +147,7 @@ export interface Pet {
   ownerId?: number | null;
   ownerName?: string | null;
   ownerPhone?: string | null;
-  whatsappUrl?: string | null;
   approved: boolean;
-  rejected?: boolean;
   featured: boolean;
   addedByAdmin: boolean;
   createdAt: string;
@@ -210,7 +208,6 @@ export interface CreatePetInput {
   imageUrls?: string[];
   story?: string;
   ownerId?: number;
-  whatsappUrl?: string;
 }
 
 export interface UpdatePetInput {
@@ -407,6 +404,16 @@ export const LostFoundReportReportType = {
   found: "found",
 } as const;
 
+export type LostFoundReportStatus =
+  (typeof LostFoundReportStatus)[keyof typeof LostFoundReportStatus];
+
+export const LostFoundReportStatus = {
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
+  resolved: "resolved",
+} as const;
+
 export interface LostFoundReport {
   id: number;
   reportType: LostFoundReportReportType;
@@ -419,6 +426,7 @@ export interface LostFoundReport {
   ageMonths?: number | null;
   size?: string | null;
   city: string;
+  area?: string | null;
   imageUrls: string[];
   description?: string | null;
   lostDate?: string | null;
@@ -426,6 +434,8 @@ export interface LostFoundReport {
   reporterId?: number | null;
   reporterName?: string | null;
   reporterPhone?: string | null;
+  whatsappUrl?: string | null;
+  status: LostFoundReportStatus;
   createdAt: string;
 }
 
@@ -448,6 +458,7 @@ export interface CreateLostFoundReportInput {
   ageMonths?: number;
   size?: string;
   city: string;
+  area?: string;
   imageUrls?: string[];
   description?: string;
   lostDate?: string;
@@ -455,6 +466,7 @@ export interface CreateLostFoundReportInput {
   reporterId?: number;
   reporterName?: string;
   reporterPhone?: string;
+  whatsappUrl?: string;
 }
 
 export interface LostFoundListResponse {
@@ -616,6 +628,11 @@ export type ListLostFoundReportsParams = {
   breed?: string;
   page?: number;
   limit?: number;
+  reporterId?: number;
+};
+
+export type ListAdminLostFoundReportsParams = {
+  status?: string;
 };
 
 export type ListAdminUsersParams = {

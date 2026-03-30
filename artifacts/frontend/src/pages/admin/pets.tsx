@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import {
   useListPets,
   useApprovePet,
-  useRejectPet,
   useTogglePetFeatured,
   useDeletePet,
   useUpdatePet,
@@ -22,9 +21,8 @@ const STATUS_COLORS: Record<string, string> = {
   found: "bg-purple-100 text-purple-700",
 };
 
-function getApprovalBadge(pet: Pet & { rejected?: boolean }) {
+function getApprovalBadge(pet: Pet) {
   if (pet.featured) return { label: "Featured", cls: "bg-amber-100 text-amber-700" };
-  if (pet.rejected) return { label: "Rejected", cls: "bg-red-100 text-red-700" };
   if (pet.approved) return { label: "Approved", cls: "bg-green-100 text-green-700" };
   return { label: "Pending", cls: "bg-yellow-100 text-yellow-700" };
 }
@@ -335,15 +333,12 @@ export default function AdminPets() {
   });
 
   const approveMutation = useApprovePet();
-  const rejectMutation = useRejectPet();
   const featureMutation = useTogglePetFeatured();
   const deleteMutation = useDeletePet();
 
-  type EnrichedPet = Pet & { rejected?: boolean };
-
-  const allPets = (data?.pets ?? []) as EnrichedPet[];
+  const allPets = data?.pets ?? [];
   const pets = activeTab === "pending"
-    ? allPets.filter(p => !p.approved && !p.rejected)
+    ? allPets.filter(p => p.status === "pending")
     : allPets;
 
   function formatDate(d: string) {
@@ -486,13 +481,6 @@ export default function AdminPets() {
                           >
                             Approve
                           </button>
-                          <button
-                            onClick={() => rejectMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })}
-                            disabled={pet.rejected || rejectMutation.isPending}
-                            className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-40"
-                          >
-                            Reject
-                          </button>
                         </>
                       ) : (
                         <>
@@ -510,16 +498,6 @@ export default function AdminPets() {
                           >
                             <Star className="w-3.5 h-3.5" />
                           </button>
-                          {!pet.approved && (
-                            <button
-                              onClick={() => rejectMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })}
-                              title="Reject"
-                              disabled={pet.rejected || rejectMutation.isPending}
-                              className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors disabled:opacity-40"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          )}
                         </>
                       )}
                       <button

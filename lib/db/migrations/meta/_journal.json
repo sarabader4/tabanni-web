@@ -36,6 +36,13 @@
       "when": 1743196800000,
       "tag": "0005_volunteer_applications",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1743283200000,
+      "tag": "0006_lost_found_status_area_whatsapp",
+      "breakpoints": true
     }
   ]
 }

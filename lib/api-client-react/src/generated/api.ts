@@ -48,6 +48,7 @@ import type {
   GalleryPost,
   GetPaymentConfig200,
   HealthStatus,
+  ListAdminLostFoundReportsParams,
   ListAdminUsersParams,
   ListAdoptionRequestsParams,
   ListDonationsParams,
@@ -2272,6 +2273,448 @@ export function useGetLostFoundReport<
 }
 
 /**
+ * @summary Delete a lost/found report
+ */
+export const getDeleteLostFoundReportUrl = (id: number) => {
+  return `/api/lost-found/${id}`;
+};
+
+export const deleteLostFoundReport = async (
+  id: number,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getDeleteLostFoundReportUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteLostFoundReportMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteLostFoundReport>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteLostFoundReport>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteLostFoundReport"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteLostFoundReport>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteLostFoundReport(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteLostFoundReportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteLostFoundReport>>
+>;
+
+export type DeleteLostFoundReportMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a lost/found report
+ */
+export const useDeleteLostFoundReport = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteLostFoundReport>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteLostFoundReport>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteLostFoundReportMutationOptions(options));
+};
+
+/**
+ * @summary Mark a lost/found report as resolved
+ */
+export const getResolveLostFoundReportUrl = (id: number) => {
+  return `/api/lost-found/${id}/resolve`;
+};
+
+export const resolveLostFoundReport = async (
+  id: number,
+  options?: RequestInit,
+): Promise<LostFoundReport> => {
+  return customFetch<LostFoundReport>(getResolveLostFoundReportUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getResolveLostFoundReportMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resolveLostFoundReport>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resolveLostFoundReport>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["resolveLostFoundReport"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resolveLostFoundReport>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return resolveLostFoundReport(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResolveLostFoundReportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resolveLostFoundReport>>
+>;
+
+export type ResolveLostFoundReportMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark a lost/found report as resolved
+ */
+export const useResolveLostFoundReport = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resolveLostFoundReport>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof resolveLostFoundReport>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getResolveLostFoundReportMutationOptions(options));
+};
+
+/**
+ * @summary List all lost/found reports (admin)
+ */
+export const getListAdminLostFoundReportsUrl = (
+  params?: ListAdminLostFoundReportsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/lost-found?${stringifiedParams}`
+    : `/api/admin/lost-found`;
+};
+
+export const listAdminLostFoundReports = async (
+  params?: ListAdminLostFoundReportsParams,
+  options?: RequestInit,
+): Promise<LostFoundListResponse> => {
+  return customFetch<LostFoundListResponse>(
+    getListAdminLostFoundReportsUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListAdminLostFoundReportsQueryKey = (
+  params?: ListAdminLostFoundReportsParams,
+) => {
+  return [`/api/admin/lost-found`, ...(params ? [params] : [])] as const;
+};
+
+export const getListAdminLostFoundReportsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminLostFoundReports>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminLostFoundReportsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminLostFoundReports>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListAdminLostFoundReportsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAdminLostFoundReports>>
+  > = ({ signal }) =>
+    listAdminLostFoundReports(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminLostFoundReports>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminLostFoundReportsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminLostFoundReports>>
+>;
+export type ListAdminLostFoundReportsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all lost/found reports (admin)
+ */
+
+export function useListAdminLostFoundReports<
+  TData = Awaited<ReturnType<typeof listAdminLostFoundReports>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminLostFoundReportsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminLostFoundReports>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminLostFoundReportsQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Approve a lost/found report
+ */
+export const getApproveLostFoundReportUrl = (id: number) => {
+  return `/api/admin/lost-found/${id}/approve`;
+};
+
+export const approveLostFoundReport = async (
+  id: number,
+  options?: RequestInit,
+): Promise<LostFoundReport> => {
+  return customFetch<LostFoundReport>(getApproveLostFoundReportUrl(id), {
+    ...options,
+    method: "PUT",
+  });
+};
+
+export const getApproveLostFoundReportMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof approveLostFoundReport>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof approveLostFoundReport>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["approveLostFoundReport"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof approveLostFoundReport>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return approveLostFoundReport(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ApproveLostFoundReportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof approveLostFoundReport>>
+>;
+
+export type ApproveLostFoundReportMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Approve a lost/found report
+ */
+export const useApproveLostFoundReport = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof approveLostFoundReport>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof approveLostFoundReport>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getApproveLostFoundReportMutationOptions(options));
+};
+
+/**
+ * @summary Reject a lost/found report
+ */
+export const getRejectLostFoundReportUrl = (id: number) => {
+  return `/api/admin/lost-found/${id}/reject`;
+};
+
+export const rejectLostFoundReport = async (
+  id: number,
+  options?: RequestInit,
+): Promise<LostFoundReport> => {
+  return customFetch<LostFoundReport>(getRejectLostFoundReportUrl(id), {
+    ...options,
+    method: "PUT",
+  });
+};
+
+export const getRejectLostFoundReportMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rejectLostFoundReport>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof rejectLostFoundReport>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["rejectLostFoundReport"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof rejectLostFoundReport>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return rejectLostFoundReport(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RejectLostFoundReportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof rejectLostFoundReport>>
+>;
+
+export type RejectLostFoundReportMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Reject a lost/found report
+ */
+export const useRejectLostFoundReport = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rejectLostFoundReport>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof rejectLostFoundReport>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getRejectLostFoundReportMutationOptions(options));
+};
+
+/**
  * @summary Send a message to a pet owner
  */
 export const getSendMessageUrl = () => {
@@ -4075,87 +4518,4 @@ export const useConfirmCliqDonation = <
   TContext
 > => {
   return useMutation(getConfirmCliqDonationMutationOptions(options));
-};
-
-/**
- * @summary Reject a pet listing (admin only)
- */
-export const getRejectPetUrl = (id: number) => {
-  return `/api/admin/pets/${id}/reject`;
-};
-
-export const rejectPet = async (
-  id: number,
-  options?: RequestInit,
-): Promise<Pet> => {
-  return customFetch<Pet>(getRejectPetUrl(id), {
-    ...options,
-    method: "PUT",
-  });
-};
-
-export const getRejectPetMutationOptions = <
-  TError = ErrorType<unknown>,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof rejectPet>>,
-    TError,
-    { id: number },
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof rejectPet>>,
-  TError,
-  { id: number },
-  TContext
-> => {
-  const mutationKey = ["rejectPet"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof rejectPet>>,
-    { id: number }
-  > = (props) => {
-    const { id } = props ?? {};
-    return rejectPet(id, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type RejectPetMutationResult = NonNullable<
-  Awaited<ReturnType<typeof rejectPet>>
->;
-
-export type RejectPetMutationError = ErrorType<unknown>;
-
-/**
- * @summary Reject a pet listing (admin only)
- */
-export const useRejectPet = <
-  TError = ErrorType<unknown>,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof rejectPet>>,
-    TError,
-    { id: number },
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationResult<
-  Awaited<ReturnType<typeof rejectPet>>,
-  TError,
-  { id: number },
-  TContext
-> => {
-  return useMutation(getRejectPetMutationOptions(options));
 };

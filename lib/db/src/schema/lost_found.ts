@@ -5,6 +5,7 @@ import { usersTable } from "./users";
 import { petsTable } from "./pets";
 
 export const reportTypeEnum = pgEnum("report_type", ["lost", "found"]);
+export const lostFoundStatusEnum = pgEnum("lost_found_status", ["pending", "approved", "rejected", "resolved"]);
 
 export const lostFoundReportsTable = pgTable("lost_found_reports", {
   id: serial("id").primaryKey(),
@@ -18,6 +19,7 @@ export const lostFoundReportsTable = pgTable("lost_found_reports", {
   ageMonths: integer("age_months"),
   size: text("size"),
   city: text("city").notNull(),
+  area: text("area"),
   imageUrls: text("image_urls").array().notNull().default([]),
   description: text("description"),
   lostDate: text("lost_date"),
@@ -25,6 +27,8 @@ export const lostFoundReportsTable = pgTable("lost_found_reports", {
   reporterId: integer("reporter_id").references(() => usersTable.id),
   reporterName: text("reporter_name"),
   reporterPhone: text("reporter_phone"),
+  whatsappUrl: text("whatsapp_url"),
+  status: lostFoundStatusEnum("status").notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

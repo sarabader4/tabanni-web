@@ -15,4 +15,5 @@ export type ListLostFoundReportsParams = {
   breed?: string;
   page?: number;
   limit?: number;
+  reporterId?: number;
 };

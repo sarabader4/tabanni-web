@@ -18,6 +18,7 @@ export interface CreateLostFoundReportInput {
   ageMonths?: number;
   size?: string;
   city: string;
+  area?: string;
   imageUrls?: string[];
   description?: string;
   lostDate?: string;
@@ -25,4 +26,5 @@ export interface CreateLostFoundReportInput {
   reporterId?: number;
   reporterName?: string;
   reporterPhone?: string;
+  whatsappUrl?: string;
 }

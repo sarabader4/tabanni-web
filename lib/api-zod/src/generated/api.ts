@@ -132,7 +132,6 @@ export const CreatePetBody = zod.object({
   imageUrls: zod.array(zod.string()).optional(),
   story: zod.string().optional(),
   ownerId: zod.number().optional(),
-  whatsappUrl: zod.string().optional(),
 });
 
 /**
@@ -519,6 +518,7 @@ export const ListLostFoundReportsQueryParams = zod.object({
   breed: zod.coerce.string().optional(),
   page: zod.coerce.number().optional(),
   limit: zod.coerce.number().optional(),
+  reporterId: zod.coerce.number().optional(),
 });
 
 export const ListLostFoundReportsResponse = zod.object({
@@ -535,6 +535,7 @@ export const ListLostFoundReportsResponse = zod.object({
       ageMonths: zod.number().nullish(),
       size: zod.string().nullish(),
       city: zod.string(),
+      area: zod.string().nullish(),
       imageUrls: zod.array(zod.string()),
       description: zod.string().nullish(),
       lostDate: zod.string().nullish(),
@@ -542,6 +543,8 @@ export const ListLostFoundReportsResponse = zod.object({
       reporterId: zod.number().nullish(),
       reporterName: zod.string().nullish(),
       reporterPhone: zod.string().nullish(),
+      whatsappUrl: zod.string().nullish(),
+      status: zod.enum(["pending", "approved", "rejected", "resolved"]),
       createdAt: zod.string(),
     }),
   ),
@@ -564,6 +567,7 @@ export const CreateLostFoundReportBody = zod.object({
   ageMonths: zod.number().optional(),
   size: zod.string().optional(),
   city: zod.string(),
+  area: zod.string().optional(),
   imageUrls: zod.array(zod.string()).optional(),
   description: zod.string().optional(),
   lostDate: zod.string().optional(),
@@ -571,6 +575,7 @@ export const CreateLostFoundReportBody = zod.object({
   reporterId: zod.number().optional(),
   reporterName: zod.string().optional(),
   reporterPhone: zod.string().optional(),
+  whatsappUrl: zod.string().optional(),
 });
 
 /**
@@ -592,6 +597,7 @@ export const GetLostFoundReportResponse = zod.object({
   ageMonths: zod.number().nullish(),
   size: zod.string().nullish(),
   city: zod.string(),
+  area: zod.string().nullish(),
   imageUrls: zod.array(zod.string()),
   description: zod.string().nullish(),
   lostDate: zod.string().nullish(),
@@ -599,6 +605,155 @@ export const GetLostFoundReportResponse = zod.object({
   reporterId: zod.number().nullish(),
   reporterName: zod.string().nullish(),
   reporterPhone: zod.string().nullish(),
+  whatsappUrl: zod.string().nullish(),
+  status: zod.enum(["pending", "approved", "rejected", "resolved"]),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete a lost/found report
+ */
+export const DeleteLostFoundReportParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteLostFoundReportResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string().optional(),
+});
+
+/**
+ * @summary Mark a lost/found report as resolved
+ */
+export const ResolveLostFoundReportParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ResolveLostFoundReportResponse = zod.object({
+  id: zod.number(),
+  reportType: zod.enum(["lost", "found"]),
+  petId: zod.number().nullish(),
+  name: zod.string(),
+  type: zod.string(),
+  breed: zod.string().nullish(),
+  gender: zod.string().nullish(),
+  color: zod.string().nullish(),
+  ageMonths: zod.number().nullish(),
+  size: zod.string().nullish(),
+  city: zod.string(),
+  area: zod.string().nullish(),
+  imageUrls: zod.array(zod.string()),
+  description: zod.string().nullish(),
+  lostDate: zod.string().nullish(),
+  foundDate: zod.string().nullish(),
+  reporterId: zod.number().nullish(),
+  reporterName: zod.string().nullish(),
+  reporterPhone: zod.string().nullish(),
+  whatsappUrl: zod.string().nullish(),
+  status: zod.enum(["pending", "approved", "rejected", "resolved"]),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary List all lost/found reports (admin)
+ */
+export const ListAdminLostFoundReportsQueryParams = zod.object({
+  status: zod.coerce.string().optional(),
+});
+
+export const ListAdminLostFoundReportsResponse = zod.object({
+  reports: zod.array(
+    zod.object({
+      id: zod.number(),
+      reportType: zod.enum(["lost", "found"]),
+      petId: zod.number().nullish(),
+      name: zod.string(),
+      type: zod.string(),
+      breed: zod.string().nullish(),
+      gender: zod.string().nullish(),
+      color: zod.string().nullish(),
+      ageMonths: zod.number().nullish(),
+      size: zod.string().nullish(),
+      city: zod.string(),
+      area: zod.string().nullish(),
+      imageUrls: zod.array(zod.string()),
+      description: zod.string().nullish(),
+      lostDate: zod.string().nullish(),
+      foundDate: zod.string().nullish(),
+      reporterId: zod.number().nullish(),
+      reporterName: zod.string().nullish(),
+      reporterPhone: zod.string().nullish(),
+      whatsappUrl: zod.string().nullish(),
+      status: zod.enum(["pending", "approved", "rejected", "resolved"]),
+      createdAt: zod.string(),
+    }),
+  ),
+  total: zod.number(),
+  page: zod.number(),
+  totalPages: zod.number(),
+});
+
+/**
+ * @summary Approve a lost/found report
+ */
+export const ApproveLostFoundReportParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ApproveLostFoundReportResponse = zod.object({
+  id: zod.number(),
+  reportType: zod.enum(["lost", "found"]),
+  petId: zod.number().nullish(),
+  name: zod.string(),
+  type: zod.string(),
+  breed: zod.string().nullish(),
+  gender: zod.string().nullish(),
+  color: zod.string().nullish(),
+  ageMonths: zod.number().nullish(),
+  size: zod.string().nullish(),
+  city: zod.string(),
+  area: zod.string().nullish(),
+  imageUrls: zod.array(zod.string()),
+  description: zod.string().nullish(),
+  lostDate: zod.string().nullish(),
+  foundDate: zod.string().nullish(),
+  reporterId: zod.number().nullish(),
+  reporterName: zod.string().nullish(),
+  reporterPhone: zod.string().nullish(),
+  whatsappUrl: zod.string().nullish(),
+  status: zod.enum(["pending", "approved", "rejected", "resolved"]),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Reject a lost/found report
+ */
+export const RejectLostFoundReportParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const RejectLostFoundReportResponse = zod.object({
+  id: zod.number(),
+  reportType: zod.enum(["lost", "found"]),
+  petId: zod.number().nullish(),
+  name: zod.string(),
+  type: zod.string(),
+  breed: zod.string().nullish(),
+  gender: zod.string().nullish(),
+  color: zod.string().nullish(),
+  ageMonths: zod.number().nullish(),
+  size: zod.string().nullish(),
+  city: zod.string(),
+  area: zod.string().nullish(),
+  imageUrls: zod.array(zod.string()),
+  description: zod.string().nullish(),
+  lostDate: zod.string().nullish(),
+  foundDate: zod.string().nullish(),
+  reporterId: zod.number().nullish(),
+  reporterName: zod.string().nullish(),
+  reporterPhone: zod.string().nullish(),
+  whatsappUrl: zod.string().nullish(),
+  status: zod.enum(["pending", "approved", "rejected", "resolved"]),
   createdAt: zod.string(),
 });
 
