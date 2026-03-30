@@ -1,0 +1,77 @@
+Add Report (Lost / Found Pet)
+Add a “Report Pet” button.
+When clicked:
+Open a form (modal or page) divided into two main sections:
+🔹 Section 1: Pet Information
+At the top, include a selection option (radio buttons):
+Lost Pet
+Found Pet
+Based on the selection, the form should dynamically update.
+🐾 If “Lost Pet” is selected:
+
+Include the following fields:
+
+Pet Name
+Gender
+Type (e.g., dog, cat)
+Breed
+Age
+Size (Tiny, Small, Medium, Large)
+City
+Area
+Date Lost
+Upload Images (multiple images allowed)
+Notes (textarea)
+🐾 If “Found Pet” is selected:
+Use the same fields as Lost Pet, with the following adjustment:
+Breed is optional (can be left empty)
+🔹 Section 2: Owner / Reporter Information
+
+Include:
+
+Name
+WhatsApp Link
+
+WhatsApp Input Behavior:
+
+The field should be pre-filled with the base link (e.g., https://wa.me/)
+The user only needs to enter their phone number
+🔹 Form Behavior & Validation
+All fields are required, except:
+Breed (only optional when “Found Pet” is selected)
+Validate:
+Required inputs
+Proper formats (e.g., phone number)
+At least one image uploaded
+🔹 Submission Flow
+After submission:
+The report is sent to the Admin Dashboard for review
+Admin can:
+Accept → Post becomes visible in the Lost & Found page
+Reject → Post is not published
+🔹 Post Management (After Publishing)
+Each post should include actions:
+✅ If the pet is recovered:
+For Lost Pet owner → button: “Found My Pet”
+For Found Pet reporter → button: “Found Owner”
+
+On click:
+
+The post is automatically removed from:
+Lost & Found page
+User Profile → Lost & Found section
+🔹 Delete Option
+Users can manually delete their post at any time
+When deleted:
+It is removed from:
+Lost & Found page
+Their profile section
+🔹 UI/UX Requirements
+Use a clean, user-friendly form layout
+Ensure dynamic field changes when switching between Lost / Found
+Support multiple image uploads with preview
+Provide:
+Success message after submission
+Clear status indication (Pending / Approved / Rejected)
+
+The goal is to create a simple, dynamic, and reliable system for reporting and managing lost and found pets, with smooth admin moderation and easy post management.
