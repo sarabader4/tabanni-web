@@ -169,7 +169,7 @@ export default function Home() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {gallery?.map(post => (
-            <Link key={post.id} href={`/gallery/${post.id}`} className="group block">
+            <Link key={post.id} href={`/gallery/${post.id}`} onClick={() => window.scrollTo({ top: 0 })} className="group block">
               <div className="relative aspect-video rounded-3xl overflow-hidden mb-4">
                 <img 
                   src={post.imageUrl || "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800&q=80"} 
