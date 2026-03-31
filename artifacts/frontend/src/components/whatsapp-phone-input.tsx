@@ -77,11 +77,10 @@ export default function WhatsAppPhoneInput({
   const empty = touched && phoneDigits.length === 0;
 
   const internalError =
-    error ||
     (empty
-      ? "Phone number is required"
+      ? error || "Phone number is required"
       : tooShort
-      ? "Invalid phone number"
+      ? "Invalid phone number (too short)"
       : tooLong
       ? "Phone number is too long"
       : undefined);

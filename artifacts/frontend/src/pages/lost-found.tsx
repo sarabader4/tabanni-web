@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Link } from "wouter";
 import {
   useListLostFoundReports,
@@ -108,15 +108,6 @@ export default function LostFound() {
       whatsappUrl: "",
     },
   });
-
-  useEffect(() => {
-    if (user?.phone) {
-      const digits = user.phone.replace(/\D/g, "");
-      if (digits.length >= 7) {
-        form.setValue("whatsappUrl", `https://wa.me/962${digits.replace(/^0/, "")}`);
-      }
-    }
-  }, [user?.phone]);
 
   const reportType = form.watch("reportType");
 
