@@ -18,6 +18,23 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const isArabic = i18n.language === "ar";
 
+  const countryCodes = [
+    { flag: "🇯🇴", code: "+962", name: "Jordan" },
+    { flag: "🇸🇦", code: "+966", name: "Saudi Arabia" },
+    { flag: "🇦🇪", code: "+971", name: "UAE" },
+    { flag: "🇰🇼", code: "+965", name: "Kuwait" },
+    { flag: "🇶🇦", code: "+974", name: "Qatar" },
+    { flag: "🇧🇭", code: "+973", name: "Bahrain" },
+    { flag: "🇴🇲", code: "+968", name: "Oman" },
+    { flag: "🇪🇬", code: "+20",  name: "Egypt" },
+    { flag: "🇱🇧", code: "+961", name: "Lebanon" },
+    { flag: "🇮🇶", code: "+964", name: "Iraq" },
+    { flag: "🇵🇸", code: "+970", name: "Palestine" },
+    { flag: "🇺🇸", code: "+1",   name: "USA" },
+    { flag: "🇬🇧", code: "+44",  name: "UK" },
+  ];
+  const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
+
   const toggleLanguage = () => {
     i18n.changeLanguage(isArabic ? "en" : "ar");
   };
@@ -323,7 +340,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Footer */}
       <footer className="bg-[#1E2A3A] text-white mt-16" style={{ borderRadius: "2rem 2rem 0 0" }}>
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-12 pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_2fr] gap-10 lg:gap-16">
             {/* Col 1 — Brand */}
             <div className="space-y-5">
               <div className="flex items-center gap-2">
@@ -385,9 +402,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   className="w-full bg-white/95 text-[#1E2A3A] rounded-lg px-3 py-2.5 text-sm placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/50"
                 />
                 <div className="flex gap-2">
-                  <div className="flex items-center gap-1 bg-white/95 rounded-lg px-2 py-2.5 flex-1">
-                    <span className="text-sm leading-none">🇯🇴</span>
-                    <span className="text-xs text-[#1E2A3A]/60">+962</span>
+                  <div className="flex items-center bg-white/95 rounded-lg px-2 py-2.5 flex-1 min-w-0 gap-1">
+                    <div className="relative flex items-center shrink-0">
+                      <span className="text-sm pointer-events-none">{selectedCountry.flag}</span>
+                      <span className="text-xs text-[#1E2A3A]/60 pointer-events-none mx-0.5">{selectedCountry.code}</span>
+                      <select
+                        value={selectedCountry.code}
+                        onChange={e => setSelectedCountry(countryCodes.find(c => c.code === e.target.value) ?? countryCodes[0])}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                        title="Select country code"
+                      >
+                        {countryCodes.map(c => (
+                          <option key={c.code} value={c.code}>{c.flag} {c.code} — {c.name}</option>
+                        ))}
+                      </select>
+                    </div>
                     <input
                       type="tel"
                       placeholder={t("footer.phonePlaceholder")}
