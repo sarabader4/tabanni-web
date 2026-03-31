@@ -1,0 +1,58 @@
+nhanced prompt with the country code dropdown included 👇
+
+Prompt:
+
+Design a feature where users do not manually enter a WhatsApp link, but instead enter their phone number, and the system automatically generates the WhatsApp link.
+
+📌 Input Behavior:
+Replace any “WhatsApp Link” input field with:
+Country Code Dropdown
+Phone Number Input Field
+🌍 Country Code Dropdown:
+Provide a dropdown list of country codes (e.g., +962 for Jordan, +966 for Saudi Arabia, etc.)
+Each option should include:
+Country name
+Country flag (optional for better UX)
+Country code
+Default selection:
+Automatically select based on user location (if available)
+Or fallback to a common default (e.g., +962)
+📱 Phone Number Field:
+Accept only numeric input (no letters or special characters except formatting if needed)
+Validate minimum and maximum length based on selected country
+Display placeholder example (e.g., “7XXXXXXXX”)
+⚙️ Auto-Generated WhatsApp Link:
+
+Combine country code + phone number and generate the link in this format:
+
+https://wa.me/{countrycode}{phonenumber}
+Example:
+Country Code: +962
+Phone Number: 7XXXXXXXX
+Generated Link:
+https://wa.me/9627XXXXXXXX
+The generated link should:
+Be stored in the database
+Be used internally across the system
+Not be editable manually
+⚠️ Validation & User Guidance:
+Display helper text:
+"Please enter a phone number that is registered on WhatsApp."
+Validation rules:
+Ensure valid number format
+Prevent empty input
+Show clear error messages (e.g., "Invalid phone number")
+🔄 Auto-Fill User Information:
+If the user is logged in:
+Automatically pre-fill:
+Country code
+Phone number
+Allow the user to edit both fields
+💡 Additional Requirements:
+Ensure consistent implementation across all forms
+Optimize for mobile-friendly input
+Prevent duplicate or incorrect WhatsApp links
+Maintain clean UI/UX with clear separation between dropdown and input field
+✨ Goal:
+
+Simplify user input, improve accuracy, and standardize WhatsApp communication by generating links automatically based on structured phone number input.
