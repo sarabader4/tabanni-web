@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable, volunteerApplicationsTable } from "@workspace/db";
 import { eq, and, ilike, desc, sql, gte, lte, lt } from "drizzle-orm";
 import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams, UpdateAdminVolunteerStatusBody } from "@workspace/api-zod";
-import { sendPetStatusEmail, sendVolunteerStatusEmail } from "../lib/mailer";
+import { createNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -210,21 +210,16 @@ router.put("/admin/pets/:id/approve", async (req, res) => {
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
 
     if (pet.ownerId) {
-      const notificationMessage = `Great news! Your pet "${pet.name}" has been approved and is now listed for adoption/foster.`;
       try {
-        await db.insert(notificationsTable).values({
-          userId: pet.ownerId,
-          petId: pet.id,
-          status: "accepted",
-          message: notificationMessage,
-        });
-        const [owner] = await db.select({ email: usersTable.email, fullName: usersTable.fullName })
-          .from(usersTable).where(eq(usersTable.id, pet.ownerId!));
-        if (owner) {
-          sendPetStatusEmail({ to: owner.email, userName: owner.fullName, petName: pet.name, status: "accepted", message: notificationMessage });
-        }
+        await createNotification(
+          pet.ownerId,
+          "pet_accepted",
+          "Pet Submission Approved",
+          `Great news! Your pet "${pet.name}" has been approved and is now listed for adoption/foster.`,
+          pet.id,
+        );
       } catch (err) {
-        req.log.error({ err }, "Error creating approval notification or sending email");
+        req.log.error({ err }, "Error creating approval notification");
       }
     }
 
@@ -246,21 +241,16 @@ router.put("/admin/pets/:id/reject", async (req, res) => {
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
 
     if (pet.ownerId) {
-      const notificationMessage = `Unfortunately, your pet "${pet.name}" submission has been rejected. Please review our submission guidelines and feel free to resubmit.`;
       try {
-        await db.insert(notificationsTable).values({
-          userId: pet.ownerId,
-          petId: pet.id,
-          status: "rejected",
-          message: notificationMessage,
-        });
-        const [owner] = await db.select({ email: usersTable.email, fullName: usersTable.fullName })
-          .from(usersTable).where(eq(usersTable.id, pet.ownerId!));
-        if (owner) {
-          sendPetStatusEmail({ to: owner.email, userName: owner.fullName, petName: pet.name, status: "rejected", message: notificationMessage });
-        }
+        await createNotification(
+          pet.ownerId,
+          "pet_rejected",
+          "Pet Submission Rejected",
+          `Unfortunately, your pet "${pet.name}" submission has been rejected. Please review our submission guidelines and feel free to resubmit.`,
+          pet.id,
+        );
       } catch (err) {
-        req.log.error({ err }, "Error creating rejection notification or sending email");
+        req.log.error({ err }, "Error creating rejection notification");
       }
     }
 
@@ -455,28 +445,20 @@ router.patch("/admin/volunteer-applications/:id/status", async (req, res) => {
       return res.status(404).json({ error: "not_found", message: "Application not found" });
     }
 
-    const notificationMessage = status === "accepted"
+    const notifTitle = status === "accepted" ? "Volunteer Application Accepted" : "Volunteer Application Rejected";
+    const notifMessage = status === "accepted"
       ? "Congratulations! Your volunteer application has been accepted. We look forward to working with you."
       : "Thank you for your interest. Unfortunately, your volunteer application has been rejected at this time. You are welcome to reapply in the future.";
 
     try {
-      await db.insert(notificationsTable).values({
-        userId: application.userId,
-        petId: null,
-        status,
-        message: notificationMessage,
-      });
-
-      const [applicant] = await db
-        .select({ email: usersTable.email, fullName: usersTable.fullName })
-        .from(usersTable)
-        .where(eq(usersTable.id, application.userId));
-
-      if (applicant) {
-        sendVolunteerStatusEmail({ to: applicant.email, userName: applicant.fullName, status });
-      }
+      await createNotification(
+        application.userId,
+        status === "accepted" ? "volunteer_accepted" : "volunteer_rejected",
+        notifTitle,
+        notifMessage,
+      );
     } catch (err) {
-      req.log.error({ err }, "Error creating volunteer notification or sending email");
+      req.log.error({ err }, "Error creating volunteer notification");
     }
 
     res.json(application);

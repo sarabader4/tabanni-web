@@ -23,6 +23,27 @@ function createTransport() {
   });
 }
 
+export async function sendNotificationEmail({
+  to,
+}: {
+  to: string;
+}): Promise<void> {
+  const transport = createTransport();
+  if (!transport) return;
+
+  try {
+    await transport.sendMail({
+      from: SMTP_FROM,
+      to,
+      subject: "New Notification",
+      text: "There is a notification waiting for you. Please log in to your account to view more details.",
+    });
+    logger.info({ to }, "Notification email sent");
+  } catch (err) {
+    logger.error({ err, to }, "Failed to send notification email");
+  }
+}
+
 export async function sendVolunteerStatusEmail({
   to,
   userName,

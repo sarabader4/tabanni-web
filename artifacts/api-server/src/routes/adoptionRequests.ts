@@ -8,6 +8,7 @@ import {
   UpdateAdoptionRequestStatusBody,
   UpdateAdoptionRequestStatusParams,
 } from "@workspace/api-zod";
+import { createNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -27,7 +28,6 @@ router.get("/adoption-requests", requireAuth, async (req, res) => {
     if (reqStatus) conditions.push(eq(adoptionRequestsTable.status, reqStatus));
     if (petId !== undefined) conditions.push(eq(adoptionRequestsTable.petId, petId));
 
-    // Non-admin users can only view their own requests; admins can see all (and filter by requesterId)
     if (req.userRole !== "admin") {
       conditions.push(eq(adoptionRequestsTable.requesterId, req.userId));
     } else if (requesterId !== undefined) {
@@ -192,6 +192,25 @@ router.post("/adoption-requests", requireAuth, async (req, res): Promise<void> =
     }
 
     const [request] = await db.insert(adoptionRequestsTable).values({ petId, requesterId: req.userId, message }).returning();
+
+    const [pet] = await db.select({ ownerId: petsTable.ownerId, name: petsTable.name })
+      .from(petsTable).where(eq(petsTable.id, petId));
+
+    if (pet?.ownerId && pet.ownerId !== req.userId) {
+      try {
+        const [requester] = await db.select({ fullName: usersTable.fullName }).from(usersTable).where(eq(usersTable.id, req.userId));
+        await createNotification(
+          pet.ownerId,
+          "new_adoption_request",
+          "New Adoption Request",
+          `${requester?.fullName ?? "Someone"} has submitted an adoption request for your pet "${pet.name}".`,
+          petId,
+        );
+      } catch (err) {
+        req.log.error({ err }, "Error creating new adoption request notification");
+      }
+    }
+
     res.status(201).json(request);
   } catch (err) {
     req.log.error({ err }, "Error creating adoption request");
@@ -219,8 +238,10 @@ router.put("/adoption-requests/:id/status", requireAuth, async (req, res): Promi
     const [existingRequest] = await db.select({
       id: adoptionRequestsTable.id,
       petId: adoptionRequestsTable.petId,
+      requesterId: adoptionRequestsTable.requesterId,
       status: adoptionRequestsTable.status,
       ownerId: petsTable.ownerId,
+      petName: petsTable.name,
     })
       .from(adoptionRequestsTable)
       .leftJoin(petsTable, eq(adoptionRequestsTable.petId, petsTable.id))
@@ -248,6 +269,25 @@ router.put("/adoption-requests/:id/status", requireAuth, async (req, res): Promi
       await db.update(petsTable)
         .set({ status: "adopted" })
         .where(eq(petsTable.id, existingRequest.petId));
+    }
+
+    if (existingRequest.requesterId) {
+      try {
+        const notifType = newStatus === "approved" ? "adoption_accepted" : "adoption_rejected";
+        const notifTitle = newStatus === "approved" ? "Adoption Request Approved" : "Adoption Request Rejected";
+        const notifMessage = newStatus === "approved"
+          ? `Congratulations! Your adoption request for "${existingRequest.petName}" has been approved.`
+          : `Unfortunately, your adoption request for "${existingRequest.petName}" has been rejected.`;
+        await createNotification(
+          existingRequest.requesterId,
+          notifType,
+          notifTitle,
+          notifMessage,
+          existingRequest.petId ?? undefined,
+        );
+      } catch (err) {
+        req.log.error({ err }, "Error creating adoption status notification");
+      }
     }
 
     res.json(updated);

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { PawPrint, Bell, Menu, X, Instagram, Twitter, Facebook, ChevronDown, LogOut, User, FileText } from "lucide-react";
+import { PawPrint, Bell, Menu, X, Instagram, Twitter, Facebook, ChevronDown, LogOut, User, FileText, Check } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -7,16 +7,111 @@ import AIChatWidget from "@/components/ai-chat-widget";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslation } from "react-i18next";
 
+const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  petName?: string | null;
+}
+
+function useNotifications(userId: number | null | undefined) {
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchUnreadCount = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const res = await fetch(`${BASE_URL}/api/users/me/notifications/unread-count`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadCount(data.count ?? 0);
+      }
+    } catch {}
+  }, [userId]);
+
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/api/users/me/notifications`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+        setUnreadCount(data.filter((n: Notification) => !n.read).length);
+      }
+    } catch {} finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  const markRead = useCallback(async (id: number) => {
+    const prevNotifications = notifications;
+    const prevCount = unreadCount;
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    try {
+      const res = await fetch(`${BASE_URL}/api/users/me/notifications/${id}/read`, { method: "PATCH", credentials: "include" });
+      if (!res.ok) {
+        setNotifications(prevNotifications);
+        setUnreadCount(prevCount);
+      }
+    } catch {
+      setNotifications(prevNotifications);
+      setUnreadCount(prevCount);
+    }
+  }, [notifications, unreadCount]);
+
+  const markAllRead = useCallback(async () => {
+    const prevNotifications = notifications;
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+    try {
+      const res = await fetch(`${BASE_URL}/api/users/me/notifications/read-all`, { method: "PATCH", credentials: "include" });
+      if (!res.ok) {
+        setNotifications(prevNotifications);
+        setUnreadCount(prevNotifications.filter(n => !n.read).length);
+      }
+    } catch {
+      setNotifications(prevNotifications);
+      setUnreadCount(prevNotifications.filter(n => !n.read).length);
+    }
+  }, [notifications]);
+
+  useEffect(() => {
+    if (!userId) {
+      setUnreadCount(0);
+      setNotifications([]);
+      return;
+    }
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [userId, fetchUnreadCount]);
+
+  return { unreadCount, notifications, loading, fetchNotifications, markRead, markAllRead };
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileNotifOpen, setMobileNotifOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
 
   const isArabic = i18n.language === "ar";
+
+  const { unreadCount, notifications, loading, fetchNotifications, markRead, markAllRead } = useNotifications(user?.id);
 
   const countryCodes = [
     { flag: "🇯🇴", code: "+962", name: "Jordan" },
@@ -80,10 +175,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setUserDropdownOpen(false);
       }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleToggleNotif = () => {
+    if (!notifOpen) {
+      fetchNotifications();
+    }
+    setNotifOpen(prev => !prev);
+    setUserDropdownOpen(false);
+  };
 
   const navLinks = [
     { name: t("nav.home"), href: "/" },
@@ -139,6 +245,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </button>
   );
 
+  function formatRelativeTime(dateStr: string) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHr / 24);
+    if (diffMin < 1) return isArabic ? "الآن" : "Just now";
+    if (diffMin < 60) return isArabic ? `منذ ${diffMin} دقيقة` : `${diffMin}m ago`;
+    if (diffHr < 24) return isArabic ? `منذ ${diffHr} ساعة` : `${diffHr}h ago`;
+    return isArabic ? `منذ ${diffDay} يوم` : `${diffDay}d ago`;
+  }
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-background">
       {/* Navbar */}
@@ -193,11 +312,90 @@ export function Layout({ children }: { children: React.ReactNode }) {
               {/* Language Toggle */}
               <LangToggle className="bg-gray-100 hover:bg-gray-200" />
 
-              {/* Bell */}
-              <button className="relative p-2 text-[#1E2A3A]/60 hover:text-primary transition-colors">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-white"></span>
-              </button>
+              {/* Notification Bell — only for logged-in users */}
+              {user && (
+                <div ref={notifRef} className="relative">
+                  <button
+                    onClick={handleToggleNotif}
+                    className="relative p-2 text-[#1E2A3A]/60 hover:text-primary transition-colors"
+                    aria-label={t("profile.notifications")}
+                  >
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 border-2 border-white leading-none">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {notifOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                        transition={{ duration: 0.12 }}
+                        className={cn(
+                          "absolute top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden",
+                          isArabic ? "left-0" : "right-0"
+                        )}
+                      >
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                          <span className="text-sm font-semibold text-[#1E2A3A]">{t("profile.notifications")}</span>
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={markAllRead}
+                              className="text-xs text-primary hover:underline font-medium flex items-center gap-1"
+                            >
+                              <Check className="w-3 h-3" />
+                              {t("profile.markAllRead")}
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="max-h-80 overflow-y-auto">
+                          {loading ? (
+                            <div className="py-8 text-center text-sm text-gray-400">Loading...</div>
+                          ) : notifications.length === 0 ? (
+                            <div className="py-8 text-center text-sm text-gray-400">{t("profile.noNotifications")}</div>
+                          ) : (
+                            notifications.map(notif => (
+                              <div
+                                key={notif.id}
+                                className={cn(
+                                  "px-4 py-3 border-b border-gray-50 last:border-0 transition-colors",
+                                  !notif.read ? "bg-primary/5" : "hover:bg-gray-50"
+                                )}
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <p className={cn("text-xs font-semibold text-[#1E2A3A] truncate", !notif.read && "text-primary")}>
+                                      {t(`notifTypes.${notif.type}.title`, { defaultValue: notif.title })}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                                      {t(`notifTypes.${notif.type}.message`, { defaultValue: notif.message })}
+                                    </p>
+                                    <p className="text-[10px] text-gray-400 mt-1">{formatRelativeTime(notif.createdAt)}</p>
+                                  </div>
+                                  {!notif.read && (
+                                    <button
+                                      onClick={() => markRead(notif.id)}
+                                      className="shrink-0 w-4 h-4 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors mt-0.5"
+                                      title={t("profile.markRead")}
+                                    >
+                                      <div className="w-2 h-2 rounded-full bg-primary" />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
 
               {/* Auth section */}
               {user ? (
@@ -318,7 +516,71 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
               <div className="flex items-center justify-between mt-2">
                 <LangToggle className="bg-gray-100 hover:bg-gray-200" />
+                {user && (
+                  <button
+                    onClick={() => {
+                      if (!mobileNotifOpen) fetchNotifications();
+                      setMobileNotifOpen(prev => !prev);
+                    }}
+                    className="relative p-2 text-[#1E2A3A]/60"
+                  >
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 border-2 border-white leading-none">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                )}
               </div>
+
+              {user && mobileNotifOpen && (
+                <div className="mt-2 border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
+                    <span className="text-xs font-semibold text-[#1E2A3A]">{t("profile.tabNotifications")}</span>
+                    {unreadCount > 0 && (
+                      <button onClick={markAllRead} className="text-[10px] text-primary font-semibold hover:underline">
+                        {t("profile.markAllRead")}
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {loading ? (
+                      <p className="text-xs text-gray-400 text-center py-4">{t("common.loading", { defaultValue: "Loading..." })}</p>
+                    ) : notifications.length === 0 ? (
+                      <p className="text-xs text-gray-400 text-center py-4">{t("profile.noNotifications", { defaultValue: "No notifications" })}</p>
+                    ) : notifications.map(notif => (
+                      <div
+                        key={notif.id}
+                        className={cn(
+                          "px-4 py-3 border-b border-gray-50 last:border-0",
+                          !notif.read ? "bg-primary/5" : ""
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className={cn("text-xs font-semibold text-[#1E2A3A]", !notif.read && "text-primary")}>
+                              {t(`notifTypes.${notif.type}.title`, { defaultValue: notif.title })}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                              {t(`notifTypes.${notif.type}.message`, { defaultValue: notif.message })}
+                            </p>
+                            <p className="text-[10px] text-gray-400 mt-1">{formatRelativeTime(notif.createdAt)}</p>
+                          </div>
+                          {!notif.read && (
+                            <button
+                              onClick={() => markRead(notif.id)}
+                              className="shrink-0 w-4 h-4 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors mt-0.5"
+                            >
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {user ? (
                 <div className="mt-2 space-y-2">

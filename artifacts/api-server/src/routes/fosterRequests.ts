@@ -8,6 +8,7 @@ import {
   UpdateFosterRequestStatusBody,
   UpdateFosterRequestStatusParams,
 } from "@workspace/api-zod";
+import { createNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -27,7 +28,6 @@ router.get("/foster-requests", requireAuth, async (req, res) => {
     if (reqStatus) conditions.push(eq(fosterRequestsTable.status, reqStatus));
     if (petId !== undefined) conditions.push(eq(fosterRequestsTable.petId, petId));
 
-    // Non-admin users can only view their own requests; admins can see all (and filter by requesterId)
     if (req.userRole !== "admin") {
       conditions.push(eq(fosterRequestsTable.requesterId, req.userId));
     } else if (requesterId !== undefined) {
@@ -192,6 +192,25 @@ router.post("/foster-requests", requireAuth, async (req, res): Promise<void> => 
     }
 
     const [request] = await db.insert(fosterRequestsTable).values({ petId, requesterId: req.userId, message }).returning();
+
+    const [pet] = await db.select({ ownerId: petsTable.ownerId, name: petsTable.name })
+      .from(petsTable).where(eq(petsTable.id, petId));
+
+    if (pet?.ownerId && pet.ownerId !== req.userId) {
+      try {
+        const [requester] = await db.select({ fullName: usersTable.fullName }).from(usersTable).where(eq(usersTable.id, req.userId));
+        await createNotification(
+          pet.ownerId,
+          "new_foster_request",
+          "New Foster Request",
+          `${requester?.fullName ?? "Someone"} has submitted a foster request for your pet "${pet.name}".`,
+          petId,
+        );
+      } catch (err) {
+        req.log.error({ err }, "Error creating new foster request notification");
+      }
+    }
+
     res.status(201).json(request);
   } catch (err) {
     req.log.error({ err }, "Error creating foster request");
@@ -219,8 +238,10 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
     const [existingRequest] = await db.select({
       id: fosterRequestsTable.id,
       petId: fosterRequestsTable.petId,
+      requesterId: fosterRequestsTable.requesterId,
       status: fosterRequestsTable.status,
       ownerId: petsTable.ownerId,
+      petName: petsTable.name,
     })
       .from(fosterRequestsTable)
       .leftJoin(petsTable, eq(fosterRequestsTable.petId, petsTable.id))
@@ -248,6 +269,25 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
       await db.update(petsTable)
         .set({ status: "fostered" })
         .where(eq(petsTable.id, existingRequest.petId));
+    }
+
+    if (existingRequest.requesterId) {
+      try {
+        const notifType = newStatus === "approved" ? "foster_accepted" : "foster_rejected";
+        const notifTitle = newStatus === "approved" ? "Foster Request Approved" : "Foster Request Rejected";
+        const notifMessage = newStatus === "approved"
+          ? `Congratulations! Your foster request for "${existingRequest.petName}" has been approved.`
+          : `Unfortunately, your foster request for "${existingRequest.petName}" has been rejected.`;
+        await createNotification(
+          existingRequest.requesterId,
+          notifType,
+          notifTitle,
+          notifMessage,
+          existingRequest.petId ?? undefined,
+        );
+      } catch (err) {
+        req.log.error({ err }, "Error creating foster status notification");
+      }
     }
 
     res.json(updated);

@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable, notificationsTable } from "@workspace/db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql, lt } from "drizzle-orm";
 import { UpdateMyProfileBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -187,7 +187,8 @@ router.get("/users/me/notifications", async (req, res): Promise<void> => {
       userId: notificationsTable.userId,
       petId: notificationsTable.petId,
       petName: petsTable.name,
-      status: notificationsTable.status,
+      type: notificationsTable.type,
+      title: notificationsTable.title,
       message: notificationsTable.message,
       read: notificationsTable.read,
       createdAt: notificationsTable.createdAt,
@@ -200,6 +201,38 @@ router.get("/users/me/notifications", async (req, res): Promise<void> => {
   } catch (err) {
     req.log.error({ err }, "Error getting user notifications");
     res.status(500).json({ error: "internal_error", message: "Failed to get notifications" });
+  }
+});
+
+router.get("/users/me/notifications/unread-count", async (req, res): Promise<void> => {
+  try {
+    if (!requireAuth(req, res)) return;
+    const [result] = await db.select({ count: sql<number>`count(*)::int` })
+      .from(notificationsTable)
+      .where(and(
+        eq(notificationsTable.userId, req.userId),
+        eq(notificationsTable.read, false),
+      ));
+    res.json({ count: result?.count ?? 0 });
+  } catch (err) {
+    req.log.error({ err }, "Error getting unread notification count");
+    res.status(500).json({ error: "internal_error", message: "Failed to get unread count" });
+  }
+});
+
+router.patch("/users/me/notifications/read-all", async (req, res): Promise<void> => {
+  try {
+    if (!requireAuth(req, res)) return;
+    await db.update(notificationsTable)
+      .set({ read: true })
+      .where(and(
+        eq(notificationsTable.userId, req.userId),
+        eq(notificationsTable.read, false),
+      ));
+    res.json({ success: true });
+  } catch (err) {
+    req.log.error({ err }, "Error marking all notifications as read");
+    res.status(500).json({ error: "internal_error", message: "Failed to mark all as read" });
   }
 });
 

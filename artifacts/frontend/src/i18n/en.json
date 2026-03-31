@@ -403,6 +403,7 @@
     "notifications": "Notifications",
     "noNotifications": "No notifications yet.",
     "markRead": "Mark as read",
+    "markAllRead": "Mark all as read",
     "myLostFound": "My Lost & Found Reports",
     "noReports": "No reports yet.",
     "volunteer": "Volunteer",
@@ -828,5 +829,55 @@
     "errorOccurred": "An error occurred",
     "couldNotSaveDonation": "Could not save donation",
     "failedToConfirm": "Failed to confirm"
+  },
+  "notifTypes": {
+    "pet_accepted": {
+      "title": "Pet Submission Approved",
+      "message": "Your pet submission has been approved and is now listed."
+    },
+    "pet_rejected": {
+      "title": "Pet Submission Rejected",
+      "message": "Your pet submission has been rejected. Please review our guidelines."
+    },
+    "lost_found_accepted": {
+      "title": "Lost/Found Report Approved",
+      "message": "Your lost/found report has been approved and is now visible."
+    },
+    "lost_found_rejected": {
+      "title": "Lost/Found Report Rejected",
+      "message": "Your lost/found report has been rejected. Please review our guidelines."
+    },
+    "volunteer_accepted": {
+      "title": "Volunteer Application Accepted",
+      "message": "Congratulations! Your volunteer application has been accepted."
+    },
+    "volunteer_rejected": {
+      "title": "Volunteer Application Rejected",
+      "message": "Your volunteer application has been rejected. You may reapply in the future."
+    },
+    "new_adoption_request": {
+      "title": "New Adoption Request",
+      "message": "Someone has submitted an adoption request for your pet."
+    },
+    "new_foster_request": {
+      "title": "New Foster Request",
+      "message": "Someone has submitted a foster request for your pet."
+    },
+    "adoption_accepted": {
+      "title": "Adoption Request Approved",
+      "message": "Your adoption request has been approved. Congratulations!"
+    },
+    "adoption_rejected": {
+      "title": "Adoption Request Rejected",
+      "message": "Your adoption request has been rejected."
+    },
+    "foster_accepted": {
+      "title": "Foster Request Approved",
+      "message": "Your foster request has been approved. Congratulations!"
+    },
+    "foster_rejected": {
+      "title": "Foster Request Rejected",
+      "message": "Your foster request has been rejected."
+    }
   }
 }

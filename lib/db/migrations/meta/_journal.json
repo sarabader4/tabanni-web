@@ -43,6 +43,13 @@
       "when": 1743283200000,
       "tag": "0006_lost_found_status_area_whatsapp",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1743369600000,
+      "tag": "0007_update_notifications",
+      "breakpoints": true
     }
   ]
 }

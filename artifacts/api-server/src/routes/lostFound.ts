@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
 import { db, lostFoundReportsTable, usersTable } from "@workspace/db";
-import { eq, and, ilike, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, ilike, desc, sql } from "drizzle-orm";
 import { ListLostFoundReportsQueryParams, CreateLostFoundReportBody, GetLostFoundReportParams } from "@workspace/api-zod";
-import { z } from "zod/v4";
+import { createNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -174,6 +174,20 @@ router.put("/admin/lost-found/:id/approve", async (req, res) => {
       .where(eq(lostFoundReportsTable.id, id))
       .returning();
     if (!updated) return res.status(404).json({ error: "not_found", message: "Report not found" });
+
+    if (updated.reporterId) {
+      try {
+        await createNotification(
+          updated.reporterId,
+          "lost_found_accepted",
+          "Lost/Found Report Approved",
+          `Your ${updated.reportType} pet report has been approved and is now visible to the public.`,
+        );
+      } catch (err) {
+        req.log.error({ err }, "Error creating lost/found approval notification");
+      }
+    }
+
     res.json(updated);
   } catch (err) {
     req.log.error({ err }, "Error approving lost/found report");
@@ -191,6 +205,20 @@ router.put("/admin/lost-found/:id/reject", async (req, res) => {
       .where(eq(lostFoundReportsTable.id, id))
       .returning();
     if (!updated) return res.status(404).json({ error: "not_found", message: "Report not found" });
+
+    if (updated.reporterId) {
+      try {
+        await createNotification(
+          updated.reporterId,
+          "lost_found_rejected",
+          "Lost/Found Report Rejected",
+          `Unfortunately, your ${updated.reportType} pet report has been rejected. Please review our guidelines and feel free to resubmit.`,
+        );
+      } catch (err) {
+        req.log.error({ err }, "Error creating lost/found rejection notification");
+      }
+    }
+
     res.json(updated);
   } catch (err) {
     req.log.error({ err }, "Error rejecting lost/found report");
