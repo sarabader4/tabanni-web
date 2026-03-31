@@ -162,14 +162,14 @@ export default function Home() {
             </h2>
             <p className="text-muted-foreground">{t("home.successStoriesSub")}</p>
           </div>
-          <Link href="/gallery" className="hidden md:flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
+          <Link href="/gallery" onClick={() => window.scrollTo({ top: 0 })} className="hidden md:flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
             {t("home.viewGallery")} <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
           {gallery?.map(post => (
-            <Link key={post.id} href={`/gallery`} className="group block">
+            <Link key={post.id} href={`/gallery/${post.id}`} className="group block">
               <div className="relative aspect-video rounded-3xl overflow-hidden mb-4">
                 <img 
                   src={post.imageUrl || "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800&q=80"} 
