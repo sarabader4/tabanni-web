@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import {
   useListLostFoundReports,
@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { useQueryClient } from "@tanstack/react-query";
+import WhatsAppPhoneInput from "@/components/whatsapp-phone-input";
 
 const MAX_IMAGES = 5;
 
@@ -104,9 +105,18 @@ export default function LostFound() {
       area: "",
       description: "",
       reporterName: user?.fullName ?? "",
-      whatsappUrl: "https://wa.me/",
+      whatsappUrl: "",
     },
   });
+
+  useEffect(() => {
+    if (user?.phone) {
+      const digits = user.phone.replace(/\D/g, "");
+      if (digits.length >= 7) {
+        form.setValue("whatsappUrl", `https://wa.me/962${digits.replace(/^0/, "")}`);
+      }
+    }
+  }, [user?.phone]);
 
   const reportType = form.watch("reportType");
 
@@ -142,7 +152,7 @@ export default function LostFound() {
       area: "",
       description: "",
       reporterName: user?.fullName ?? "",
-      whatsappUrl: "https://wa.me/",
+      whatsappUrl: "",
     });
     setImageFiles([]);
     setImagePreviews([]);
@@ -614,7 +624,7 @@ export default function LostFound() {
               <div className="space-y-4">
                 <h3 className="font-display font-bold text-base text-[#1E2A3A] border-b border-gray-100 pb-2">Reporter Information</h3>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-bold">Your Name *</label>
                     <input {...form.register("reporterName")} placeholder="Your full name" className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
@@ -622,13 +632,13 @@ export default function LostFound() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold">WhatsApp Link *</label>
-                    <input
-                      {...form.register("whatsappUrl")}
-                      placeholder="https://wa.me/9621234567"
-                      className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    <label className="text-sm font-bold">WhatsApp Contact *</label>
+                    <WhatsAppPhoneInput
+                      initialPhone={user?.phone ?? ""}
+                      onChange={url => form.setValue("whatsappUrl", url, { shouldValidate: form.formState.isSubmitted })}
+                      error={form.formState.errors.whatsappUrl?.message}
+                      touched={form.formState.isSubmitted}
                     />
-                    {form.formState.errors.whatsappUrl && <p className="text-red-500 text-xs">{form.formState.errors.whatsappUrl.message}</p>}
                   </div>
                 </div>
               </div>
