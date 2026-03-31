@@ -34,7 +34,7 @@ const reportSchema = z.object({
   foundDate: z.string().optional(),
   description: z.string().optional(),
   reporterName: z.string().min(1, "Your name is required"),
-  whatsappUrl: z.string().min(1, "WhatsApp link is required"),
+  whatsappUrl: z.string().min(1, "Please enter your WhatsApp phone number"),
 }).superRefine((data, ctx) => {
   if (data.reportType === "lost" && !data.lostDate) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Date lost is required", path: ["lostDate"] });

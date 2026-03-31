@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import {
   CountryPhoneDropdown,
-  ALL_COUNTRIES,
   DEFAULT_COUNTRY,
   findCountryByCode,
   type CountryOption,
