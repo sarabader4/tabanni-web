@@ -1,0 +1,84 @@
+Here’s a clear, structured prompt you can use for your system 👇
+
+---
+
+**Prompt:**
+
+> Design a **notification system** for a web platform where users receive notifications both **inside their user profile (notification center)** and via **email**.
+>
+> ### 📌 Notification Channels:
+>
+> 1. **In-App Notification:** Displayed in the user's profile (notification bell or section).
+> 2. **Email Notification:** Send an email with the message:
+>    *"There is a notification waiting for you. Please check your account for more details."*
+>
+> ---
+>
+> ### 🔔 Trigger Cases (When notifications should be sent):
+>
+> 1. **Pet Adoption/Foster Submission Status**
+>
+>    * When a user submits a pet for adoption or foster:
+>
+>      * Notify user when **admin accepts** the request
+>      * Notify user when **admin rejects** the request
+> 2. **Incoming Requests to Pet Owner**
+>
+>    * When another user submits a request to adopt/foster a pet:
+>
+>      * Notify the **pet owner** that a new request has been received
+> 3. **Lost/Found Pet Submission Status**
+>
+>    * When a user submits a lost/found pet:
+>
+>      * Notify user when **admin accepts** the post
+>      * Notify user when **admin rejects** the post
+> 4. **Volunteer Application Status**
+>
+>    * When a user applies to be a volunteer:
+>
+>      * Notify user when **admin accepts** the application
+>      * Notify user when **admin rejects** the application
+> 5. **Adoption/Foster Request Decision**
+>
+>    * When a pet owner reviews a request:
+>
+>      * Notify the requester when the **owner accepts** the request
+>      * Notify the requester when the **owner rejects** the request
+>
+> ---
+>
+> ### 📨 Notification Content Structure:
+>
+> Each notification should include:
+>
+> * Title (e.g., "Request Approved", "New Adoption Request", "Application Rejected")
+> * Short message explaining the action
+> * Timestamp
+> * Status (read/unread)
+>
+> ---
+>
+> ### 💡 Additional Requirements:
+>
+> * Notifications should appear in real-time (or near real-time).
+> * Allow users to mark notifications as read/unread.
+> * Email notifications should be triggered simultaneously with in-app notifications.
+> * Ensure clear differentiation between **admin actions** and **user actions** in messages.
+>
+> ---
+>
+> ### ✨ Example Email Message:
+>
+> > Subject: New Notification
+> > Body:
+> > There is a notification waiting for you.
+> > Please log in to your account to view more details.
+>
+> ---
+>
+> Design the system to ensure **clarity, timeliness, and a smooth user experience** across both in-app and email notifications.
+
+---
+
+If you want, I can also turn this into **UI text (actual notification messages for each case)** or **database schema + API design** 👀
