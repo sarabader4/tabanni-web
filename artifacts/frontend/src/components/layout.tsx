@@ -340,7 +340,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Footer */}
       <footer className="bg-[#1E2A3A] text-white mt-16" style={{ borderRadius: "2rem 2rem 0 0" }}>
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-12 pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_2fr] gap-10 lg:gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1.2fr] gap-10 lg:gap-16">
             {/* Col 1 — Brand */}
             <div className="space-y-5">
               <div className="flex items-center gap-2">
@@ -413,7 +413,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         title="Select country code"
                       >
                         {countryCodes.map(c => (
-                          <option key={c.code} value={c.code}>{c.flag} {c.code} — {c.name}</option>
+                          <option key={c.code} value={c.code} style={{ color: "#1E2A3A", background: "#fff" }}>{c.name} ({c.code})</option>
                         ))}
                       </select>
                     </div>
