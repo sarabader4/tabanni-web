@@ -34,6 +34,34 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { flag: "🇬🇧", code: "+44",  name: "UK" },
   ];
   const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
+  const [contactForm, setContactForm] = useState({ name: "", phone: "", email: "", message: "" });
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState(false);
+
+  const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactForm.name.trim() || !contactForm.message.trim()) return;
+    setContactSubmitting(true);
+    try {
+      await fetch(`${BASE}/api/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: contactForm.name,
+          phone: contactForm.phone ? `${selectedCountry.code} ${contactForm.phone}` : undefined,
+          email: contactForm.email || undefined,
+          message: contactForm.message,
+        }),
+      });
+      setContactSuccess(true);
+      setContactForm({ name: "", phone: "", email: "", message: "" });
+      setTimeout(() => setContactSuccess(false), 4000);
+    } finally {
+      setContactSubmitting(false);
+    }
+  };
 
   const toggleLanguage = () => {
     i18n.changeLanguage(isArabic ? "en" : "ar");
@@ -392,13 +420,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
             {/* Col 3 — Contact Us */}
             <div>
               <h3 className="font-semibold text-base mb-4">{t("footer.contactUs")}</h3>
+              {contactSuccess && (
+                <div className="mb-3 px-3 py-2.5 bg-green-500/20 border border-green-400/30 text-green-300 text-sm rounded-lg">
+                  Message sent! We'll get back to you soon.
+                </div>
+              )}
               <form
                 className="space-y-3"
-                onSubmit={(e) => e.preventDefault()}
+                onSubmit={handleContactSubmit}
               >
                 <input
                   type="text"
                   placeholder={t("footer.yourName")}
+                  value={contactForm.name}
+                  onChange={e => setContactForm(f => ({ ...f, name: e.target.value }))}
+                  required
                   className="w-full bg-white/95 text-[#1E2A3A] rounded-lg px-3 py-2.5 text-sm placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/50"
                 />
                 <div className="flex gap-2">
@@ -420,25 +456,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <input
                       type="tel"
                       placeholder={t("footer.phonePlaceholder")}
+                      value={contactForm.phone}
+                      onChange={e => setContactForm(f => ({ ...f, phone: e.target.value }))}
                       className="bg-transparent text-[#1E2A3A] text-xs flex-1 outline-none placeholder:text-gray-400 min-w-0"
                     />
                   </div>
                   <input
                     type="email"
                     placeholder={t("footer.emailPlaceholder")}
+                    value={contactForm.email}
+                    onChange={e => setContactForm(f => ({ ...f, email: e.target.value }))}
                     className="bg-white/95 text-[#1E2A3A] rounded-lg px-3 py-2.5 text-xs placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/50 flex-1 min-w-0"
                   />
                 </div>
                 <textarea
                   placeholder={t("footer.message")}
                   rows={3}
+                  value={contactForm.message}
+                  onChange={e => setContactForm(f => ({ ...f, message: e.target.value }))}
+                  required
                   className="w-full bg-white/95 text-[#1E2A3A] rounded-lg px-3 py-2.5 text-sm placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/50 resize-none"
                 />
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors"
+                  disabled={contactSubmitting}
+                  className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60"
                 >
-                  {t("footer.submit")}
+                  {contactSubmitting ? "Sending..." : t("footer.submit")}
                 </button>
               </form>
             </div>

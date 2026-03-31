@@ -18,6 +18,7 @@ import {
   DollarSign,
   HandHeart,
   Search,
+  Mail,
 } from "lucide-react";
 import {
   LineChart,
@@ -58,6 +59,7 @@ const SIDEBAR_NAV = [
   { label: "Donors", href: "/admin/donors", icon: DollarSign },
   { label: "Volunteers", href: "/admin/volunteers", icon: HandHeart },
   { label: "Lost & Found", href: "/admin/lost-found", icon: Search },
+  { label: "Contact Messages", href: "/admin/contact-messages", icon: Mail },
   { label: "Reports & Analytics", href: "/admin/analytics", icon: BarChart2 },
 ];
 

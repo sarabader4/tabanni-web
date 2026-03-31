@@ -28,6 +28,7 @@ import AdminAnalytics from "@/pages/admin/analytics";
 import AdminDonors from "@/pages/admin/donors";
 import AdminVolunteers from "@/pages/admin/volunteers";
 import AdminLostFound from "@/pages/admin/lost-found";
+import AdminContactMessages from "@/pages/admin/contact-messages";
 import NotFound from "@/pages/not-found";
 import AIChatWidget from "@/components/ai-chat-widget";
 
@@ -90,6 +91,9 @@ function AppRoutes() {
       </Route>
       <Route path="/admin/lost-found">
         {() => <AdminGuard><AdminLostFound /></AdminGuard>}
+      </Route>
+      <Route path="/admin/contact-messages">
+        {() => <AdminGuard><AdminContactMessages /></AdminGuard>}
       </Route>
 
       {/* All other routes use the Layout with navbar */}
