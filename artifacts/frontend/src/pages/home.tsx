@@ -36,27 +36,35 @@ export default function Home() {
                 {t("home.heroSubtitle")}
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link 
+                <Link
                   href="/adopt"
-                  className="px-8 py-4 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-1 transition-all"
+                  className="flex items-center gap-3 pl-6 pr-2 py-2 bg-primary text-white rounded-full font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-1 transition-all"
                 >
                   {t("home.adoptPet")}
+                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20">
+                    <Heart className="w-5 h-5" />
+                  </span>
                 </Link>
-                <Link 
+                <Link
                   href="/foster"
-                  className="px-8 py-4 bg-secondary text-white rounded-2xl font-bold shadow-lg shadow-secondary/25 hover:shadow-xl hover:shadow-secondary/40 hover:-translate-y-1 transition-all"
+                  className="flex items-center gap-3 pl-6 pr-2 py-2 bg-secondary text-white rounded-full font-bold shadow-lg shadow-secondary/25 hover:shadow-xl hover:shadow-secondary/40 hover:-translate-y-1 transition-all"
                 >
                   {t("home.fosterPet")}
+                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20">
+                    <ArrowRight className="w-5 h-5" />
+                  </span>
                 </Link>
                 <button
                   onClick={() => {
                     document.getElementById("ai-pet-match")?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-white shadow-lg hover:opacity-90 hover:-translate-y-1 transition-all"
+                  className="flex items-center gap-3 pl-6 pr-2 py-2 rounded-full font-bold text-white shadow-lg hover:opacity-90 hover:-translate-y-1 transition-all"
                   style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
                 >
-                  <Sparkles className="w-5 h-5" />
                   {t("home.aiPetMatch")}
+                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20">
+                    <Sparkles className="w-5 h-5" />
+                  </span>
                 </button>
               </div>
             </motion.div>
