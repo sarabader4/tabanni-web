@@ -507,15 +507,6 @@ export default function Donate() {
 
                 {isCardMethod && (
                   <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
-                    <div className="flex items-center gap-3 pb-3 border-b border-border">
-                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                        <CreditCard className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm text-foreground">SARA I BADER</p>
-                        <p className="text-xs text-muted-foreground">Safwa Islamic Bank · ···· 2769</p>
-                      </div>
-                    </div>
                     {configError ? (
                       <div className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-3">
                         {t("donate.paymentNotAvailable")}
