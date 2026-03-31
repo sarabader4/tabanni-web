@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Heart, Shield, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Users, Heart, Shield, Search, Sparkles } from "lucide-react";
 import { useGetFeaturedPets, useGetAdminStats, useListGalleryPosts } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import AIPetMatchWidget from "@/components/ai-pet-match-widget";
@@ -37,35 +37,23 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
-                  href="/adopt"
+                  href="/about"
                   className="flex items-center gap-3 pl-6 pr-2 py-2 bg-primary text-white rounded-full font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-1 transition-all"
                 >
-                  {t("home.adoptPet")}
+                  About Us
                   <span className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20">
-                    <Heart className="w-5 h-5" />
+                    <Users className="w-5 h-5" />
                   </span>
                 </Link>
                 <Link
-                  href="/foster"
+                  href="/login"
                   className="flex items-center gap-3 pl-6 pr-2 py-2 bg-secondary text-white rounded-full font-bold shadow-lg shadow-secondary/25 hover:shadow-xl hover:shadow-secondary/40 hover:-translate-y-1 transition-all"
                 >
-                  {t("home.fosterPet")}
+                  Log in
                   <span className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20">
                     <ArrowRight className="w-5 h-5" />
                   </span>
                 </Link>
-                <button
-                  onClick={() => {
-                    document.getElementById("ai-pet-match")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="flex items-center gap-3 pl-6 pr-2 py-2 rounded-full font-bold text-white shadow-lg hover:opacity-90 hover:-translate-y-1 transition-all"
-                  style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
-                >
-                  {t("home.aiPetMatch")}
-                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20">
-                    <Sparkles className="w-5 h-5" />
-                  </span>
-                </button>
               </div>
             </motion.div>
             
