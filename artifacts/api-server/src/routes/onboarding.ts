@@ -68,12 +68,6 @@ router.put("/user/profile", async (req: Request, res: Response): Promise<void> =
   try {
     if (!requireAuth(req, res)) return;
 
-    const [existing] = await db.select({ id: userProfilesTable.id }).from(userProfilesTable).where(eq(userProfilesTable.userId, req.userId));
-    if (!existing) {
-      res.status(404).json({ error: "not_found", message: "Profile not found. Complete onboarding first." });
-      return;
-    }
-
     const parsed = OnboardingBodyStrict.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
@@ -81,7 +75,7 @@ router.put("/user/profile", async (req: Request, res: Response): Promise<void> =
     }
 
     const data = parsed.data;
-    const [updated] = await db.update(userProfilesTable).set({
+    const profileValues = {
       areaOfResidence: data.areaOfResidence,
       homeAddress: data.homeAddress,
       occupation: data.occupation,
@@ -111,9 +105,25 @@ router.put("/user/profile", async (req: Request, res: Response): Promise<void> =
       petPreferences: data.petPreferences,
       trainingExpectations: data.trainingExpectations,
       confirmed: data.confirmed,
-    }).where(eq(userProfilesTable.userId, req.userId)).returning();
+    };
 
-    res.json(updated);
+    await db.transaction(async (tx) => {
+      const [upserted] = await tx
+        .insert(userProfilesTable)
+        .values({ userId: req.userId, ...profileValues })
+        .onConflictDoUpdate({
+          target: userProfilesTable.userId,
+          set: profileValues,
+        })
+        .returning();
+
+      await tx
+        .update(usersTable)
+        .set({ isOnboardingCompleted: true })
+        .where(eq(usersTable.id, req.userId));
+
+      res.json(upserted);
+    });
   } catch (err) {
     req.log.error({ err }, "Error updating user profile");
     res.status(500).json({ error: "internal_error", message: "Failed to update user profile" });
