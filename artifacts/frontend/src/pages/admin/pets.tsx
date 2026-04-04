@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import {
-  useListPets,
   useApprovePet,
   useTogglePetFeatured,
   useDeletePet,
@@ -9,8 +8,77 @@ import {
   useCreatePet,
   type Pet,
 } from "@workspace/api-client-react";
-import { PawPrint, Star, CheckCircle, Trash2, Eye, Search, Plus, X, Edit2, Sparkles, Loader2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { PawPrint, Star, CheckCircle, Trash2, Eye, Search, Plus, X, Edit2, Sparkles, Loader2, XCircle } from "lucide-react";
 import { AdminLayout } from "./index";
+
+interface AdminPet {
+  id: number;
+  name: string;
+  type: string;
+  breed: string | null;
+  gender: string;
+  ageMonths: number;
+  weightKg: string | null;
+  size: string;
+  color: string | null;
+  sterilized: boolean;
+  yearlyVaccines: boolean;
+  birthday: string | null;
+  city: string;
+  status: string;
+  purpose: string;
+  imageUrls: string[];
+  story: string | null;
+  ownerId: number | null;
+  ownerName: string | null;
+  ownerEmail: string | null;
+  approved: boolean;
+  rejected: boolean;
+  featured: boolean;
+  addedByAdmin: boolean;
+  createdAt: string;
+}
+
+interface AdminPetsResponse {
+  pets: AdminPet[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+function useAdminPets(params: { search?: string }) {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  return useQuery<AdminPetsResponse>({
+    queryKey: ["/api/admin/pets", params.search],
+    queryFn: async () => {
+      const qs = new URLSearchParams({ limit: "200" });
+      if (params.search) qs.set("search", params.search);
+      const res = await fetch(`${base}/api/admin/pets?${qs}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch admin pets");
+      return res.json();
+    },
+  });
+}
+
+function useRejectPet() {
+  const queryClient = useQueryClient();
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  return useMutation({
+    mutationFn: async ({ id }: { id: number }) => {
+      const res = await fetch(`${base}/api/admin/pets/${id}/reject`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Failed to reject pet");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pets"] });
+    },
+  });
+}
 
 const STATUS_COLORS: Record<string, string> = {
   available: "bg-green-100 text-green-700",
@@ -21,7 +89,8 @@ const STATUS_COLORS: Record<string, string> = {
   found: "bg-purple-100 text-purple-700",
 };
 
-function getApprovalBadge(pet: Pet) {
+function getApprovalBadge(pet: AdminPet) {
+  if (pet.rejected) return { label: "Rejected", cls: "bg-red-100 text-red-700" };
   if (pet.featured) return { label: "Featured", cls: "bg-amber-100 text-amber-700" };
   if (pet.approved) return { label: "Approved", cls: "bg-green-100 text-green-700" };
   return { label: "Pending", cls: "bg-yellow-100 text-yellow-700" };
@@ -57,7 +126,7 @@ function PetModal({
   onSuccess,
 }: {
   mode: "add" | "edit";
-  pet?: Pet;
+  pet?: AdminPet;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -317,7 +386,7 @@ export default function AdminPets() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "pending">("all");
   const [filterStatus, setFilterStatus] = useState("");
-  const [modal, setModal] = useState<{ mode: "add" | "edit"; pet?: Pet } | null>(null);
+  const [modal, setModal] = useState<{ mode: "add" | "edit"; pet?: AdminPet } | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -326,20 +395,24 @@ export default function AdminPets() {
     }
   }, []);
 
-  const { data, refetch } = useListPets({
-    search: search || undefined,
-    status: activeTab === "all" ? (filterStatus || undefined) : undefined,
-    limit: 100,
-  });
+  const { data, refetch } = useAdminPets({ search: search || undefined });
 
   const approveMutation = useApprovePet();
+  const rejectMutation = useRejectPet();
   const featureMutation = useTogglePetFeatured();
   const deleteMutation = useDeletePet();
 
   const allPets = data?.pets ?? [];
-  const pets = activeTab === "pending"
-    ? allPets.filter(p => p.status === "pending")
-    : allPets;
+
+  const pets = (() => {
+    let list = allPets;
+    if (activeTab === "pending") {
+      list = list.filter(p => !p.approved && !p.rejected);
+    } else if (filterStatus) {
+      list = list.filter(p => p.status === filterStatus);
+    }
+    return list;
+  })();
 
   function formatDate(d: string) {
     return new Date(d).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" });
@@ -363,7 +436,16 @@ export default function AdminPets() {
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors capitalize ${activeTab === tab ? "bg-[#FF6B35] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"}`}
           >
-            {tab === "pending" ? "Pending Approval" : "All Pets"}
+            {tab === "pending" ? (
+              <span className="flex items-center gap-2">
+                Pending Approval
+                {allPets.filter(p => !p.approved && !p.rejected).length > 0 && (
+                  <span className="px-1.5 py-0.5 bg-white/30 text-white rounded-full text-xs font-bold">
+                    {allPets.filter(p => !p.approved && !p.rejected).length}
+                  </span>
+                )}
+              </span>
+            ) : "All Pets"}
           </button>
         ))}
         <button
@@ -437,8 +519,11 @@ export default function AdminPets() {
                   </td>
                   {activeTab === "pending" && (
                     <td className="px-5 py-3.5">
-                      {pet.ownerId ? (
-                        <p className="text-sm text-gray-600">User #{pet.ownerId}</p>
+                      {pet.ownerName ? (
+                        <div>
+                          <p className="text-sm text-gray-700 font-medium">{pet.ownerName}</p>
+                          {pet.ownerEmail && <p className="text-xs text-gray-400 truncate max-w-[120px]">{pet.ownerEmail}</p>}
+                        </div>
                       ) : (
                         <span className="text-xs text-gray-400">—</span>
                       )}
@@ -476,10 +561,21 @@ export default function AdminPets() {
                         <>
                           <button
                             onClick={() => approveMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })}
-                            disabled={pet.approved || approveMutation.isPending}
+                            disabled={approveMutation.isPending}
                             className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold transition-colors disabled:opacity-40"
                           >
                             Approve
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Reject "${pet.name}"? The owner will be notified.`)) {
+                                rejectMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() });
+                              }
+                            }}
+                            disabled={rejectMutation.isPending}
+                            className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-40"
+                          >
+                            Reject
                           </button>
                         </>
                       ) : (
@@ -526,7 +622,13 @@ export default function AdminPets() {
               {pets.length === 0 && (
                 <tr>
                   <td colSpan={9} className="px-5 py-12 text-center text-gray-400">
-                    {activeTab === "pending" ? "No pending pets" : "No pets found"}
+                    {activeTab === "pending" ? (
+                      <div>
+                        <XCircle className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                        <p className="text-sm font-medium text-gray-500">No pets pending approval</p>
+                        <p className="text-xs text-gray-400 mt-1">New user-submitted pets will appear here</p>
+                      </div>
+                    ) : "No pets found"}
                   </td>
                 </tr>
               )}

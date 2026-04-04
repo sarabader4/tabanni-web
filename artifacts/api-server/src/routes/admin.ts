@@ -458,6 +458,85 @@ router.delete("/admin/volunteer-applications/:id", async (req, res) => {
   }
 });
 
+router.get("/admin/pets", async (req, res) => {
+  try {
+    const { search, approved, rejected, purpose, page = "1", limit = "100" } = req.query as {
+      search?: string;
+      approved?: string;
+      rejected?: string;
+      purpose?: string;
+      page?: string;
+      limit?: string;
+    };
+
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(200, Math.max(1, parseInt(limit) || 100));
+    const offset = (pageNum - 1) * limitNum;
+
+    const conditions = [];
+    if (search) conditions.push(ilike(petsTable.name, `%${search}%`));
+    if (approved === "true") conditions.push(eq(petsTable.approved, true));
+    if (approved === "false") conditions.push(eq(petsTable.approved, false));
+    if (rejected === "true") conditions.push(eq(petsTable.rejected, true));
+    if (rejected === "false") conditions.push(eq(petsTable.rejected, false));
+
+    const PET_PURPOSES = ["adopt", "foster", "both", "lost_found"] as const;
+    const petPurpose = purpose ? PET_PURPOSES.find(p => p === purpose) : undefined;
+    if (petPurpose) conditions.push(eq(petsTable.purpose, petPurpose));
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [pets, countResult] = await Promise.all([
+      db.select({
+        id: petsTable.id,
+        name: petsTable.name,
+        type: petsTable.type,
+        breed: petsTable.breed,
+        gender: petsTable.gender,
+        ageMonths: petsTable.ageMonths,
+        weightKg: petsTable.weightKg,
+        size: petsTable.size,
+        color: petsTable.color,
+        sterilized: petsTable.sterilized,
+        yearlyVaccines: petsTable.yearlyVaccines,
+        birthday: petsTable.birthday,
+        city: petsTable.city,
+        status: petsTable.status,
+        purpose: petsTable.purpose,
+        imageUrls: petsTable.imageUrls,
+        story: petsTable.story,
+        ownerId: petsTable.ownerId,
+        ownerName: usersTable.fullName,
+        ownerEmail: usersTable.email,
+        approved: petsTable.approved,
+        rejected: petsTable.rejected,
+        featured: petsTable.featured,
+        addedByAdmin: petsTable.addedByAdmin,
+        createdAt: petsTable.createdAt,
+      })
+        .from(petsTable)
+        .leftJoin(usersTable, eq(petsTable.ownerId, usersTable.id))
+        .where(whereClause)
+        .orderBy(desc(petsTable.createdAt))
+        .limit(limitNum)
+        .offset(offset),
+      db.select({ count: sql<number>`count(*)::int` }).from(petsTable).where(whereClause),
+    ]);
+
+    const total = countResult[0]?.count ?? 0;
+
+    res.json({
+      pets,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+    });
+  } catch (err) {
+    req.log.error({ err }, "Error listing admin pets");
+    res.status(500).json({ error: "internal_error", message: "Failed to list pets" });
+  }
+});
+
 router.patch("/admin/volunteer-applications/:id/status", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
