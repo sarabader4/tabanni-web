@@ -33,6 +33,7 @@ interface AdminPet {
   ownerId: number | null;
   ownerName: string | null;
   ownerEmail: string | null;
+  ownerAvatar: string | null;
   approved: boolean;
   rejected: boolean;
   featured: boolean;
@@ -520,9 +521,18 @@ export default function AdminPets() {
                   {activeTab === "pending" && (
                     <td className="px-5 py-3.5">
                       {pet.ownerName ? (
-                        <div>
-                          <p className="text-sm text-gray-700 font-medium">{pet.ownerName}</p>
-                          {pet.ownerEmail && <p className="text-xs text-gray-400 truncate max-w-[120px]">{pet.ownerEmail}</p>}
+                        <div className="flex items-center gap-2">
+                          {pet.ownerAvatar ? (
+                            <img src={pet.ownerAvatar} alt={pet.ownerName} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0 text-xs font-bold text-orange-600">
+                              {pet.ownerName.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm text-gray-700 font-medium">{pet.ownerName}</p>
+                            {pet.ownerEmail && <p className="text-xs text-gray-400 truncate max-w-[110px]">{pet.ownerEmail}</p>}
+                          </div>
                         </div>
                       ) : (
                         <span className="text-xs text-gray-400">—</span>

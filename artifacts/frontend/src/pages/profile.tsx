@@ -5,7 +5,7 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useLocation } from "wouter";
 import {
-  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useDeleteLostFoundReport, useResolveLostFoundReport, useCreatePet, type Pet,
+  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useDeleteLostFoundReport, useResolveLostFoundReport, useCreatePet, useDeletePet, type Pet,
 } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -2942,6 +2942,7 @@ export default function Profile() {
     user?.id ? { reporterId: user.id, limit: 50 } : { limit: 0 }
   );
   const deleteLFMutation = useDeleteLostFoundReport();
+  const deletePetMutation = useDeletePet();
   const resolveLFMutation = useResolveLostFoundReport();
 
   const { data: incomingAdoptionRequests, isLoading: incomingAdoptionLoading } = useGetIncomingAdoptionRequests();
@@ -3361,14 +3362,20 @@ export default function Profile() {
                           };
                           const badge = badgeMap[approvalStatus];
                           const BadgeIcon = badge.icon;
+                          const isRejected = approvalStatus === "rejected";
                           return (
-                            <div key={pet.id} className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-all">
+                            <div key={pet.id} className={`rounded-xl overflow-hidden border transition-all ${isRejected ? "bg-red-50 border-red-100" : "bg-gray-50 border-gray-100 hover:shadow-md"}`}>
                               <div className="relative">
                                 <img
                                   src={pet.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400"}
                                   alt={pet.name}
                                   className="w-full h-28 object-cover"
                                 />
+                                {isRejected && (
+                                  <div className="absolute inset-0 bg-red-900/20 flex items-center justify-center">
+                                    <XCircle className="w-8 h-8 text-white drop-shadow" />
+                                  </div>
+                                )}
                               </div>
                               <div className="p-3">
                                 <p className="font-bold text-sm text-[#1E2A3A] truncate">{pet.name}</p>
@@ -3377,6 +3384,32 @@ export default function Profile() {
                                   <BadgeIcon className="w-3 h-3" />
                                   {badge.label}
                                 </span>
+                                {isRejected && (
+                                  <div className="mt-2">
+                                    <p className="text-xs text-red-600 mb-2">Your submission did not meet our guidelines. You may delete it and submit a new one.</p>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => {
+                                          if (confirm(`Delete "${pet.name}"?`)) {
+                                            deletePetMutation.mutate({ id: pet.id }, {
+                                              onSuccess: () => refetchPets(),
+                                            });
+                                          }
+                                        }}
+                                        disabled={deletePetMutation.isPending}
+                                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-50"
+                                      >
+                                        <Trash2 className="w-3 h-3" /> Delete
+                                      </button>
+                                      <button
+                                        onClick={() => setShowAddPetModal(true)}
+                                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-semibold transition-colors"
+                                      >
+                                        <Plus className="w-3 h-3" /> Resubmit
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           );

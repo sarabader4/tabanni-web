@@ -508,6 +508,7 @@ router.get("/admin/pets", async (req, res) => {
         ownerId: petsTable.ownerId,
         ownerName: usersTable.fullName,
         ownerEmail: usersTable.email,
+        ownerAvatar: usersTable.avatarUrl,
         approved: petsTable.approved,
         rejected: petsTable.rejected,
         featured: petsTable.featured,
