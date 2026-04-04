@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Users, CheckCircle, XCircle, Clock, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Users, CheckCircle, XCircle, Clock, ChevronDown, ChevronUp, Loader2, Trash2 } from "lucide-react";
 import { AdminLayout } from "./index";
 import { useToast } from "@/hooks/use-toast";
 
@@ -52,6 +52,23 @@ function useUpdateVolunteerStatus() {
   });
 }
 
+function useDeleteVolunteerApplication() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/admin/volunteer-applications/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete application");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/volunteer-applications"] });
+    },
+  });
+}
+
 function StatusBadge({ status }: { status: "pending" | "accepted" | "rejected" }) {
   if (status === "pending") {
     return (
@@ -78,6 +95,7 @@ function ApplicationDetailRow({ app }: { app: VolunteerApplication }) {
   const [expanded, setExpanded] = useState(false);
   const { toast } = useToast();
   const updateStatus = useUpdateVolunteerStatus();
+  const deleteApplication = useDeleteVolunteerApplication();
 
   async function handleStatus(status: "accepted" | "rejected") {
     try {
@@ -85,6 +103,16 @@ function ApplicationDetailRow({ app }: { app: VolunteerApplication }) {
       toast({ title: `Application ${status}` });
     } catch {
       toast({ title: "Failed to update status", variant: "destructive" });
+    }
+  }
+
+  async function handleDelete() {
+    if (!window.confirm("Are you sure you want to permanently delete this application? This cannot be undone.")) return;
+    try {
+      await deleteApplication.mutateAsync(app.id);
+      toast({ title: "Application deleted" });
+    } catch {
+      toast({ title: "Failed to delete application", variant: "destructive" });
     }
   }
 
@@ -134,6 +162,16 @@ function ApplicationDetailRow({ app }: { app: VolunteerApplication }) {
                   {updateStatus.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Reject"}
                 </button>
               </>
+            )}
+            {app.status === "accepted" && (
+              <button
+                onClick={handleDelete}
+                disabled={deleteApplication.isPending}
+                className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-red-500 disabled:opacity-50"
+                title="Delete application"
+              >
+                {deleteApplication.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              </button>
             )}
             <button
               onClick={() => setExpanded(v => !v)}

@@ -422,6 +422,42 @@ router.get("/admin/volunteer-applications", async (req, res) => {
   }
 });
 
+router.delete("/admin/volunteer-applications/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    }
+
+    const [existing] = await db
+      .select({ id: volunteerApplicationsTable.id, status: volunteerApplicationsTable.status })
+      .from(volunteerApplicationsTable)
+      .where(eq(volunteerApplicationsTable.id, id));
+
+    if (!existing) {
+      return res.status(404).json({ error: "not_found", message: "Application not found" });
+    }
+
+    if (existing.status !== "accepted") {
+      return res.status(400).json({ error: "invalid_status", message: "Only accepted applications can be deleted" });
+    }
+
+    const deleted = await db
+      .delete(volunteerApplicationsTable)
+      .where(and(eq(volunteerApplicationsTable.id, id), eq(volunteerApplicationsTable.status, "accepted")))
+      .returning({ id: volunteerApplicationsTable.id });
+
+    if (deleted.length === 0) {
+      return res.status(400).json({ error: "invalid_status", message: "Only accepted applications can be deleted" });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    req.log.error({ err }, "Error deleting volunteer application");
+    res.status(500).json({ error: "internal_error", message: "Failed to delete application" });
+  }
+});
+
 router.patch("/admin/volunteer-applications/:id/status", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
