@@ -401,11 +401,28 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
   );
 }
 
-function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
+function ReadinessProfileSection() {
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = useState(false);
   const [profileData, setProfileData] = useState<ReadinessFormData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<ReadinessFormData | null>(null);
+  const [editStep, setEditStep] = useState(0);
+  const [editErrors, setEditErrors] = useState<ReadinessFormErrors>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  const emptyForm: ReadinessFormData = {
+    areaOfResidence: "", homeAddress: "", occupation: "", age: "", mainCaregiver: "",
+    adoptionReason: "", financialResponsibility: "", childrenCount: "0", yardType: "",
+    dayLocation: "", nightLocation: "", allergies: "", currentPets: "", householdObjection: "",
+    homeType: "", ownershipType: "", previousPetExperience: "", exerciseHours: "",
+    monthlyCostEstimation: "", breedingIntention: "", spayNeuterCommitment: false,
+    behaviorTolerance: "", traumaHandlingComfort: "", dailyCarePlan: "", travelPlan: "",
+    activities: [], petPreferences: [], trainingExpectations: [], confirmed: false,
+  };
 
   const loadProfile = async () => {
     setLoading(true);
@@ -413,7 +430,7 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
       const res = await fetch("/api/user/profile", { credentials: "include" });
       if (!res.ok) return;
       const data = await res.json();
-      setProfileData({
+      const mapped: ReadinessFormData = {
         areaOfResidence: data.areaOfResidence ?? "",
         homeAddress: data.homeAddress ?? "",
         occupation: data.occupation ?? "",
@@ -443,7 +460,8 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
         petPreferences: Array.isArray(data.petPreferences) ? data.petPreferences : [],
         trainingExpectations: Array.isArray(data.trainingExpectations) ? data.trainingExpectations : [],
         confirmed: data.confirmed ?? false,
-      });
+      };
+      setProfileData(mapped);
     } finally {
       setLoading(false);
     }
@@ -456,6 +474,80 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
   const isComplete = Boolean(
     profileData?.areaOfResidence && profileData?.occupation && profileData?.homeType && profileData?.dailyCarePlan
   );
+
+  const startEdit = () => {
+    setEditForm(profileData ? { ...profileData } : { ...emptyForm });
+    setEditStep(0);
+    setEditErrors({});
+    setIsEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setEditForm(null);
+    setEditStep(0);
+    setEditErrors({});
+  };
+
+  const set = (key: keyof ReadinessFormData, value: ReadinessFormData[keyof ReadinessFormData]) => {
+    setEditForm(prev => prev ? { ...prev, [key]: value } : prev);
+    setEditErrors(prev => ({ ...prev, [key]: undefined }));
+  };
+
+  const toggleArr = (key: "activities" | "petPreferences" | "trainingExpectations", value: string) => {
+    setEditForm(prev => {
+      if (!prev) return prev;
+      const arr = prev[key] as string[];
+      return { ...prev, [key]: arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value] };
+    });
+    setEditErrors(prev => ({ ...prev, [key]: undefined }));
+  };
+
+  const handleNext = () => {
+    if (!editForm) return;
+    const errs = validateReadinessStep(editStep, editForm, t);
+    if (Object.keys(errs).length > 0) { setEditErrors(errs); return; }
+    setEditErrors({});
+    setEditStep(s => s + 1);
+  };
+
+  const handleBack = () => {
+    setEditErrors({});
+    setEditStep(s => s - 1);
+  };
+
+  const handleSave = async () => {
+    if (!editForm) return;
+    const errs = validateReadinessStep(editStep, editForm, t);
+    if (Object.keys(errs).length > 0) { setEditErrors(errs); return; }
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...editForm,
+          age: Number(editForm.age),
+          childrenCount: Number(editForm.childrenCount),
+          exerciseHours: Number(editForm.exerciseHours),
+          monthlyCostEstimation: Number(editForm.monthlyCostEstimation),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? "Failed to save profile");
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
+      toast({ title: t("profile.readinessFormSaved") });
+      setProfileData({ ...editForm });
+      cancelEdit();
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : "Failed to save", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
@@ -494,13 +586,26 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
+          ) : isEditing && editForm ? (
+            <AdoptionReadinessFormContent
+              step={editStep}
+              profileForm={editForm}
+              formErrors={editErrors}
+              isSaving={isSaving}
+              set={set}
+              toggleArr={toggleArr}
+              onNext={handleNext}
+              onBack={handleBack}
+              onSave={handleSave}
+              onCancel={cancelEdit}
+            />
           ) : !profileData?.areaOfResidence ? (
             <div className="text-center py-8 text-gray-400">
               <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm text-[#1E2A3A] font-semibold mb-1">{t("profile.readinessNotCompleted")}</p>
               <p className="text-xs mb-4">{t("profile.viewReadinessProfile")}</p>
               <button
-                onClick={onEdit}
+                onClick={startEdit}
                 className="px-5 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors"
               >
                 {t("profile.editReadinessProfile")}
@@ -589,7 +694,7 @@ function ReadinessProfileSection({ onEdit }: { onEdit: () => void }) {
               </div>
               <div className="flex justify-end">
                 <button
-                  onClick={onEdit}
+                  onClick={startEdit}
                   className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors"
                 >
                   <Edit2 className="w-4 h-4" /> {t("profile.editReadinessProfile")}
@@ -819,6 +924,337 @@ function validateReadinessStep(step: number, form: ReadinessFormData, t: (key: s
 const rfFieldClass = "w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all";
 const rfLabelClass = "block text-sm font-semibold text-foreground mb-1";
 const rfErrorClass = "text-xs text-red-500 mt-1";
+
+interface AdoptionReadinessFormContentProps {
+  step: number;
+  profileForm: ReadinessFormData;
+  formErrors: ReadinessFormErrors;
+  isSaving: boolean;
+  set: (key: keyof ReadinessFormData, value: ReadinessFormData[keyof ReadinessFormData]) => void;
+  toggleArr: (key: "activities" | "petPreferences" | "trainingExpectations", value: string) => void;
+  onNext: () => void;
+  onBack: () => void;
+  onSave: () => void;
+  onCancel: () => void;
+}
+
+function AdoptionReadinessFormContent({
+  step,
+  profileForm,
+  formErrors,
+  isSaving,
+  set,
+  toggleArr,
+  onNext,
+  onBack,
+  onSave,
+  onCancel,
+}: AdoptionReadinessFormContentProps) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="bg-[#FFF8F3] rounded-2xl border border-orange-100">
+      <div className="flex items-center justify-between px-5 pt-5 pb-3">
+        <div>
+          <h3 className="font-display text-base font-bold text-[#1E2A3A]">{t("profile.adoptionReadinessFormTitle")}</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("profile.stepOf", { n: step + 1, total: READINESS_STEPS.length })} — {t(READINESS_STEPS[step].title)}</p>
+        </div>
+        <button onClick={onCancel} className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="px-5 pb-3">
+        <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-300"
+            style={{ width: `${((step + 1) / READINESS_STEPS.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="px-5 pb-4">
+        {step === 0 && (
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div>
+              <label className={rfLabelClass}>{t("profile.areaOfResidence")} *</label>
+              <input className={rfFieldClass} value={profileForm.areaOfResidence} onChange={e => set("areaOfResidence", e.target.value)} />
+              {formErrors.areaOfResidence && <p className={rfErrorClass}>{formErrors.areaOfResidence}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.homeAddress")} *</label>
+              <input className={rfFieldClass} value={profileForm.homeAddress} onChange={e => set("homeAddress", e.target.value)} />
+              {formErrors.homeAddress && <p className={rfErrorClass}>{formErrors.homeAddress}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.occupation")} *</label>
+              <input className={rfFieldClass} value={profileForm.occupation} onChange={e => set("occupation", e.target.value)} />
+              {formErrors.occupation && <p className={rfErrorClass}>{formErrors.occupation}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelAge")} *</label>
+              <input type="number" min={18} max={120} className={rfFieldClass} value={profileForm.age} onChange={e => set("age", e.target.value)} />
+              {formErrors.age && <p className={rfErrorClass}>{formErrors.age}</p>}
+            </div>
+            <div className="sm:col-span-2">
+              <label className={rfLabelClass}>{t("profile.mainCaregiver")} *</label>
+              <select className={rfFieldClass} value={profileForm.mainCaregiver} onChange={e => set("mainCaregiver", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="Myself">{t("profile.optMyself")}</option>
+                <option value="Spouse / Partner">{t("profile.optSpousePartner")}</option>
+                <option value="Family member">{t("profile.optFamilyMember")}</option>
+                <option value="Shared responsibility">{t("profile.optSharedResp")}</option>
+              </select>
+              {formErrors.mainCaregiver && <p className={rfErrorClass}>{formErrors.mainCaregiver}</p>}
+            </div>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div>
+              <label className={rfLabelClass}>{t("profile.homeType")} *</label>
+              <select className={rfFieldClass} value={profileForm.homeType} onChange={e => set("homeType", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="Apartment">{t("profile.optApartment")}</option>
+                <option value="Villa">{t("profile.optVilla")}</option>
+                <option value="House">{t("profile.optHouse")}</option>
+                <option value="Townhouse">{t("profile.optTownhouse")}</option>
+                <option value="Studio">{t("profile.optStudio")}</option>
+              </select>
+              {formErrors.homeType && <p className={rfErrorClass}>{formErrors.homeType}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.ownershipType")} *</label>
+              <select className={rfFieldClass} value={profileForm.ownershipType} onChange={e => set("ownershipType", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="Owner">{t("profile.optOwner")}</option>
+                <option value="Renting">{t("profile.optRenting")}</option>
+                <option value="Family home">{t("profile.optFamilyHome")}</option>
+              </select>
+              {formErrors.ownershipType && <p className={rfErrorClass}>{formErrors.ownershipType}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.yardOutdoorSpace")} *</label>
+              <select className={rfFieldClass} value={profileForm.yardType} onChange={e => set("yardType", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="No outdoor space">{t("profile.optNoOutdoor")}</option>
+                <option value="Small balcony">{t("profile.optSmallBalcony")}</option>
+                <option value="Large balcony">{t("profile.optLargeBalcony")}</option>
+                <option value="Small yard">{t("profile.optSmallYard")}</option>
+                <option value="Large yard / garden">{t("profile.optLargeYard")}</option>
+              </select>
+              {formErrors.yardType && <p className={rfErrorClass}>{formErrors.yardType}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.numberOfChildren")}</label>
+              <input type="number" min={0} className={rfFieldClass} value={profileForm.childrenCount} onChange={e => set("childrenCount", e.target.value)} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={rfLabelClass}>{t("profile.labelHouseholdObjection")} *</label>
+              <select className={rfFieldClass} value={profileForm.householdObjection} onChange={e => set("householdObjection", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="No, everyone agrees">{t("profile.optNoObjection")}</option>
+                <option value="Some are hesitant but open">{t("profile.optHesitant")}</option>
+                <option value="Yes, there may be resistance">{t("profile.optResistance")}</option>
+              </select>
+              {formErrors.householdObjection && <p className={rfErrorClass}>{formErrors.householdObjection}</p>}
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelDayLocation")} *</label>
+              <select className={rfFieldClass} value={profileForm.dayLocation} onChange={e => set("dayLocation", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="Indoors with family">{t("profile.optIndoorsFamily")}</option>
+                <option value="Indoors alone">{t("profile.optIndoorsAlone")}</option>
+                <option value="Outdoors in yard">{t("profile.optOutdoorsYard")}</option>
+                <option value="Mix of indoor/outdoor">{t("profile.optMixIndoor")}</option>
+              </select>
+              {formErrors.dayLocation && <p className={rfErrorClass}>{formErrors.dayLocation}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelNightLocation")} *</label>
+              <select className={rfFieldClass} value={profileForm.nightLocation} onChange={e => set("nightLocation", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="In bedroom">{t("profile.optBedroom")}</option>
+                <option value="In living room">{t("profile.optLivingRoom")}</option>
+                <option value="In crate">{t("profile.optCrate")}</option>
+                <option value="Outdoors">{t("profile.optOutdoors")}</option>
+                <option value="Dedicated pet room">{t("profile.optPetRoom")}</option>
+              </select>
+              {formErrors.nightLocation && <p className={rfErrorClass}>{formErrors.nightLocation}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.exerciseHoursDay")} *</label>
+              <input type="number" min={0} max={24} className={rfFieldClass} value={profileForm.exerciseHours} onChange={e => set("exerciseHours", e.target.value)} />
+              {formErrors.exerciseHours && <p className={rfErrorClass}>{formErrors.exerciseHours}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.currentPets")}</label>
+              <input className={rfFieldClass} value={profileForm.currentPets} onChange={e => set("currentPets", e.target.value)} placeholder={t("profile.placeholderCurrentPets")} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={rfLabelClass}>{t("profile.previousPetExperience")}</label>
+              <textarea rows={3} className={rfFieldClass} value={profileForm.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} placeholder={t("profile.placeholderPrevExperience")} />
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div className="sm:col-span-2">
+              <label className={rfLabelClass}>{t("profile.labelAdoptionReason")} *</label>
+              <textarea rows={3} className={rfFieldClass} value={profileForm.adoptionReason} onChange={e => set("adoptionReason", e.target.value)} />
+              {formErrors.adoptionReason && <p className={rfErrorClass}>{formErrors.adoptionReason}</p>}
+            </div>
+            <div className="sm:col-span-2">
+              <label className={rfLabelClass}>{t("profile.labelFinancialResp")} *</label>
+              <select className={rfFieldClass} value={profileForm.financialResponsibility} onChange={e => set("financialResponsibility", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="Myself">{t("profile.optMyself")}</option>
+                <option value="Partner / Spouse">{t("profile.optPartnerSpouse")}</option>
+                <option value="Shared">{t("profile.optShared")}</option>
+                <option value="Family">{t("profile.optFamily")}</option>
+              </select>
+              {formErrors.financialResponsibility && <p className={rfErrorClass}>{formErrors.financialResponsibility}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelMonthlyCost")} *</label>
+              <input type="number" min={0} className={rfFieldClass} value={profileForm.monthlyCostEstimation} onChange={e => set("monthlyCostEstimation", e.target.value)} />
+              {formErrors.monthlyCostEstimation && <p className={rfErrorClass}>{formErrors.monthlyCostEstimation}</p>}
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelBreedingIntent")} *</label>
+              <select className={rfFieldClass} value={profileForm.breedingIntention} onChange={e => set("breedingIntention", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="No, not planning to breed">{t("profile.optNoBreed")}</option>
+                <option value="Possibly in the future">{t("profile.optMaybeBreed")}</option>
+                <option value="Yes, planning to breed">{t("profile.optYesBreed")}</option>
+              </select>
+              {formErrors.breedingIntention && <p className={rfErrorClass}>{formErrors.breedingIntention}</p>}
+            </div>
+            <div className="sm:col-span-2 flex items-center gap-3">
+              <input type="checkbox" id="spay-readiness-inline" checked={profileForm.spayNeuterCommitment} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FF6B35]" />
+              <label htmlFor="spay-readiness-inline" className="text-sm text-foreground">{t("profile.labelSpayCommit")}</label>
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-6">
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelActivities")} *</label>
+              {formErrors.activities && <p className={rfErrorClass}>{formErrors.activities}</p>}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                {ACTIVITY_OPTION_KEYS.map(({ value, key }) => (
+                  <button key={value} type="button" onClick={() => toggleArr("activities", value)}
+                    className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.activities.includes(value) ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/50"}`}>
+                    {t(key)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelPetPrefs")} *</label>
+              {formErrors.petPreferences && <p className={rfErrorClass}>{formErrors.petPreferences}</p>}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                {PET_PREFERENCE_OPTION_KEYS.map(({ value, key }) => (
+                  <button key={value} type="button" onClick={() => toggleArr("petPreferences", value)}
+                    className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.petPreferences.includes(value) ? "bg-secondary text-white border-secondary" : "bg-white border-border hover:border-secondary/50"}`}>
+                    {t(key)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelTrainingExp")} *</label>
+              {formErrors.trainingExpectations && <p className={rfErrorClass}>{formErrors.trainingExpectations}</p>}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                {TRAINING_EXPECTATION_OPTION_KEYS.map(({ value, key }) => (
+                  <button key={value} type="button" onClick={() => toggleArr("trainingExpectations", value)}
+                    className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(value) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"}`}>
+                    {t(key)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div>
+              <label className={rfLabelClass}>{t("profile.allergies")}</label>
+              <input className={rfFieldClass} value={profileForm.allergies} onChange={e => set("allergies", e.target.value)} placeholder={t("profile.placeholderAllergies")} />
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelBehaviorTolerance")}</label>
+              <select className={rfFieldClass} value={profileForm.behaviorTolerance} onChange={e => set("behaviorTolerance", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="None — I prefer a well-behaved pet">{t("profile.optBehavNone")}</option>
+                <option value="Minor issues (chewing, jumping)">{t("profile.optBehavMinor")}</option>
+                <option value="Moderate issues with proper training">{t("profile.optBehavModerate")}</option>
+                <option value="Significant behavioral challenges">{t("profile.optBehavSignificant")}</option>
+              </select>
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.labelTraumaComfort")}</label>
+              <select className={rfFieldClass} value={profileForm.traumaHandlingComfort} onChange={e => set("traumaHandlingComfort", e.target.value)}>
+                <option value="">{t("profile.selectDots")}</option>
+                <option value="Not comfortable">{t("profile.optTraumaNot")}</option>
+                <option value="Somewhat comfortable">{t("profile.optTraumaSomewhat")}</option>
+                <option value="Comfortable with guidance">{t("profile.optTraumaComfort")}</option>
+                <option value="Very comfortable">{t("profile.optTraumaVery")}</option>
+              </select>
+            </div>
+            <div>
+              <label className={rfLabelClass}>{t("profile.travelPlan")}</label>
+              <input className={rfFieldClass} value={profileForm.travelPlan} onChange={e => set("travelPlan", e.target.value)} placeholder={t("profile.placeholderTravelPlan")} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={rfLabelClass}>{t("profile.dailyCarePlan")} *</label>
+              <textarea rows={3} className={rfFieldClass} value={profileForm.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} placeholder={t("profile.placeholderDailyCare")} />
+              {formErrors.dailyCarePlan && <p className={rfErrorClass}>{formErrors.dailyCarePlan}</p>}
+            </div>
+            <div className="sm:col-span-2 bg-primary/5 border border-primary/20 rounded-2xl p-4">
+              <div className="flex items-start gap-3">
+                <input type="checkbox" id="confirmed-readiness-inline" checked={profileForm.confirmed} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FF6B35]" />
+                <label htmlFor="confirmed-readiness-inline" className="text-sm text-foreground leading-relaxed">
+                  {t("profile.labelConfirm")}
+                </label>
+              </div>
+              {formErrors.confirmed && <p className={rfErrorClass}>{formErrors.confirmed}</p>}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between px-5 py-4 border-t border-border">
+        <div>
+          {step > 0 && (
+            <button onClick={onBack} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:bg-muted/50 text-sm font-semibold transition-colors">
+              <ChevronLeft className="w-4 h-4 rtl:rotate-180" /> {t("common.back")}
+            </button>
+          )}
+        </div>
+        {step < READINESS_STEPS.length - 1 ? (
+          <button onClick={onNext} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
+            {t("common.next")} <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+          </button>
+        ) : (
+          <button onClick={onSave} disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+            {t("profile.saveForm")}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface MyRequestDetailModalProps {
   request: MyRequestItem;
@@ -1488,312 +1924,26 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-[#FFF8F3] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between px-6 pt-6 pb-3 shrink-0">
-          <div>
-            <h2 className="font-display text-lg font-bold text-[#1E2A3A]">{t("profile.adoptionReadinessFormTitle")}</h2>
-            <p className="text-sm text-muted-foreground">{t("profile.stepOf", { n: step + 1, total: READINESS_STEPS.length })} — {t(READINESS_STEPS[step].title)}</p>
+        {profileLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="px-6 pb-3 shrink-0">
-          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all duration-300"
-              style={{ width: `${((step + 1) / READINESS_STEPS.length) * 100}%` }}
+        ) : profileForm ? (
+          <div className="flex-1 overflow-y-auto">
+            <AdoptionReadinessFormContent
+              step={step}
+              profileForm={profileForm}
+              formErrors={formErrors}
+              isSaving={isSaving}
+              set={set}
+              toggleArr={toggleArr}
+              onNext={handleNext}
+              onBack={handleBack}
+              onSave={handleSave}
+              onCancel={onClose}
             />
           </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-6 pb-4">
-          {profileLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : profileForm && (
-            <>
-              {step === 0 && (
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.areaOfResidence")} *</label>
-                    <input className={rfFieldClass} value={profileForm.areaOfResidence} onChange={e => set("areaOfResidence", e.target.value)} />
-                    {formErrors.areaOfResidence && <p className={rfErrorClass}>{formErrors.areaOfResidence}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.homeAddress")} *</label>
-                    <input className={rfFieldClass} value={profileForm.homeAddress} onChange={e => set("homeAddress", e.target.value)} />
-                    {formErrors.homeAddress && <p className={rfErrorClass}>{formErrors.homeAddress}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.occupation")} *</label>
-                    <input className={rfFieldClass} value={profileForm.occupation} onChange={e => set("occupation", e.target.value)} />
-                    {formErrors.occupation && <p className={rfErrorClass}>{formErrors.occupation}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelAge")} *</label>
-                    <input type="number" min={18} max={120} className={rfFieldClass} value={profileForm.age} onChange={e => set("age", e.target.value)} />
-                    {formErrors.age && <p className={rfErrorClass}>{formErrors.age}</p>}
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>{t("profile.mainCaregiver")} *</label>
-                    <select className={rfFieldClass} value={profileForm.mainCaregiver} onChange={e => set("mainCaregiver", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="Myself">{t("profile.optMyself")}</option>
-                      <option value="Spouse / Partner">{t("profile.optSpousePartner")}</option>
-                      <option value="Family member">{t("profile.optFamilyMember")}</option>
-                      <option value="Shared responsibility">{t("profile.optSharedResp")}</option>
-                    </select>
-                    {formErrors.mainCaregiver && <p className={rfErrorClass}>{formErrors.mainCaregiver}</p>}
-                  </div>
-                </div>
-              )}
-
-              {step === 1 && (
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.homeType")} *</label>
-                    <select className={rfFieldClass} value={profileForm.homeType} onChange={e => set("homeType", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="Apartment">{t("profile.optApartment")}</option>
-                      <option value="Villa">{t("profile.optVilla")}</option>
-                      <option value="House">{t("profile.optHouse")}</option>
-                      <option value="Townhouse">{t("profile.optTownhouse")}</option>
-                      <option value="Studio">{t("profile.optStudio")}</option>
-                    </select>
-                    {formErrors.homeType && <p className={rfErrorClass}>{formErrors.homeType}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.ownershipType")} *</label>
-                    <select className={rfFieldClass} value={profileForm.ownershipType} onChange={e => set("ownershipType", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="Owner">{t("profile.optOwner")}</option>
-                      <option value="Renting">{t("profile.optRenting")}</option>
-                      <option value="Family home">{t("profile.optFamilyHome")}</option>
-                    </select>
-                    {formErrors.ownershipType && <p className={rfErrorClass}>{formErrors.ownershipType}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.yardOutdoorSpace")} *</label>
-                    <select className={rfFieldClass} value={profileForm.yardType} onChange={e => set("yardType", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="No outdoor space">{t("profile.optNoOutdoor")}</option>
-                      <option value="Small balcony">{t("profile.optSmallBalcony")}</option>
-                      <option value="Large balcony">{t("profile.optLargeBalcony")}</option>
-                      <option value="Small yard">{t("profile.optSmallYard")}</option>
-                      <option value="Large yard / garden">{t("profile.optLargeYard")}</option>
-                    </select>
-                    {formErrors.yardType && <p className={rfErrorClass}>{formErrors.yardType}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.numberOfChildren")}</label>
-                    <input type="number" min={0} className={rfFieldClass} value={profileForm.childrenCount} onChange={e => set("childrenCount", e.target.value)} />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>{t("profile.labelHouseholdObjection")} *</label>
-                    <select className={rfFieldClass} value={profileForm.householdObjection} onChange={e => set("householdObjection", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="No, everyone agrees">{t("profile.optNoObjection")}</option>
-                      <option value="Some are hesitant but open">{t("profile.optHesitant")}</option>
-                      <option value="Yes, there may be resistance">{t("profile.optResistance")}</option>
-                    </select>
-                    {formErrors.householdObjection && <p className={rfErrorClass}>{formErrors.householdObjection}</p>}
-                  </div>
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelDayLocation")} *</label>
-                    <select className={rfFieldClass} value={profileForm.dayLocation} onChange={e => set("dayLocation", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="Indoors with family">{t("profile.optIndoorsFamily")}</option>
-                      <option value="Indoors alone">{t("profile.optIndoorsAlone")}</option>
-                      <option value="Outdoors in yard">{t("profile.optOutdoorsYard")}</option>
-                      <option value="Mix of indoor/outdoor">{t("profile.optMixIndoor")}</option>
-                    </select>
-                    {formErrors.dayLocation && <p className={rfErrorClass}>{formErrors.dayLocation}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelNightLocation")} *</label>
-                    <select className={rfFieldClass} value={profileForm.nightLocation} onChange={e => set("nightLocation", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="In bedroom">{t("profile.optBedroom")}</option>
-                      <option value="In living room">{t("profile.optLivingRoom")}</option>
-                      <option value="In crate">{t("profile.optCrate")}</option>
-                      <option value="Outdoors">{t("profile.optOutdoors")}</option>
-                      <option value="Dedicated pet room">{t("profile.optPetRoom")}</option>
-                    </select>
-                    {formErrors.nightLocation && <p className={rfErrorClass}>{formErrors.nightLocation}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.exerciseHoursDay")} *</label>
-                    <input type="number" min={0} max={24} className={rfFieldClass} value={profileForm.exerciseHours} onChange={e => set("exerciseHours", e.target.value)} />
-                    {formErrors.exerciseHours && <p className={rfErrorClass}>{formErrors.exerciseHours}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.currentPets")}</label>
-                    <input className={rfFieldClass} value={profileForm.currentPets} onChange={e => set("currentPets", e.target.value)} placeholder={t("profile.placeholderCurrentPets")} />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>{t("profile.previousPetExperience")}</label>
-                    <textarea rows={3} className={rfFieldClass} value={profileForm.previousPetExperience} onChange={e => set("previousPetExperience", e.target.value)} placeholder={t("profile.placeholderPrevExperience")} />
-                  </div>
-                </div>
-              )}
-
-              {step === 3 && (
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>{t("profile.labelAdoptionReason")} *</label>
-                    <textarea rows={3} className={rfFieldClass} value={profileForm.adoptionReason} onChange={e => set("adoptionReason", e.target.value)} />
-                    {formErrors.adoptionReason && <p className={rfErrorClass}>{formErrors.adoptionReason}</p>}
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>{t("profile.labelFinancialResp")} *</label>
-                    <select className={rfFieldClass} value={profileForm.financialResponsibility} onChange={e => set("financialResponsibility", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="Myself">{t("profile.optMyself")}</option>
-                      <option value="Partner / Spouse">{t("profile.optPartnerSpouse")}</option>
-                      <option value="Shared">{t("profile.optShared")}</option>
-                      <option value="Family">{t("profile.optFamily")}</option>
-                    </select>
-                    {formErrors.financialResponsibility && <p className={rfErrorClass}>{formErrors.financialResponsibility}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelMonthlyCost")} *</label>
-                    <input type="number" min={0} className={rfFieldClass} value={profileForm.monthlyCostEstimation} onChange={e => set("monthlyCostEstimation", e.target.value)} />
-                    {formErrors.monthlyCostEstimation && <p className={rfErrorClass}>{formErrors.monthlyCostEstimation}</p>}
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelBreedingIntent")} *</label>
-                    <select className={rfFieldClass} value={profileForm.breedingIntention} onChange={e => set("breedingIntention", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="No, not planning to breed">{t("profile.optNoBreed")}</option>
-                      <option value="Possibly in the future">{t("profile.optMaybeBreed")}</option>
-                      <option value="Yes, planning to breed">{t("profile.optYesBreed")}</option>
-                    </select>
-                    {formErrors.breedingIntention && <p className={rfErrorClass}>{formErrors.breedingIntention}</p>}
-                  </div>
-                  <div className="sm:col-span-2 flex items-center gap-3">
-                    <input type="checkbox" id="spay-readiness" checked={profileForm.spayNeuterCommitment} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FF6B35]" />
-                    <label htmlFor="spay-readiness" className="text-sm text-foreground">{t("profile.labelSpayCommit")}</label>
-                  </div>
-                </div>
-              )}
-
-              {step === 4 && (
-                <div className="space-y-6">
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelActivities")} *</label>
-                    {formErrors.activities && <p className={rfErrorClass}>{formErrors.activities}</p>}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                      {ACTIVITY_OPTION_KEYS.map(({ value, key }) => (
-                        <button key={value} type="button" onClick={() => toggleArr("activities", value)}
-                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.activities.includes(value) ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/50"}`}>
-                          {t(key)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelPetPrefs")} *</label>
-                    {formErrors.petPreferences && <p className={rfErrorClass}>{formErrors.petPreferences}</p>}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                      {PET_PREFERENCE_OPTION_KEYS.map(({ value, key }) => (
-                        <button key={value} type="button" onClick={() => toggleArr("petPreferences", value)}
-                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.petPreferences.includes(value) ? "bg-secondary text-white border-secondary" : "bg-white border-border hover:border-secondary/50"}`}>
-                          {t(key)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelTrainingExp")} *</label>
-                    {formErrors.trainingExpectations && <p className={rfErrorClass}>{formErrors.trainingExpectations}</p>}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                      {TRAINING_EXPECTATION_OPTION_KEYS.map(({ value, key }) => (
-                        <button key={value} type="button" onClick={() => toggleArr("trainingExpectations", value)}
-                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(value) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"}`}>
-                          {t(key)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {step === 5 && (
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.allergies")}</label>
-                    <input className={rfFieldClass} value={profileForm.allergies} onChange={e => set("allergies", e.target.value)} placeholder={t("profile.placeholderAllergies")} />
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelBehaviorTolerance")}</label>
-                    <select className={rfFieldClass} value={profileForm.behaviorTolerance} onChange={e => set("behaviorTolerance", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="None — I prefer a well-behaved pet">{t("profile.optBehavNone")}</option>
-                      <option value="Minor issues (chewing, jumping)">{t("profile.optBehavMinor")}</option>
-                      <option value="Moderate issues with proper training">{t("profile.optBehavModerate")}</option>
-                      <option value="Significant behavioral challenges">{t("profile.optBehavSignificant")}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.labelTraumaComfort")}</label>
-                    <select className={rfFieldClass} value={profileForm.traumaHandlingComfort} onChange={e => set("traumaHandlingComfort", e.target.value)}>
-                      <option value="">{t("profile.selectDots")}</option>
-                      <option value="Not comfortable">{t("profile.optTraumaNot")}</option>
-                      <option value="Somewhat comfortable">{t("profile.optTraumaSomewhat")}</option>
-                      <option value="Comfortable with guidance">{t("profile.optTraumaComfort")}</option>
-                      <option value="Very comfortable">{t("profile.optTraumaVery")}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className={rfLabelClass}>{t("profile.travelPlan")}</label>
-                    <input className={rfFieldClass} value={profileForm.travelPlan} onChange={e => set("travelPlan", e.target.value)} placeholder={t("profile.placeholderTravelPlan")} />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className={rfLabelClass}>{t("profile.dailyCarePlan")} *</label>
-                    <textarea rows={3} className={rfFieldClass} value={profileForm.dailyCarePlan} onChange={e => set("dailyCarePlan", e.target.value)} placeholder={t("profile.placeholderDailyCare")} />
-                    {formErrors.dailyCarePlan && <p className={rfErrorClass}>{formErrors.dailyCarePlan}</p>}
-                  </div>
-                  <div className="sm:col-span-2 bg-primary/5 border border-primary/20 rounded-2xl p-4">
-                    <div className="flex items-start gap-3">
-                      <input type="checkbox" id="confirmed-readiness" checked={profileForm.confirmed} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FF6B35]" />
-                      <label htmlFor="confirmed-readiness" className="text-sm text-foreground leading-relaxed">
-                        {t("profile.labelConfirm")}
-                      </label>
-                    </div>
-                    {formErrors.confirmed && <p className={rfErrorClass}>{formErrors.confirmed}</p>}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border shrink-0">
-          <div>
-            {step > 0 && (
-              <button onClick={handleBack} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:bg-muted/50 text-sm font-semibold transition-colors">
-                <ChevronLeft className="w-4 h-4 rtl:rotate-180" /> {t("common.back")}
-              </button>
-            )}
-          </div>
-          {step < READINESS_STEPS.length - 1 ? (
-            <button onClick={handleNext} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
-              {t("common.next")} <ChevronRight className="w-4 h-4 rtl:rotate-180" />
-            </button>
-          ) : (
-            <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              {t("profile.saveForm")}
-            </button>
-          )}
-        </div>
+        ) : null}
       </div>
     </div>
   );
@@ -3586,7 +3736,7 @@ export default function Profile() {
                     <p className="text-sm text-gray-500 mt-0.5">{t("profile.noMyRequests")}</p>
                   </div>
 
-                  <ReadinessProfileSection onEdit={() => setShowReadinessForm(true)} />
+                  <ReadinessProfileSection />
 
                   {!applications?.adoptionRequests?.length && !applications?.fosterRequests?.length ? (
                     <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
