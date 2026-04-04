@@ -1812,15 +1812,20 @@ import {
 } from "@/components/country-phone-dropdown";
 import WhatsAppPhoneInput from "@/components/whatsapp-phone-input";
 
+const adoptionFosterTabs = ["My Pets", "Applications", "My Requests"];
+
 const sidebarLinks = [
   { label: "Profile", tabKey: "tabProfile", icon: User },
-  { label: "My Pets", tabKey: "tabMyPets", icon: PawPrint },
-  { label: "Applications", tabKey: "tabApplications", icon: Inbox },
-  { label: "My Requests", tabKey: "tabMyRequests", icon: FileText },
   { label: "Favourite", tabKey: "tabFavourite", icon: Heart },
   { label: "Notifications", tabKey: "tabNotifications", icon: Bell },
   { label: "Volunteer", tabKey: "tabVolunteer", icon: Users },
   { label: "Lost&Found", tabKey: "tabLostFound", icon: MapPin },
+];
+
+const adoptionFosterLinks = [
+  { label: "My Pets", tabKey: "tabMyPets", icon: PawPrint },
+  { label: "Applications", tabKey: "tabApplications", icon: Inbox },
+  { label: "My Requests", tabKey: "tabMyRequests", icon: FileText },
 ];
 
 function StatusBadge({ status }: { status: string }) {
@@ -2929,6 +2934,7 @@ export default function Profile() {
   const { logout, user } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("Profile");
+  const [adoptionFosterOpen, setAdoptionFosterOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const { data: profile, isLoading } = useGetMyProfile();
@@ -2978,7 +2984,10 @@ export default function Profile() {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab");
     const openForm = params.get("openForm");
-    if (tab) setActiveTab(tab);
+    if (tab) {
+      setActiveTab(tab);
+      if (adoptionFosterTabs.includes(tab)) setAdoptionFosterOpen(true);
+    }
     if (openForm === "true") setShowReadinessForm(true);
   }, []);
 
@@ -3086,7 +3095,7 @@ export default function Profile() {
               <p className="font-bold text-base">{displayName}</p>
               <button
                 type="button"
-                onClick={() => { setActiveTab("Profile"); handleEdit(); }}
+                onClick={() => { setActiveTab("Profile"); setAdoptionFosterOpen(false); handleEdit(); }}
                 className="flex items-center gap-1 mt-1.5 bg-white/10 hover:bg-white/20 rounded-full px-3 py-1 text-xs transition-colors"
               >
                 <Edit2 className="w-3 h-3" /> {t("profile.editProfile")}
@@ -3094,13 +3103,66 @@ export default function Profile() {
             </div>
 
             <nav className="space-y-1">
-              {sidebarLinks.map((link) => {
+              {/* Profile link (always first) */}
+              {sidebarLinks.slice(0, 1).map((link) => {
                 const Icon = link.icon;
                 const isActive = activeTab === link.label;
                 return (
                   <button
                     key={link.label}
-                    onClick={() => setActiveTab(link.label)}
+                    onClick={() => { setActiveTab(link.label); setAdoptionFosterOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                      isActive ? "bg-white text-[#1E2A3A]" : "text-white/70 hover:bg-white/10"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {t(`profile.${link.tabKey}`)}
+                  </button>
+                );
+              })}
+
+              {/* Adoption & Foster dropdown group */}
+              <div>
+                <button
+                  onClick={() => setAdoptionFosterOpen(v => !v)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                    adoptionFosterTabs.includes(activeTab) ? "bg-white/20 text-white" : "text-white/70 hover:bg-white/10"
+                  }`}
+                >
+                  <PawPrint className="w-4 h-4 shrink-0" />
+                  <span className="flex-1 text-start">{t("profile.tabAdoptionFoster")}</span>
+                  <ChevronDown className={`w-4 h-4 shrink-0 transition-transform duration-200 ${adoptionFosterOpen ? "rotate-180" : ""}`} />
+                </button>
+                {adoptionFosterOpen && (
+                  <div className="mt-0.5 ml-3 space-y-0.5 border-l border-white/20 pl-3">
+                    {adoptionFosterLinks.map((link) => {
+                      const Icon = link.icon;
+                      const isActive = activeTab === link.label;
+                      return (
+                        <button
+                          key={link.label}
+                          onClick={() => setActiveTab(link.label)}
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                            isActive ? "bg-white text-[#1E2A3A]" : "text-white/60 hover:bg-white/10 hover:text-white/90"
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {t(`profile.${link.tabKey}`)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Remaining flat links */}
+              {sidebarLinks.slice(1).map((link) => {
+                const Icon = link.icon;
+                const isActive = activeTab === link.label;
+                return (
+                  <button
+                    key={link.label}
+                    onClick={() => { setActiveTab(link.label); setAdoptionFosterOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                       isActive ? "bg-white text-[#1E2A3A]" : "text-white/70 hover:bg-white/10"
                     }`}
