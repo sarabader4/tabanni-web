@@ -132,11 +132,15 @@ function useUpdateAdoptionRequestStatus() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error(i18next.t("profile.failedUpdateAdoptionStatus"));
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw Object.assign(new Error(body.message ?? i18next.t("profile.failedUpdateAdoptionStatus")), { code: body.error });
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/adoption-requests/incoming"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/pets"] });
     },
   });
 }
@@ -151,11 +155,15 @@ function useUpdateFosterRequestStatus() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error(i18next.t("profile.failedUpdateFosterStatus"));
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw Object.assign(new Error(body.message ?? i18next.t("profile.failedUpdateFosterStatus")), { code: body.error });
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/foster-requests/incoming"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/pets"] });
     },
   });
 }
@@ -3635,7 +3643,7 @@ export default function Profile() {
                         <Plus className="w-4 h-4" /> {t("profile.addPet")}
                       </button>
                     </div>
-                    {(!myPets || myPets.length === 0) ? (
+                    {(!myPets || (myPets as (Pet & { rejected?: boolean })[]).filter(p => p.status !== "adopted" && p.status !== "fostered").length === 0) ? (
                       <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                         <PawPrint className="w-12 h-12 mx-auto mb-3 opacity-30" />
                         <p className="text-base font-semibold text-[#1E2A3A]">{t("profile.noPets")}</p>
@@ -3643,7 +3651,7 @@ export default function Profile() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {(myPets as (Pet & { rejected?: boolean })[]).map((pet) => {
+                        {(myPets as (Pet & { rejected?: boolean })[]).filter(p => p.status !== "adopted" && p.status !== "fostered").map((pet) => {
                           const approvalStatus = pet.rejected ? "rejected" : pet.approved ? "approved" : "pending";
                           const badgeMap = {
                             approved: { color: "bg-green-100 text-green-700", icon: CheckCircle2, label: t("profile.approved") },
@@ -4163,10 +4171,29 @@ export default function Profile() {
             } else {
               await updateFosterStatus.mutateAsync({ id: selectedIncomingRequest.request.id, status: "approved" });
             }
-            toast({ title: t("profile.requestAccepted"), description: selectedIncomingRequest.type === "adoption" ? t("profile.markedAsAdopted", { pet: selectedIncomingRequest.request.petName }) : t("profile.markedAsFostered", { pet: selectedIncomingRequest.request.petName }) });
+            const actionWord = selectedIncomingRequest.type === "adoption" ? "adopted" : "fostered";
+            toast({
+              title: t("profile.requestAccepted"),
+              description: `This pet has been successfully ${actionWord} and removed from your profile.`,
+            });
             setSelectedIncomingRequest(null);
-          } catch {
-            toast({ title: t("profile.failedToAccept"), variant: "destructive" });
+          } catch (err: unknown) {
+            const code = err instanceof Error ? (err as Error & { code?: string }).code : undefined;
+            if (code === "pet_not_available") {
+              toast({
+                title: "Pet No Longer Available",
+                description: (err as Error).message ?? "This pet has already been adopted or fostered.",
+                variant: "destructive",
+              });
+            } else if (code === "request_not_pending") {
+              toast({
+                title: "Request Already Processed",
+                description: (err as Error).message ?? "This request has already been processed.",
+                variant: "destructive",
+              });
+            } else {
+              toast({ title: t("profile.failedToAccept"), variant: "destructive" });
+            }
           }
         }}
         onReject={async () => {

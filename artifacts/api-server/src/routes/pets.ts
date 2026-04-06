@@ -53,7 +53,11 @@ router.get("/pets", async (req, res) => {
     if (petPurpose) conditions.push(eq(petsTable.purpose, petPurpose));
 
     const petStatus = status ? PET_STATUSES.find(s => s === status) : undefined;
-    if (petStatus) conditions.push(eq(petsTable.status, petStatus));
+    if (petStatus) {
+      conditions.push(eq(petsTable.status, petStatus));
+    } else {
+      conditions.push(eq(petsTable.status, "available"));
+    }
 
     if (search) conditions.push(ilike(petsTable.name, `%${search}%`));
     if (minAge !== undefined && !isNaN(minAge)) conditions.push(gte(petsTable.ageMonths, minAge));

@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { db, fosterRequestsTable, petsTable, usersTable, userProfilesTable } from "@workspace/db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, ne, inArray } from "drizzle-orm";
 import {
   ListFosterRequestsQueryParams,
   CreateFosterRequestBody,
@@ -260,15 +260,59 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
       return;
     }
 
-    const [updated] = await db.update(fosterRequestsTable)
-      .set({ status: newStatus })
-      .where(eq(fosterRequestsTable.id, requestId))
-      .returning();
+    let updated: typeof fosterRequestsTable.$inferSelect;
+    let autoRejectedRequesterIds: number[] = [];
 
-    if (newStatus === "approved" && existingRequest.petId) {
-      await db.update(petsTable)
-        .set({ status: "fostered" })
-        .where(eq(petsTable.id, existingRequest.petId));
+    if (newStatus === "approved") {
+      if (!existingRequest.petId) {
+        res.status(400).json({ error: "invalid_request", message: "Request has no associated pet" });
+        return;
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [acceptedRequest] = await tx.update(fosterRequestsTable)
+          .set({ status: "approved" })
+          .where(and(eq(fosterRequestsTable.id, requestId), eq(fosterRequestsTable.status, "pending")))
+          .returning();
+
+        if (!acceptedRequest) {
+          throw Object.assign(new Error("request_not_pending"), { code: "request_not_pending" });
+        }
+
+        const updatedPets = await tx.update(petsTable)
+          .set({ status: "fostered" })
+          .where(and(eq(petsTable.id, existingRequest.petId!), eq(petsTable.status, "available")))
+          .returning({ id: petsTable.id });
+
+        if (updatedPets.length === 0) {
+          throw Object.assign(new Error("pet_not_available"), { code: "pet_not_available" });
+        }
+
+        const otherPending = await tx.select({ id: fosterRequestsTable.id, requesterId: fosterRequestsTable.requesterId })
+          .from(fosterRequestsTable)
+          .where(and(
+            eq(fosterRequestsTable.petId, existingRequest.petId!),
+            ne(fosterRequestsTable.id, requestId),
+            eq(fosterRequestsTable.status, "pending"),
+          ));
+
+        if (otherPending.length > 0) {
+          await tx.update(fosterRequestsTable)
+            .set({ status: "rejected" })
+            .where(inArray(fosterRequestsTable.id, otherPending.map(r => r.id)));
+        }
+
+        return { acceptedRequest, autoRejectedRequesterIds: otherPending.map(r => r.requesterId).filter((id): id is number => id !== null) };
+      });
+
+      updated = result.acceptedRequest;
+      autoRejectedRequesterIds = result.autoRejectedRequesterIds;
+    } else {
+      const [rejectedRequest] = await db.update(fosterRequestsTable)
+        .set({ status: newStatus })
+        .where(eq(fosterRequestsTable.id, requestId))
+        .returning();
+      updated = rejectedRequest;
     }
 
     if (existingRequest.requesterId) {
@@ -290,8 +334,31 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
       }
     }
 
+    for (const rejectedRequesterId of autoRejectedRequesterIds) {
+      try {
+        await createNotification(
+          rejectedRequesterId,
+          "foster_rejected",
+          "Foster Request Rejected",
+          `Unfortunately, your foster request for "${existingRequest.petName}" has been rejected because another foster was selected.`,
+          existingRequest.petId ?? undefined,
+        );
+      } catch (err) {
+        req.log.error({ err }, "Error sending auto-rejection notification");
+      }
+    }
+
     res.json(updated);
-  } catch (err) {
+  } catch (err: unknown) {
+    const code = err instanceof Error ? (err as Error & { code?: string }).code : undefined;
+    if (code === "pet_not_available") {
+      res.status(409).json({ error: "pet_not_available", message: "This pet has already been adopted or fostered and is no longer available." });
+      return;
+    }
+    if (code === "request_not_pending") {
+      res.status(409).json({ error: "request_not_pending", message: "This request has already been processed and cannot be accepted again." });
+      return;
+    }
     req.log.error({ err }, "Error updating foster request status");
     res.status(500).json({ error: "internal_error", message: "Failed to update status" });
   }
