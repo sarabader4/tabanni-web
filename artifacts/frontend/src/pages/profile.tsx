@@ -5,7 +5,7 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useLocation } from "wouter";
 import {
-  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useDeleteLostFoundReport, useResolveLostFoundReport, useCreatePet, useDeletePet, type Pet,
+  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useDeleteLostFoundReport, useResolveLostFoundReport, useCreatePet, useDeletePet, useUpdatePet, type Pet,
 } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -2097,50 +2097,57 @@ interface AddPetModalProps {
   onSuccess: () => void;
   userName: string;
   userPhone?: string;
+  initialData?: Pet;
 }
 
-function AddPetModal({ onClose, onSuccess, userName, userPhone }: AddPetModalProps) {
+function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: AddPetModalProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const createPet = useCreatePet();
+  const updatePet = useUpdatePet();
+  const isEditMode = !!initialData;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [section, setSection] = useState<1 | 2>(1);
 
   const [form, setForm] = useState({
-    name: "",
-    type: "dog",
-    breed: "",
-    birthday: "",
-    gender: "male",
-    weightKg: "",
-    sterilized: false as boolean,
-    yearlyVaccines: false as boolean,
-    story: "",
-    whatsappUrl: "",
-    purpose: "adopt" as "adopt" | "foster" | "both",
+    name: initialData?.name ?? "",
+    type: initialData?.type ?? "dog",
+    breed: initialData?.breed ?? "",
+    birthday: initialData?.birthday ?? "",
+    gender: initialData?.gender ?? "male",
+    weightKg: initialData?.weightKg ?? "",
+    sterilized: initialData?.sterilized ?? false as boolean,
+    yearlyVaccines: initialData?.yearlyVaccines ?? false as boolean,
+    story: initialData?.story ?? "",
+    whatsappUrl: initialData?.whatsappUrl ?? "",
+    purpose: (initialData?.purpose ?? "adopt") as "adopt" | "foster" | "both",
   });
 
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>(initialData?.imageUrls ?? []);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const allDisplayedImages = [...existingImageUrls, ...imagePreviews];
 
   const ageDisplay = useMemo(() => calculateAge(form.birthday), [form.birthday]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
-    const newFiles = [...imageFiles, ...files];
-    const newPreviews = [...imagePreviews, ...files.map(f => URL.createObjectURL(f))];
-    setImageFiles(newFiles);
-    setImagePreviews(newPreviews);
+    setImageFiles(prev => [...prev, ...files]);
+    setImagePreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
   };
 
   const removeImage = (idx: number) => {
-    const newFiles = imageFiles.filter((_, i) => i !== idx);
-    const newPreviews = imagePreviews.filter((_, i) => i !== idx);
-    setImageFiles(newFiles);
-    setImagePreviews(newPreviews);
+    if (idx < existingImageUrls.length) {
+      setExistingImageUrls(prev => prev.filter((_, i) => i !== idx));
+    } else {
+      const localIdx = idx - existingImageUrls.length;
+      setImageFiles(prev => prev.filter((_, i) => i !== localIdx));
+      setImagePreviews(prev => prev.filter((_, i) => i !== localIdx));
+    }
   };
 
   const validateSection1 = () => {
@@ -2152,7 +2159,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone }: AddPetModalPro
     if (!form.gender) e.gender = t("profile.addPetErrGender");
     if (!form.weightKg.trim()) e.weightKg = t("profile.addPetErrWeight");
     if (!form.story.trim()) e.story = t("profile.addPetErrStory");
-    if (imageFiles.length === 0) e.images = t("profile.addPetErrImages");
+    if (existingImageUrls.length === 0 && imageFiles.length === 0) e.images = t("profile.addPetErrImages");
     return e;
   };
 
@@ -2201,14 +2208,15 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone }: AddPetModalPro
       return;
     }
 
-    let imageUrls: string[] = imagePreviews;
+    let newBase64: string[] = [];
     try {
       if (imageFiles.length > 0) {
-        imageUrls = await filesToBase64(imageFiles);
+        newBase64 = await filesToBase64(imageFiles);
       }
     } catch {
-      imageUrls = imagePreviews;
+      newBase64 = [];
     }
+    const imageUrls: string[] = [...existingImageUrls, ...newBase64];
 
     const ageMonths = (() => {
       if (!form.birthday) return 0;
@@ -2217,37 +2225,53 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone }: AddPetModalPro
       return Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth()));
     })();
 
-    createPet.mutate(
-      {
-        data: {
-          name: form.name,
-          type: form.type as Pet["type"],
-          breed: form.breed || undefined,
-          gender: form.gender as "male" | "female",
-          ageMonths,
-          weightKg: form.weightKg || undefined,
-          size: "medium",
-          city: "Jordan",
-          purpose: form.purpose,
-          sterilized: form.sterilized,
-          yearlyVaccines: form.yearlyVaccines,
-          birthday: form.birthday || undefined,
-          story: form.story || undefined,
-          imageUrls,
-          whatsappUrl: form.whatsappUrl || undefined,
-        },
-      },
-      {
-        onSuccess: () => {
-          toast({ title: t("profile.addPetSuccess") });
-          onSuccess();
-          onClose();
-        },
-        onError: () => {
-          toast({ title: t("profile.addPetError"), variant: "destructive" });
-        },
-      }
-    );
+    const petData = {
+      name: form.name,
+      type: form.type as Pet["type"],
+      breed: form.breed || undefined,
+      gender: form.gender as "male" | "female",
+      ageMonths,
+      weightKg: form.weightKg || undefined,
+      size: "medium",
+      city: "Jordan",
+      purpose: form.purpose,
+      sterilized: form.sterilized,
+      yearlyVaccines: form.yearlyVaccines,
+      birthday: form.birthday || undefined,
+      story: form.story || undefined,
+      imageUrls,
+      whatsappUrl: form.whatsappUrl || undefined,
+    };
+
+    if (isEditMode && initialData) {
+      updatePet.mutate(
+        { id: initialData.id, data: petData },
+        {
+          onSuccess: () => {
+            toast({ title: t("profile.updatePetSuccess") });
+            onSuccess();
+            onClose();
+          },
+          onError: () => {
+            toast({ title: t("profile.addPetError"), variant: "destructive" });
+          },
+        }
+      );
+    } else {
+      createPet.mutate(
+        { data: petData },
+        {
+          onSuccess: () => {
+            toast({ title: t("profile.addPetSuccess") });
+            onSuccess();
+            onClose();
+          },
+          onError: () => {
+            toast({ title: t("profile.addPetError"), variant: "destructive" });
+          },
+        }
+      );
+    }
   };
 
   const inputCls = (field: string) =>
@@ -2262,7 +2286,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone }: AddPetModalPro
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-[#1E2A3A]">{t("profile.addPet")}</h2>
+            <h2 className="text-lg font-bold text-[#1E2A3A]">{isEditMode ? t("profile.editPet") : t("profile.addPet")}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
               {section === 1 ? t("profile.addPetSection1") : t("profile.addPetSection2")}
             </p>
@@ -2440,9 +2464,9 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone }: AddPetModalPro
                   />
                 </div>
                 {touched.images && errors.images && <p className="text-xs text-red-500 mt-0.5">{errors.images}</p>}
-                {imagePreviews.length > 0 && (
+                {allDisplayedImages.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {imagePreviews.map((src, idx) => (
+                    {allDisplayedImages.map((src, idx) => (
                       <div key={idx} className="relative">
                         <img src={src} alt={`preview ${idx}`} className="w-16 h-16 object-cover rounded-xl border border-gray-200" />
                         <button
@@ -2484,7 +2508,11 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone }: AddPetModalPro
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetWhatsapp")} *</label>
                 <WhatsAppPhoneInput
-                  initialPhone={userPhone}
+                  initialPhone={
+                    isEditMode && initialData?.whatsappUrl
+                      ? "+" + initialData.whatsappUrl.replace("https://wa.me/", "")
+                      : userPhone
+                  }
                   onChange={url => {
                     setForm(f => ({ ...f, whatsappUrl: url }));
                     if (url) setErrors(prev => ({ ...prev, whatsappUrl: "" }));
@@ -2528,11 +2556,13 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone }: AddPetModalPro
                 </button>
                 <button
                   type="submit"
-                  disabled={createPet.isPending}
+                  disabled={createPet.isPending || updatePet.isPending}
                   className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
-                  {createPet.isPending ? (
+                  {(createPet.isPending || updatePet.isPending) ? (
                     <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t("common.submitting")}</span>
+                  ) : isEditMode ? (
+                    t("profile.saveChanges")
                   ) : (
                     t("profile.addPetSubmit")
                   )}
@@ -3115,6 +3145,8 @@ export default function Profile() {
   const [selectedPetRequest, setSelectedPetRequest] = useState<{ request: MyRequestItem; type: "adoption" | "foster" } | null>(null);
 
   const [showAddPetModal, setShowAddPetModal] = useState(false);
+  const [petToEdit, setPetToEdit] = useState<Pet | null>(null);
+  const [petToDelete, setPetToDelete] = useState<Pet | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
@@ -3534,13 +3566,59 @@ export default function Profile() {
             {/* ── My Pets Tab ── */}
             {activeTab === "My Pets" && (
               <>
-                {showAddPetModal && (
+                {(showAddPetModal || petToEdit) && (
                   <AddPetModal
-                    onClose={() => setShowAddPetModal(false)}
+                    onClose={() => { setShowAddPetModal(false); setPetToEdit(null); }}
                     onSuccess={() => refetchPets()}
                     userName={profile?.fullName ?? ""}
                     userPhone={profile?.phone ?? ""}
+                    initialData={petToEdit ?? undefined}
                   />
+                )}
+
+                {petToDelete && (
+                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                          <Trash2 className="w-5 h-5 text-red-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-[#1E2A3A] text-base">{t("profile.deletePetTitle")}</h3>
+                          <p className="text-sm text-gray-500">{t("profile.deletePetSubtitle")}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-6">
+                        {t("profile.deletePetConfirm")} <span className="font-semibold">"{petToDelete.name}"</span>?
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setPetToDelete(null)}
+                          className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                        >
+                          {t("profile.deletePetCancel")}
+                        </button>
+                        <button
+                          onClick={() => {
+                            deletePetMutation.mutate({ id: petToDelete.id }, {
+                              onSuccess: () => {
+                                toast({ title: t("profile.deletePetSuccess") });
+                                setPetToDelete(null);
+                                refetchPets();
+                              },
+                              onError: () => {
+                                toast({ title: t("profile.deletePetError"), variant: "destructive" });
+                              },
+                            });
+                          }}
+                          disabled={deletePetMutation.isPending}
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+                        >
+                          {deletePetMutation.isPending ? t("profile.deletePetDeleting") : t("profile.deletePetConfirmBtn")}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
                 {petsLoading ? (
                   <div className="flex items-center justify-center py-16">
@@ -3597,31 +3675,22 @@ export default function Profile() {
                                   {badge.label}
                                 </span>
                                 {isRejected && (
-                                  <div className="mt-2">
-                                    <p className="text-xs text-red-600 mb-2">Your submission did not meet our guidelines. You may delete it and submit a new one.</p>
-                                    <div className="flex gap-2">
-                                      <button
-                                        onClick={() => {
-                                          if (confirm(`Delete "${pet.name}"?`)) {
-                                            deletePetMutation.mutate({ id: pet.id }, {
-                                              onSuccess: () => refetchPets(),
-                                            });
-                                          }
-                                        }}
-                                        disabled={deletePetMutation.isPending}
-                                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-50"
-                                      >
-                                        <Trash2 className="w-3 h-3" /> Delete
-                                      </button>
-                                      <button
-                                        onClick={() => setShowAddPetModal(true)}
-                                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-semibold transition-colors"
-                                      >
-                                        <Plus className="w-3 h-3" /> Resubmit
-                                      </button>
-                                    </div>
-                                  </div>
+                                  <p className="text-xs text-red-600 mt-2">Your submission did not meet our guidelines.</p>
                                 )}
+                                <div className="flex gap-2 mt-3">
+                                  <button
+                                    onClick={() => setPetToEdit(pet)}
+                                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition-colors"
+                                  >
+                                    <Edit2 className="w-3 h-3" /> Edit Pet Info
+                                  </button>
+                                  <button
+                                    onClick={() => setPetToDelete(pet)}
+                                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition-colors"
+                                  >
+                                    <Trash2 className="w-3 h-3" /> Delete Pet
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           );
