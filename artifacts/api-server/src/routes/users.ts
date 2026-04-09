@@ -2,6 +2,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable, notificationsTable } from "@workspace/db";
 import { eq, desc, and, sql, lt } from "drizzle-orm";
 import { UpdateMyProfileBody } from "@workspace/api-zod";
+import bcrypt from "bcryptjs";
 
 const router: IRouter = Router();
 
@@ -34,9 +35,12 @@ router.put("/users/me", async (req, res): Promise<void> => {
       res.status(400).json({ error: "validation_error", message: "Invalid request body", details: parsed.error.issues });
       return;
     }
-    const { fullName, email, phone, country, city, avatarUrl } = parsed.data;
+    const { fullName, email, phone, country, city, avatarUrl, password } = parsed.data;
+    const updateFields: Record<string, unknown> = { fullName, email, phone, country, city };
+    if (avatarUrl !== undefined) updateFields.avatarUrl = avatarUrl ?? null;
+    if (password) updateFields.passwordHash = await bcrypt.hash(password, 12);
     const [user] = await db.update(usersTable)
-      .set({ fullName, email, phone, country, city, avatarUrl })
+      .set(updateFields as any)
       .where(eq(usersTable.id, req.userId))
       .returning();
     if (!user) { res.status(404).json({ error: "not_found", message: "User not found" }); return; }

@@ -833,7 +833,8 @@ export const UpdateMyProfileBody = zod.object({
   phone: zod.string().optional(),
   country: zod.string().optional(),
   city: zod.string().optional(),
-  avatarUrl: zod.string().optional(),
+  avatarUrl: zod.string().nullish(),
+  password: zod.string().optional(),
 });
 
 export const UpdateMyProfileResponse = zod.object({

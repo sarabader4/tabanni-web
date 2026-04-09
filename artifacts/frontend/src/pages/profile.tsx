@@ -2037,7 +2037,7 @@ function validateEmail(email: string): string | undefined {
 }
 
 function validatePhone(phone: string, countryCode: CountryCode): string | undefined {
-  if (!phone.trim()) return i18next.t("profile.errPhoneRequired");
+  if (!phone.trim()) return undefined;
   const parsed = parsePhoneNumberFromString(phone, countryCode);
   if (!parsed || !parsed.isValid()) return i18next.t("profile.errPhoneInvalid");
   return undefined;
@@ -2079,7 +2079,6 @@ function validateForm(form: FormState): ErrorsState {
   if (pwErr) errors.password = pwErr;
   const phoneErr = validatePhone(form.phone, form.country.code);
   if (phoneErr) errors.phone = phoneErr;
-  if (!form.city.trim()) errors.city = i18next.t("profile.errCityRequired");
   return errors;
 }
 
@@ -3217,16 +3216,17 @@ export default function Profile() {
     setTouched({ fullName: true, email: true, password: false, phone: true, country: true, city: true });
     if (!isFormValid) return;
 
-    const parsedPhone = parsePhoneNumberFromString(form.phone, form.country.code);
-    const e164Phone = parsedPhone?.format("E.164") ?? `${form.country.dialCode}${form.phone.replace(/\D/g, "")}`;
-
     const updateData: Record<string, string> = {
       fullName: form.fullName,
       email: form.email,
-      phone: e164Phone,
       country: form.country.name,
       city: form.city,
     };
+
+    if (form.phone.trim()) {
+      const parsedPhone = parsePhoneNumberFromString(form.phone, form.country.code);
+      updateData.phone = parsedPhone?.format("E.164") ?? `${form.country.dialCode}${form.phone.replace(/\D/g, "")}`;
+    }
 
     if (passwordChanged && form.password) {
       updateData.password = form.password;
