@@ -1,12 +1,13 @@
 import { useParams, Link, useLocation } from "wouter";
 import { useGetPet, useCreateAdoptionRequest, useCreateFosterRequest } from "@workspace/api-client-react";
-import { ArrowLeft, Loader2, Heart, Share2, CheckCircle2, Phone, User, Lightbulb } from "lucide-react";
+import { ArrowLeft, Loader2, Heart, Share2, CheckCircle2, Phone, User, Lightbulb, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AIPetMatchWidget from "@/components/ai-pet-match-widget";
 import { useFavourites } from "@/hooks/use-favourites";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslation } from "react-i18next";
+import { useState, useEffect, useCallback } from "react";
 
 export default function PetDetail() {
   const { id } = useParams();
@@ -16,10 +17,21 @@ export default function PetDetail() {
   const { t } = useTranslation();
   const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
   const { user } = useAuth();
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const petId = Number(id);
   const favourited = isFavourited(petId);
   const isPending = isPendingFor(petId);
+
+  const closeLightbox = useCallback(() => setLightboxIndex(null), []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [closeLightbox]);
 
   const handleFavourite = async () => {
     if (!isLoggedIn) {
@@ -86,6 +98,7 @@ export default function PetDetail() {
     if (!user) { navigate("/login"); toast({ title: t("petDetail.pleaseLoginFirst") }); return; }
     if (!user.isOnboardingCompleted) {
       toast({ title: t("petDetail.completeForm"), description: t("petDetail.completeFormDesc") });
+      sessionStorage.setItem("pendingRequest", JSON.stringify({ petId: Number(id), type: "adoption" }));
       navigate("/profile?tab=My+Requests&openForm=true");
       return;
     }
@@ -96,6 +109,7 @@ export default function PetDetail() {
     if (!user) { navigate("/login"); toast({ title: t("petDetail.pleaseLoginFirst") }); return; }
     if (!user.isOnboardingCompleted) {
       toast({ title: t("petDetail.completeForm"), description: t("petDetail.completeFormDesc") });
+      sessionStorage.setItem("pendingRequest", JSON.stringify({ petId: Number(id), type: "foster" }));
       navigate("/profile?tab=My+Requests&openForm=true");
       return;
     }
@@ -127,17 +141,24 @@ export default function PetDetail() {
       <div className="grid lg:grid-cols-2 gap-12">
         {/* Left column: Image + Pet Story + General Tips */}
         <div className="space-y-6">
-          <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-border">
+          <div
+            className={`aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-border ${pet.imageUrls && pet.imageUrls.length > 0 ? "cursor-pointer" : ""}`}
+            onClick={() => { if (pet.imageUrls && pet.imageUrls.length > 0) setLightboxIndex(0); }}
+          >
             <img
               src={pet.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800"}
               alt={pet.name}
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover ${pet.imageUrls && pet.imageUrls.length > 0 ? "hover:scale-105 transition-transform duration-300" : ""}`}
             />
           </div>
           {pet.imageUrls && pet.imageUrls.length > 1 && (
             <div className="grid grid-cols-4 gap-4">
               {pet.imageUrls.slice(1).map((img, i) => (
-                <div key={i} className="aspect-square rounded-xl overflow-hidden border border-border cursor-pointer hover:opacity-80 transition-opacity">
+                <div
+                  key={i}
+                  className="aspect-square rounded-xl overflow-hidden border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setLightboxIndex(i + 1)}
+                >
                   <img src={img} alt={`${pet.name} ${i}`} className="w-full h-full object-cover" />
                 </div>
               ))}
@@ -267,23 +288,31 @@ export default function PetDetail() {
 
           {/* Action Buttons */}
           <div className="flex gap-4 p-6 bg-muted/30 rounded-3xl border border-border mb-6">
-            {(pet.purpose === "adopt" || pet.purpose === "both") && (
-              <button
-                onClick={handleAdopt}
-                disabled={adoptMutation.isPending}
-                className="flex-1 bg-primary hover:bg-primary/90 text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 disabled:opacity-50"
-              >
-                {adoptMutation.isPending ? t("petDetail.sending") : t("petDetail.requestAdoption")}
-              </button>
-            )}
-            {(pet.purpose === "foster" || pet.purpose === "both") && (
-              <button
-                onClick={handleFoster}
-                disabled={fosterMutation.isPending}
-                className="flex-1 bg-secondary hover:bg-secondary/90 text-white py-4 rounded-2xl font-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 disabled:opacity-50"
-              >
-                {fosterMutation.isPending ? t("petDetail.sending") : t("petDetail.requestFoster")}
-              </button>
+            {user && pet.ownerId && user.id === pet.ownerId ? (
+              <div className="flex-1 py-4 rounded-2xl border-2 border-dashed border-muted-foreground/30 text-center text-muted-foreground font-semibold text-sm">
+                {t("petDetail.yourPet", "This is your pet")}
+              </div>
+            ) : (
+              <>
+                {(pet.purpose === "adopt" || pet.purpose === "both") && (
+                  <button
+                    onClick={handleAdopt}
+                    disabled={adoptMutation.isPending}
+                    className="flex-1 bg-primary hover:bg-primary/90 text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                  >
+                    {adoptMutation.isPending ? t("petDetail.sending") : t("petDetail.requestAdoption")}
+                  </button>
+                )}
+                {(pet.purpose === "foster" || pet.purpose === "both") && (
+                  <button
+                    onClick={handleFoster}
+                    disabled={fosterMutation.isPending}
+                    className="flex-1 bg-secondary hover:bg-secondary/90 text-white py-4 rounded-2xl font-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                  >
+                    {fosterMutation.isPending ? t("petDetail.sending") : t("petDetail.requestFoster")}
+                  </button>
+                )}
+              </>
             )}
           </div>
 
@@ -328,6 +357,28 @@ export default function PetDetail() {
           }}
         />
       </div>
+
+      {/* Image Lightbox */}
+      {lightboxIndex !== null && pet.imageUrls && pet.imageUrls.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+          onClick={closeLightbox}
+        >
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={pet.imageUrls[lightboxIndex] || ""}
+            alt={`${pet.name} ${lightboxIndex + 1}`}
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

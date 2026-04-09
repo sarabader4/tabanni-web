@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut, Plus, Camera, Inbox, Trash2, ChevronRight, ChevronLeft, ClipboardList,
+  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut, Plus, Camera, Inbox, Trash2, ChevronRight, ChevronLeft, ClipboardList, Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useLocation } from "wouter";
 import {
-  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useDeleteLostFoundReport, useResolveLostFoundReport, useCreatePet, useDeletePet, useUpdatePet, type Pet,
+  useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useDeleteLostFoundReport, useResolveLostFoundReport, useCreatePet, useDeletePet, useUpdatePet, useAiGenerateDescription, type Pet,
 } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -550,6 +550,34 @@ function ReadinessProfileSection() {
       toast({ title: t("profile.readinessFormSaved") });
       setProfileData({ ...editForm });
       cancelEdit();
+
+      const pendingRaw = sessionStorage.getItem("pendingRequest");
+      if (pendingRaw) {
+        sessionStorage.removeItem("pendingRequest");
+        try {
+          const pending = JSON.parse(pendingRaw) as { petId: number; type: "adoption" | "foster" };
+          const endpoint = pending.type === "adoption" ? "/api/adoption-requests" : "/api/foster-requests";
+          const requestRes = await fetch(endpoint, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ petId: pending.petId, message: pending.type === "adoption" ? "I would love to adopt this pet." : "I would love to foster this pet." }),
+          });
+          if (requestRes.ok) {
+            toast({ title: pending.type === "adoption" ? t("petDetail.adoptionSent") : t("petDetail.fosterSent"), description: t("petDetail.ownerContact") });
+            queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
+          } else {
+            const errData = await requestRes.json().catch(() => ({}));
+            if (errData?.error === "duplicate_request") {
+              toast({ title: t("petDetail.requestExists"), description: t("petDetail.requestExistsDesc"), variant: "destructive" });
+            } else {
+              toast({ title: t("petDetail.error"), description: t("petDetail.failedRequest"), variant: "destructive" });
+            }
+          }
+        } catch {
+          toast({ title: t("petDetail.error"), description: t("petDetail.failedRequest"), variant: "destructive" });
+        }
+      }
     } catch (err) {
       toast({ title: err instanceof Error ? err.message : "Failed to save", variant: "destructive" });
     } finally {
@@ -1921,6 +1949,35 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
       }
       queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
       toast({ title: t("profile.readinessFormSaved") });
+
+      const pendingRaw = sessionStorage.getItem("pendingRequest");
+      if (pendingRaw) {
+        sessionStorage.removeItem("pendingRequest");
+        try {
+          const pending = JSON.parse(pendingRaw) as { petId: number; type: "adoption" | "foster" };
+          const endpoint = pending.type === "adoption" ? "/api/adoption-requests" : "/api/foster-requests";
+          const requestRes = await fetch(endpoint, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ petId: pending.petId, message: pending.type === "adoption" ? "I would love to adopt this pet." : "I would love to foster this pet." }),
+          });
+          if (requestRes.ok) {
+            toast({ title: pending.type === "adoption" ? t("petDetail.adoptionSent") : t("petDetail.fosterSent"), description: t("petDetail.ownerContact") });
+            queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
+          } else {
+            const errData = await requestRes.json().catch(() => ({}));
+            if (errData?.error === "duplicate_request") {
+              toast({ title: t("petDetail.requestExists"), description: t("petDetail.requestExistsDesc"), variant: "destructive" });
+            } else {
+              toast({ title: t("petDetail.error"), description: t("petDetail.failedRequest"), variant: "destructive" });
+            }
+          }
+        } catch {
+          toast({ title: t("petDetail.error"), description: t("petDetail.failedRequest"), variant: "destructive" });
+        }
+      }
+
       onClose();
     } catch (err) {
       toast({ title: err instanceof Error ? err.message : "Failed to save", variant: "destructive" });
@@ -2135,6 +2192,35 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const aiGenerateMutation = useAiGenerateDescription({
+    mutation: {
+      onSuccess: (data) => {
+        const text = data.description ?? data.story;
+        if (text) setForm(f => ({ ...f, story: text }));
+      },
+      onError: () => {
+        toast({ title: t("profile.aiGenerateFailed", "Failed to generate story. Please try again."), variant: "destructive" });
+      },
+    },
+  });
+  const generatingStory = aiGenerateMutation.isPending;
+
+  const generateAIStory = () => {
+    const ageMonths = form.birthday
+      ? Math.max(0, (new Date().getFullYear() - new Date(form.birthday).getFullYear()) * 12 + (new Date().getMonth() - new Date(form.birthday).getMonth()))
+      : 0;
+    aiGenerateMutation.mutate({
+      data: {
+        pet: {
+          name: form.name || "this pet",
+          type: form.type as "dog" | "cat" | "rabbit" | "bird" | "other",
+          breed: form.breed || undefined,
+          gender: form.gender as "male" | "female",
+          ageMonths,
+        },
+      },
+    });
+  };
 
   const allDisplayedImages = [...existingImageUrls, ...imagePreviews];
 
@@ -2438,7 +2524,23 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetStory")} *</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-500">{t("profile.addPetStory")} *</label>
+                  <button
+                    type="button"
+                    onClick={generateAIStory}
+                    disabled={generatingStory}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                    style={{ background: "#FF6B35" }}
+                  >
+                    {generatingStory ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3" />
+                    )}
+                    {t("profile.generateWithAI", "Generate with AI")}
+                  </button>
+                </div>
                 <textarea
                   value={form.story}
                   onChange={e => setForm(f => ({ ...f, story: e.target.value }))}

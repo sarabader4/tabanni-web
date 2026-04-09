@@ -178,6 +178,14 @@ router.post("/adoption-requests", requireAuth, async (req, res): Promise<void> =
 
     const { petId, message } = parsed.data;
 
+    const [pet] = await db.select({ ownerId: petsTable.ownerId, name: petsTable.name })
+      .from(petsTable).where(eq(petsTable.id, petId));
+
+    if (pet?.ownerId === req.userId) {
+      res.status(403).json({ error: "own_pet", message: "You cannot submit a request for your own pet" });
+      return;
+    }
+
     const existing = await db.select({ id: adoptionRequestsTable.id })
       .from(adoptionRequestsTable)
       .where(and(
@@ -192,9 +200,6 @@ router.post("/adoption-requests", requireAuth, async (req, res): Promise<void> =
     }
 
     const [request] = await db.insert(adoptionRequestsTable).values({ petId, requesterId: req.userId, message }).returning();
-
-    const [pet] = await db.select({ ownerId: petsTable.ownerId, name: petsTable.name })
-      .from(petsTable).where(eq(petsTable.id, petId));
 
     if (pet?.ownerId && pet.ownerId !== req.userId) {
       try {
