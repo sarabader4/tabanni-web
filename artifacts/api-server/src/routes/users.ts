@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable, notificationsTable } from "@workspace/db";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, notInArray } from "drizzle-orm";
 import { UpdateMyProfileBody } from "@workspace/api-zod";
 import bcrypt from "bcryptjs";
 
@@ -96,7 +96,10 @@ router.get("/users/me/applications", async (req, res): Promise<void> => {
       })
         .from(adoptionRequestsTable)
         .leftJoin(petsTable, eq(adoptionRequestsTable.petId, petsTable.id))
-        .where(eq(adoptionRequestsTable.requesterId, req.userId))
+        .where(and(
+          eq(adoptionRequestsTable.requesterId, req.userId),
+          notInArray(adoptionRequestsTable.status, ["in_progress", "completed"]),
+        ))
         .orderBy(desc(adoptionRequestsTable.createdAt)),
       db.select({
         id: fosterRequestsTable.id,
@@ -117,7 +120,10 @@ router.get("/users/me/applications", async (req, res): Promise<void> => {
       })
         .from(fosterRequestsTable)
         .leftJoin(petsTable, eq(fosterRequestsTable.petId, petsTable.id))
-        .where(eq(fosterRequestsTable.requesterId, req.userId))
+        .where(and(
+          eq(fosterRequestsTable.requesterId, req.userId),
+          notInArray(fosterRequestsTable.status, ["in_progress", "completed"]),
+        ))
         .orderBy(desc(fosterRequestsTable.createdAt)),
     ]);
 

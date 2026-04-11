@@ -49,6 +49,7 @@ function useMarkNotificationRead() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users/me/notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/applications"] });
     },
   });
 }
