@@ -2102,7 +2102,13 @@ function validatePhone(phone: string, countryCode: CountryCode): string | undefi
 
 function validatePassword(password: string): string | undefined {
   if (!password || password === PASSWORD_SENTINEL) return undefined;
-  if (password.length < 8) return i18next.t("profile.errPasswordLength");
+  if (
+    password.length < 6 ||
+    !/[a-z]/.test(password) ||
+    !/[A-Z]/.test(password) ||
+    !/[0-9]/.test(password) ||
+    !/[^a-zA-Z0-9]/.test(password)
+  ) return i18next.t("profile.errPasswordLength");
   return undefined;
 }
 

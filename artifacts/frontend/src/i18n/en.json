@@ -204,7 +204,8 @@
     "signUp": "Sign Up",
     "fillFields": "Please fill in all fields.",
     "loginFailed": "Login failed. Please try again.",
-    "placeholderEmail": "you@example.com"
+    "placeholderEmail": "you@example.com",
+    "invalidPassword": "Password must contain uppercase, lowercase, a number, and a symbol"
   },
   "register": {
     "subtitle": "Create your account to get started.",
@@ -219,7 +220,7 @@
     "alreadyHaveAccount": "Already have an account?",
     "signIn": "Sign In",
     "fillRequired": "Please fill in all required fields.",
-    "passwordLength": "Password must be at least 6 characters.",
+    "passwordLength": "Password must be at least 6 characters and include an uppercase letter, lowercase letter, number, and symbol",
     "passwordMatch": "Passwords do not match.",
     "registrationFailed": "Registration failed. Please try again.",
     "minChars": "Min. 6 characters",
@@ -624,8 +625,8 @@
     "errEmailInvalid": "Invalid email address",
     "errPhoneRequired": "Phone number is required",
     "errPhoneInvalid": "Invalid phone number for selected country",
-    "errPasswordLength": "Password must be at least 8 characters",
-    "errCityRequired": "City cannot be empty",
+    "errPasswordLength": "Password must be at least 6 characters and include an uppercase letter, lowercase letter, number, and symbol",
+    "errCityRequired": "City is required",
     "strengthPassword": "Password strength:",
     "strengthWeak": "Weak",
     "strengthMedium": "Medium",

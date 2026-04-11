@@ -36,6 +36,14 @@ router.put("/users/me", async (req, res): Promise<void> => {
       return;
     }
     const { fullName, email, phone, country, city, avatarUrl, password } = parsed.data;
+    if (password && password.length < 6) {
+      res.status(400).json({ error: "validation_error", message: "Password must be at least 6 characters long" });
+      return;
+    }
+    if (password && (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^a-zA-Z0-9]/.test(password))) {
+      res.status(400).json({ error: "validation_error", message: "Password must contain at least one uppercase letter, lowercase letter, number, and symbol" });
+      return;
+    }
     const updateFields: Record<string, unknown> = { fullName, email, phone, country, city };
     if (avatarUrl !== undefined) updateFields.avatarUrl = avatarUrl ?? null;
     if (password) updateFields.passwordHash = await bcrypt.hash(password, 12);

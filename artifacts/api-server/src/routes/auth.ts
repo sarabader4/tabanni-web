@@ -34,7 +34,11 @@ router.post("/auth/register", async (req, res) => {
       return;
     }
     if (password.length < 6) {
-      res.status(400).json({ error: "validation_error", message: "Password must be at least 6 characters" });
+      res.status(400).json({ error: "validation_error", message: "Password must be at least 6 characters long" });
+      return;
+    }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^a-zA-Z0-9]/.test(password)) {
+      res.status(400).json({ error: "validation_error", message: "Password must contain at least one uppercase letter, lowercase letter, number, and symbol" });
       return;
     }
 

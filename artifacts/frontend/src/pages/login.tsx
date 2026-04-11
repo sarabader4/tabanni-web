@@ -22,6 +22,16 @@ export default function Login() {
       setError(t("login.fillFields"));
       return;
     }
+    if (
+      password.length < 6 ||
+      !/[a-z]/.test(password) ||
+      !/[A-Z]/.test(password) ||
+      !/[0-9]/.test(password) ||
+      !/[^a-zA-Z0-9]/.test(password)
+    ) {
+      setError(t("login.invalidPassword"));
+      return;
+    }
     setIsLoading(true);
     try {
       await login(email, password);

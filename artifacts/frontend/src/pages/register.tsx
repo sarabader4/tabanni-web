@@ -31,7 +31,13 @@ export default function Register() {
       setError(t("register.cityRequired"));
       return;
     }
-    if (password.length < 6) {
+    if (
+      password.length < 6 ||
+      !/[a-z]/.test(password) ||
+      !/[A-Z]/.test(password) ||
+      !/[0-9]/.test(password) ||
+      !/[^a-zA-Z0-9]/.test(password)
+    ) {
       setError(t("register.passwordLength"));
       return;
     }

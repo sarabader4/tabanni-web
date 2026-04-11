@@ -204,7 +204,8 @@
     "signUp": "إنشاء حساب",
     "fillFields": "يرجى ملء جميع الحقول.",
     "loginFailed": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
-    "placeholderEmail": "بريدك@مثال.com"
+    "placeholderEmail": "بريدك@مثال.com",
+    "invalidPassword": "يجب أن تحتوي كلمة المرور على حرف كبير وحرف صغير ورقم ورمز"
   },
   "register": {
     "subtitle": "أنشئ حسابك للبدء.",
@@ -219,7 +220,7 @@
     "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
     "signIn": "تسجيل الدخول",
     "fillRequired": "يرجى ملء جميع الحقول المطلوبة.",
-    "passwordLength": "يجب أن تكون كلمة المرور 6 أحرف على الأقل.",
+    "passwordLength": "يجب أن تكون كلمة المرور 6 أحرف على الأقل وتحتوي على حرف كبير وحرف صغير ورقم ورمز",
     "passwordMatch": "كلمتا المرور غير متطابقتين.",
     "registrationFailed": "فشل التسجيل. يرجى المحاولة مرة أخرى.",
     "minChars": "الحد الأدنى 6 أحرف",
@@ -624,8 +625,8 @@
     "errEmailInvalid": "عنوان البريد الإلكتروني غير صالح",
     "errPhoneRequired": "رقم الهاتف مطلوب",
     "errPhoneInvalid": "رقم الهاتف غير صالح للدولة المحددة",
-    "errPasswordLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
-    "errCityRequired": "لا يمكن أن تكون المدينة فارغة",
+    "errPasswordLength": "يجب أن تكون كلمة المرور 6 أحرف على الأقل وتحتوي على حرف كبير وحرف صغير ورقم ورمز",
+    "errCityRequired": "المدينة مطلوبة",
     "strengthPassword": "قوة كلمة المرور:",
     "strengthWeak": "ضعيفة",
     "strengthMedium": "متوسطة",
