@@ -3281,11 +3281,13 @@ export default function Profile() {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab");
     const openForm = params.get("openForm");
+    const addPet = params.get("addPet");
     if (tab) {
       setActiveTab(tab);
       if (adoptionFosterTabs.includes(tab)) setAdoptionFosterOpen(true);
     }
     if (openForm === "true") setShowReadinessForm(true);
+    if (addPet === "true") setShowAddPetModal(true);
   }, []);
 
   const errors = useMemo(() => validateForm(form), [form]);

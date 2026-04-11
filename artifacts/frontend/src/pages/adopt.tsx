@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useListPets } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
@@ -50,9 +50,8 @@ export default function Adopt() {
 
   const ageRange = parseAgeRange(filters.minAge);
 
-  const { data, isLoading, isError } = useListPets({
+  const { data: rawData, isLoading, isError } = useListPets({
     purpose: purpose === "both" ? undefined : purpose,
-    search: search || undefined,
     type: filters.type || undefined,
     gender: filters.gender || undefined,
     size: filters.size || undefined,
@@ -61,9 +60,23 @@ export default function Adopt() {
     sterilized: sterilizedParam,
     minAge: ageRange.minAge,
     maxAge: ageRange.maxAge,
-    page,
-    limit: pageSize,
+    limit: 1000,
   });
+
+  const data = (() => {
+    if (!rawData) return rawData;
+    if (!search.trim()) return { ...rawData, pets: rawData.pets?.slice((page - 1) * pageSize, page * pageSize), total: rawData.pets?.length ?? 0 };
+    const tokens = search.trim().toLowerCase().split(/\s+/);
+    const filtered = (rawData.pets ?? []).filter((pet) => {
+      const haystack = [
+        pet.name, pet.type, pet.gender, pet.size, pet.city, pet.breed,
+        pet.ageMonths != null ? String(pet.ageMonths) : "",
+        pet.sterilized != null ? (pet.sterilized ? "yes sterilized" : "no not sterilized") : "",
+      ].join(" ").toLowerCase();
+      return tokens.every((token) => haystack.includes(token));
+    });
+    return { ...rawData, pets: filtered.slice((page - 1) * pageSize, page * pageSize), total: filtered.length };
+  })();
 
   const totalPages = Math.ceil((data?.total ?? 0) / pageSize) || 1;
 
@@ -88,15 +101,21 @@ export default function Adopt() {
               className="w-full bg-white border border-gray-200 rounded-xl ps-12 pe-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
           </div>
-          <Link
-            href="/#ai-pet-match"
+          <button
+            onClick={() => {
+              if (window.location.pathname === "/") {
+                document.getElementById("ai-pet-match")?.scrollIntoView({ behavior: "smooth" });
+              } else {
+                window.location.href = "/#ai-pet-match";
+              }
+            }}
             className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap"
             style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
             title={t("home.aiPetMatchTooltip")}
           >
             <Sparkles className="w-4 h-4" />
             {t("home.aiPetMatch")}
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -167,10 +186,13 @@ export default function Adopt() {
 
         {/* Bottom row: floating add + pagination */}
         <div className="flex justify-between items-center mt-8">
-          <Link href="/profile" className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 transition-all">
+          <button
+            onClick={() => navigate("/profile?tab=My%20Pets&addPet=true")}
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 transition-all"
+          >
             <Plus className="w-4 h-4" />
             {t("adopt.addPet")}
-          </Link>
+          </button>
           <div className="flex gap-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}

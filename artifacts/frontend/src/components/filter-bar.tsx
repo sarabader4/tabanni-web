@@ -20,7 +20,7 @@ interface FilterBarProps {
   showSterilized?: boolean;
 }
 
-const petTypes = ["Dog", "Cat", "Rabbit", "Bird", "Other"];
+const petTypes = ["Dog", "Cat", "Other"];
 const genders = ["Male", "Female"];
 const sizes = ["Small", "Medium", "Large"];
 const cities = [
@@ -29,10 +29,8 @@ const cities = [
 ];
 
 const breedsByType: Record<string, string[]> = {
-  dog: ["Golden Retriever", "Husky", "Labrador", "German Shepherd", "Poodle", "Beagle", "Mixed"],
-  cat: ["Persian", "Siamese", "Maine Coon", "British Shorthair", "Ragdoll", "Mixed"],
-  rabbit: ["Holland Lop", "Mini Rex", "Lionhead", "Dutch", "Mixed"],
-  bird: ["Parakeet", "Cockatiel", "Canary", "Lovebird", "African Grey", "Mixed"],
+  dog: ["Golden Retriever", "Husky", "Labrador", "German Shepherd", "Poodle", "Beagle", "Bulldog", "Rottweiler", "Shih Tzu", "Mixed"],
+  cat: ["Persian", "Siamese", "Maine Coon", "British Shorthair", "Ragdoll", "Abyssinian", "Bengal", "Sphynx", "Mixed"],
   other: ["Mixed", "Other"],
 };
 
