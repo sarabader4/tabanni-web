@@ -1,0 +1,66 @@
+UI Changes in Lost & Found Page:
+Remove the following buttons completely:
+"Delete" button
+"Found My Pet" button (for lost pets)
+"Found Owner" button (for found pets)
+2. User Profile → Lost & Found Section:
+Keep only:
+"Found My Pet" button for lost pets
+"Found Owner" button for found pets
+Do NOT modify or remove any other UI elements or features.
+3. Admin Approval Workflow (NEW):
+When a user submits a Lost/Found pet report:
+The report should NOT be مباشرة visible on the Lost & Found page.
+Instead, it should be sent to the Admin Dashboard with status: Pending.
+In the Admin Dashboard:
+Admin can:
+Approve the report → status changes to Approved
+Reject the report → status changes to Rejected
+Only if the report is Approved:
+It will appear on the Lost & Found page
+If Rejected:
+It will NOT appear publicly
+(Optional) Notify the user with rejection reason
+4. Functionality Enhancement (Reuniting Pets):
+
+When the user clicks:
+
+"Found My Pet" (for lost pets), OR
+"Found Owner" (for found pets)
+
+The system should automatically:
+
+Remove the pet record from:
+Lost & Found page
+User Profile → Lost & Found section (for the reporting user)
+5. Data Consistency:
+Ensure all removals are synchronized between:
+Frontend UI
+Backend database
+Once removed:
+The pet should not reappear unless re-reported manually.
+6. Status Handling (Recommended):
+Each report should have a status:
+Pending (waiting for admin approval)
+Approved (visible in Lost & Found)
+Rejected (not visible)
+Resolved (pet reunited and removed)
+7. Optional UX Enhancements:
+Show confirmation before marking as resolved:
+"Are you sure the pet has been reunited?"
+Show success message after removal:
+"Pet record successfully removed."
+Notify user when:
+Report is approved
+Report is rejected
+8. Constraints:
+Do NOT change any other system features or existing logic.
+Only apply the above enhancements while maintaining current system structure and design.
+
+Ensure the system provides a smooth workflow between users and admin, with clear status tracking and clean UI behavior.
+
+If you want next step, I can:
+
+turn this into database schema (tables + fields)
+or API endpoints (backend logic)
+or UI wireframe flow 🚀
