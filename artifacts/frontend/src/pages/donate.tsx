@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useTranslation } from "react-i18next";
 
 const BASE = import.meta.env.BASE_URL;
@@ -80,13 +80,13 @@ function StripeCardForm({
       if (!resp.ok) throw new Error(t("donate.couldNotInitiatePayment"));
       const { clientSecret } = await resp.json();
 
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) throw new Error(t("donate.cardElementNotFound"));
+      const cardNumberElement = elements.getElement(CardNumberElement);
+      if (!cardNumberElement) throw new Error(t("donate.cardElementNotFound"));
 
       const paymentIntentId = clientSecret.split("_secret_")[0];
 
       const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: { card: cardElement },
+        payment_method: { card: cardNumberElement },
       });
 
       if (result.error) {
@@ -116,11 +116,33 @@ function StripeCardForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="bg-muted/50 rounded-xl p-4 border border-border">
-        <label className="text-xs font-bold text-muted-foreground block mb-3 uppercase tracking-wide">
-          {t("donate.cardDetails")}
-        </label>
-        <CardElement options={CARD_ELEMENT_OPTIONS} />
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <label className="text-xs font-bold text-muted-foreground block uppercase tracking-wide">
+            {t("donate.cardNumber")}
+          </label>
+          <div className="bg-muted/50 rounded-xl px-4 py-3 border border-border">
+            <CardNumberElement options={CARD_ELEMENT_OPTIONS} />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-muted-foreground block uppercase tracking-wide">
+              {t("donate.expiryDate")}
+            </label>
+            <div className="bg-muted/50 rounded-xl px-4 py-3 border border-border">
+              <CardExpiryElement options={CARD_ELEMENT_OPTIONS} />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-muted-foreground block uppercase tracking-wide">
+              {t("donate.cvc")}
+            </label>
+            <div className="bg-muted/50 rounded-xl px-4 py-3 border border-border">
+              <CardCvcElement options={CARD_ELEMENT_OPTIONS} />
+            </div>
+          </div>
+        </div>
       </div>
       {cardError && (
         <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 rounded-xl px-4 py-3">
