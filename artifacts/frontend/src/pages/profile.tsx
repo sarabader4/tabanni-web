@@ -4101,9 +4101,9 @@ export default function Profile() {
                         }`}
                       >
                         <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
-                          notif.status === "accepted" ? "bg-green-100" : "bg-red-100"
+                          (notif.type?.includes("accepted") || notif.type?.startsWith("new_")) ? "bg-green-100" : "bg-red-100"
                         }`}>
-                          {notif.status === "accepted"
+                          {(notif.type?.includes("accepted") || notif.type?.startsWith("new_"))
                             ? <CheckCircle2 className="w-5 h-5 text-green-600" />
                             : <XCircle className="w-5 h-5 text-red-500" />
                           }
@@ -4114,11 +4114,11 @@ export default function Profile() {
                               {notif.petName ?? t("profile.yourPet")}
                             </span>
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                              notif.status === "accepted"
+                              (notif.type?.includes("accepted") || notif.type?.startsWith("new_"))
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-500"
                             }`}>
-                              {notif.status === "accepted" ? t("profile.notifAccepted") : t("profile.notifRejected")}
+                              {(notif.type?.includes("accepted") || notif.type?.startsWith("new_")) ? t("profile.notifAccepted") : t("profile.notifRejected")}
                             </span>
                             {!notif.read && (
                               <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
