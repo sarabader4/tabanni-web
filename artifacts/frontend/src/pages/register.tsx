@@ -12,6 +12,7 @@ export default function Register() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,6 +27,10 @@ export default function Register() {
       setError(t("register.fillRequired"));
       return;
     }
+    if (!city.trim()) {
+      setError(t("register.cityRequired"));
+      return;
+    }
     if (password.length < 6) {
       setError(t("register.passwordLength"));
       return;
@@ -37,7 +42,7 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      await register({ fullName, email, phone: phone || undefined, password });
+      await register({ fullName, email, phone: phone || undefined, city: city.trim(), password });
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("register.registrationFailed"));
@@ -111,6 +116,21 @@ export default function Register() {
                 placeholder={t("register.placeholderPhone")}
                 className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
                 autoComplete="tel"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
+                {t("register.city")} <span className="text-[#FF6B35]">{t("register.required")}</span>
+              </label>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder={t("register.placeholderCity")}
+                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
+                autoComplete="address-level2"
                 disabled={isLoading}
               />
             </div>

@@ -227,7 +227,10 @@
     "required": "*",
     "placeholderName": "سارة أحمد",
     "placeholderEmail": "you@example.com",
-    "placeholderPhone": "+962 79 xxxxxxx"
+    "placeholderPhone": "+962 79 xxxxxxx",
+    "city": "المدينة",
+    "cityRequired": "المدينة مطلوبة",
+    "placeholderCity": "مثال: عمّان"
   },
   "common": {
     "loading": "جارٍ التحميل...",
@@ -622,7 +625,7 @@
     "errPhoneRequired": "رقم الهاتف مطلوب",
     "errPhoneInvalid": "رقم الهاتف غير صالح للدولة المحددة",
     "errPasswordLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
-    "errCityRequired": "المدينة مطلوبة",
+    "errCityRequired": "لا يمكن أن تكون المدينة فارغة",
     "strengthPassword": "قوة كلمة المرور:",
     "strengthWeak": "ضعيفة",
     "strengthMedium": "متوسطة",
@@ -891,5 +894,15 @@
       "title": "تم رفض طلب الاحتضان",
       "message": "تم رفض طلب الاحتضان الخاص بك."
     }
+  },
+  "cityGate": {
+    "title": "ما هي مدينتك؟",
+    "subtitle": "يرجى إضافة مدينتك للمتابعة في استخدام المنصة.",
+    "cityLabel": "المدينة",
+    "placeholder": "مثال: عمّان",
+    "cityRequired": "المدينة مطلوبة",
+    "saveFailed": "فشل حفظ المدينة. يرجى المحاولة مرة أخرى.",
+    "saving": "جارٍ الحفظ...",
+    "save": "حفظ ومتابعة"
   }
 }

@@ -2136,6 +2136,7 @@ function validateForm(form: FormState): ErrorsState {
   if (pwErr) errors.password = pwErr;
   const phoneErr = validatePhone(form.phone, form.country.code);
   if (phoneErr) errors.phone = phoneErr;
+  if (!form.city.trim()) errors.city = i18next.t("profile.errCityRequired");
   return errors;
 }
 

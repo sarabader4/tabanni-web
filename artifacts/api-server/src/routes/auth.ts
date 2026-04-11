@@ -17,15 +17,20 @@ const COOKIE_OPTS = {
 
 router.post("/auth/register", async (req, res) => {
   try {
-    const { fullName, email, phone, password } = req.body as {
+    const { fullName, email, phone, city, password } = req.body as {
       fullName?: string;
       email?: string;
       phone?: string;
+      city?: string;
       password?: string;
     };
 
     if (!fullName || !email || !password) {
       res.status(400).json({ error: "validation_error", message: "fullName, email, and password are required" });
+      return;
+    }
+    if (!city || !city.trim()) {
+      res.status(400).json({ error: "validation_error", message: "City is required" });
       return;
     }
     if (password.length < 6) {
@@ -44,6 +49,7 @@ router.post("/auth/register", async (req, res) => {
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       phone: phone?.trim() ?? null,
+      city: city.trim(),
       passwordHash,
       role: "user",
     }).returning();
@@ -55,6 +61,7 @@ router.post("/auth/register", async (req, res) => {
       fullName: user.fullName,
       email: user.email,
       phone: user.phone,
+      city: user.city,
       role: user.role,
       isOnboardingCompleted: user.isOnboardingCompleted,
     });

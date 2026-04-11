@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import OnboardingModal from "@/components/onboarding-modal";
+import CityGateModal from "@/components/city-gate-modal";
 import Home from "@/pages/home";
 import Adopt from "@/pages/adopt";
 import Foster from "@/pages/foster";
@@ -55,10 +56,17 @@ function OnboardingGate() {
   return <OnboardingModal onClose={skipOnboarding} />;
 }
 
+function CityGate() {
+  const { cityGateVisible } = useAuth();
+  if (!cityGateVisible) return null;
+  return <CityGateModal />;
+}
+
 function AppRoutes() {
   return (
     <>
     <OnboardingGate />
+    <CityGate />
     <Switch>
       {/* Auth pages — no layout wrapper */}
       <Route path="/login" component={Login} />

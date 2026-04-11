@@ -17,7 +17,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: { fullName: string; email: string; phone?: string; password: string }) => Promise<void>;
+  register: (data: { fullName: string; email: string; phone?: string; city: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   onboardingVisible: boolean;
@@ -25,6 +25,8 @@ interface AuthContextValue {
   requireOnboarding: (onComplete: () => void) => void;
   markOnboardingComplete: () => void;
   skipOnboarding: () => void;
+  cityGateVisible: boolean;
+  dismissCityGate: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -52,17 +54,27 @@ function shouldShowOnboarding(user: AuthUser | null): boolean {
   return user !== null && !user.isOnboardingCompleted;
 }
 
+function shouldShowCityGate(user: AuthUser | null): boolean {
+  return user !== null && !user.city?.trim();
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [onboardingVisible, setOnboardingVisible] = useState(false);
   const [pendingOnboardingAction, setPendingOnboardingAction] = useState<(() => void) | null>(null);
+  const [cityGateVisible, setCityGateVisible] = useState(false);
   const queryClient = useQueryClient();
 
   const refreshUser = useCallback(async (): Promise<void> => {
     try {
       const me = await apiFetch<AuthUser>("/api/users/me");
       setUser(me);
+      if (me.city?.trim()) {
+        setCityGateVisible(false);
+      } else {
+        setCityGateVisible(true);
+      }
     } catch {
       setUser(null);
     }
@@ -72,9 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     apiFetch<AuthUser>("/api/users/me")
       .then(me => {
         setUser(me);
-        if (shouldShowOnboarding(me)) {
-          setOnboardingVisible(true);
-        }
+        if (shouldShowOnboarding(me)) setOnboardingVisible(true);
+        if (shouldShowCityGate(me)) setCityGateVisible(true);
       })
       .catch(() => setUser(null))
       .finally(() => setIsLoading(false));
@@ -86,21 +97,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
     setUser(me);
-    if (shouldShowOnboarding(me)) {
-      setOnboardingVisible(true);
-    }
+    if (shouldShowOnboarding(me)) setOnboardingVisible(true);
+    if (shouldShowCityGate(me)) setCityGateVisible(true);
     await queryClient.invalidateQueries();
   }, [queryClient]);
 
-  const register = useCallback(async (data: { fullName: string; email: string; phone?: string; password: string }) => {
+  const register = useCallback(async (data: { fullName: string; email: string; phone?: string; city: string; password: string }) => {
     const me = await apiFetch<AuthUser>("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
     });
     setUser(me);
-    if (shouldShowOnboarding(me)) {
-      setOnboardingVisible(true);
-    }
+    if (shouldShowOnboarding(me)) setOnboardingVisible(true);
+    if (shouldShowCityGate(me)) setCityGateVisible(true);
     await queryClient.invalidateQueries();
   }, [queryClient]);
 
@@ -109,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setOnboardingVisible(false);
     setPendingOnboardingAction(null);
+    setCityGateVisible(false);
     await queryClient.invalidateQueries();
   }, [queryClient]);
 
@@ -122,7 +132,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const markOnboardingComplete = useCallback(() => {
-    setUser(prev => prev ? { ...prev, isOnboardingCompleted: true } : prev);
+    setUser(prev => {
+      const updated = prev ? { ...prev, isOnboardingCompleted: true } : prev;
+      if (shouldShowCityGate(updated)) setCityGateVisible(true);
+      return updated;
+    });
     setOnboardingVisible(false);
     const action = pendingOnboardingAction;
     setPendingOnboardingAction(null);
@@ -134,6 +148,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const skipOnboarding = useCallback(() => {
     setOnboardingVisible(false);
     setPendingOnboardingAction(null);
+    setUser(prev => {
+      if (shouldShowCityGate(prev)) setCityGateVisible(true);
+      return prev;
+    });
+  }, []);
+
+  const dismissCityGate = useCallback(() => {
+    setCityGateVisible(false);
   }, []);
 
   return (
@@ -141,6 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user, isLoading, login, register, logout, refreshUser,
       onboardingVisible, pendingOnboardingAction,
       requireOnboarding, markOnboardingComplete, skipOnboarding,
+      cityGateVisible, dismissCityGate,
     }}>
       {children}
     </AuthContext.Provider>

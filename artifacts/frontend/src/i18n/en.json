@@ -227,7 +227,10 @@
     "required": "*",
     "placeholderName": "Sara Ahmed",
     "placeholderEmail": "you@example.com",
-    "placeholderPhone": "+962 79 xxxxxxx"
+    "placeholderPhone": "+962 79 xxxxxxx",
+    "city": "City",
+    "cityRequired": "City is required",
+    "placeholderCity": "e.g. Amman"
   },
   "common": {
     "loading": "Loading...",
@@ -622,7 +625,7 @@
     "errPhoneRequired": "Phone number is required",
     "errPhoneInvalid": "Invalid phone number for selected country",
     "errPasswordLength": "Password must be at least 8 characters",
-    "errCityRequired": "City is required",
+    "errCityRequired": "City cannot be empty",
     "strengthPassword": "Password strength:",
     "strengthWeak": "Weak",
     "strengthMedium": "Medium",
@@ -891,5 +894,15 @@
       "title": "Foster Request Rejected",
       "message": "Your foster request has been rejected."
     }
+  },
+  "cityGate": {
+    "title": "What's your city?",
+    "subtitle": "Please add your city to continue using the platform.",
+    "cityLabel": "City",
+    "placeholder": "e.g. Amman",
+    "cityRequired": "City is required",
+    "saveFailed": "Failed to save city. Please try again.",
+    "saving": "Saving...",
+    "save": "Save & Continue"
   }
 }
