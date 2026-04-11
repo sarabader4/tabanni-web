@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { PawPrint, Bell, Menu, X, Instagram, Twitter, Facebook, ChevronDown, LogOut, User, FileText, Check } from "lucide-react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import AIChatWidget from "@/components/ai-chat-widget";
@@ -17,6 +17,7 @@ interface Notification {
   read: boolean;
   createdAt: string;
   petName?: string | null;
+  metadata?: { whatsappLink?: string } | null;
 }
 
 function useNotifications(userId: number | null | undefined) {
@@ -359,36 +360,60 @@ export function Layout({ children }: { children: React.ReactNode }) {
                           ) : notifications.length === 0 ? (
                             <div className="py-8 text-center text-sm text-gray-400">{t("profile.noNotifications")}</div>
                           ) : (
-                            notifications.map(notif => (
-                              <div
-                                key={notif.id}
-                                className={cn(
-                                  "px-4 py-3 border-b border-gray-50 last:border-0 transition-colors",
-                                  !notif.read ? "bg-primary/5" : "hover:bg-gray-50"
-                                )}
-                              >
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1 min-w-0">
-                                    <p className={cn("text-xs font-semibold text-[#1E2A3A] truncate", !notif.read && "text-primary")}>
-                                      {t(`notifTypes.${notif.type}.title`, { defaultValue: notif.title })}
-                                    </p>
-                                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
-                                      {t(`notifTypes.${notif.type}.message`, { defaultValue: notif.message })}
-                                    </p>
-                                    <p className="text-[10px] text-gray-400 mt-1">{formatRelativeTime(notif.createdAt)}</p>
-                                  </div>
-                                  {!notif.read && (
-                                    <button
-                                      onClick={() => markRead(notif.id)}
-                                      className="shrink-0 w-4 h-4 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors mt-0.5"
-                                      title={t("profile.markRead")}
-                                    >
-                                      <div className="w-2 h-2 rounded-full bg-primary" />
-                                    </button>
+                            notifications.map(notif => {
+                              const isApproval = notif.type === "adoption_accepted" || notif.type === "foster_accepted";
+                              const whatsappLink = notif.metadata?.whatsappLink;
+
+                              const handleWhatsAppClick = async (e: React.MouseEvent) => {
+                                e.stopPropagation();
+                                try {
+                                  await fetch(`${BASE_URL}/api/users/me/notifications/${notif.id}/whatsapp-click`, {
+                                    method: "POST",
+                                    credentials: "include",
+                                  });
+                                } catch {}
+                                if (whatsappLink) window.open(whatsappLink, "_blank", "noopener,noreferrer");
+                              };
+
+                              return (
+                                <div
+                                  key={notif.id}
+                                  className={cn(
+                                    "px-4 py-3 border-b border-gray-50 last:border-0 transition-colors",
+                                    !notif.read ? "bg-primary/5" : "hover:bg-gray-50"
                                   )}
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <p className={cn("text-xs font-semibold text-[#1E2A3A] truncate", !notif.read && "text-primary")}>
+                                        {t(`notifTypes.${notif.type}.title`, { defaultValue: notif.title })}
+                                      </p>
+                                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                                        {t(`notifTypes.${notif.type}.message`, { defaultValue: notif.message })}
+                                      </p>
+                                      {isApproval && whatsappLink && (
+                                        <button
+                                          onClick={handleWhatsAppClick}
+                                          className="mt-1.5 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[#25D366] text-white text-[10px] font-bold hover:bg-[#1ebe5a] transition-colors"
+                                        >
+                                          💬 Contact via WhatsApp
+                                        </button>
+                                      )}
+                                      <p className="text-[10px] text-gray-400 mt-1">{formatRelativeTime(notif.createdAt)}</p>
+                                    </div>
+                                    {!notif.read && (
+                                      <button
+                                        onClick={() => markRead(notif.id)}
+                                        className="shrink-0 w-4 h-4 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors mt-0.5"
+                                        title={t("profile.markRead")}
+                                      >
+                                        <div className="w-2 h-2 rounded-full bg-primary" />
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))
+                              );
+                            })
                           )}
                         </div>
                       </motion.div>

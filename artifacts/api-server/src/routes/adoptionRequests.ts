@@ -12,7 +12,7 @@ import { createNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
-const ADOPTION_STATUSES = ["pending", "approved", "rejected"] as const;
+const ADOPTION_STATUSES = ["pending", "approved", "rejected", "in_progress", "completed"] as const;
 
 router.get("/adoption-requests", requireAuth, async (req, res) => {
   try {
@@ -325,14 +325,25 @@ router.put("/adoption-requests/:id/status", requireAuth, async (req, res): Promi
         const notifType = newStatus === "approved" ? "adoption_accepted" : "adoption_rejected";
         const notifTitle = newStatus === "approved" ? "Adoption Request Approved" : "Adoption Request Rejected";
         const notifMessage = newStatus === "approved"
-          ? `Congratulations! Your adoption request for "${existingRequest.petName}" has been approved.`
+          ? `Congratulations! Your adoption request for "${existingRequest.petName}" has been approved. Please contact the owner via WhatsApp to complete the adoption process.`
           : `Unfortunately, your adoption request for "${existingRequest.petName}" has been rejected.`;
+
+        let metadata: Record<string, unknown> | null = null;
+        if (newStatus === "approved" && existingRequest.ownerId) {
+          const [owner] = await db.select({ phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, existingRequest.ownerId));
+          if (owner?.phone) {
+            const cleanPhone = owner.phone.replace(/\D/g, "");
+            metadata = { whatsappLink: `https://wa.me/${cleanPhone}` };
+          }
+        }
+
         await createNotification(
           existingRequest.requesterId,
           notifType,
           notifTitle,
           notifMessage,
           existingRequest.petId ?? undefined,
+          metadata,
         );
       } catch (err) {
         req.log.error({ err }, "Error creating adoption status notification");

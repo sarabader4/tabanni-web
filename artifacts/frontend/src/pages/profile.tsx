@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut, Plus, Camera, Inbox, Trash2, ChevronRight, ChevronLeft, ClipboardList, Sparkles,
+  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut, Plus, Camera, Inbox, Trash2, ChevronRight, ChevronLeft, ClipboardList, Sparkles, ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useLocation } from "wouter";
@@ -17,9 +17,11 @@ interface PetNotification {
   userId: number;
   petId: number | null;
   petName: string | null;
-  status: "accepted" | "rejected";
+  type?: string;
+  title?: string;
   message: string;
   read: boolean;
+  metadata?: { whatsappLink?: string } | null;
   createdAt: string;
 }
 
@@ -91,7 +93,7 @@ interface IncomingRequest {
   petId: number;
   requesterId: number;
   message: string | null;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "in_progress" | "completed";
   petName: string | null;
   petImageUrl: string | null;
   requesterName: string | null;
@@ -2044,19 +2046,20 @@ const adoptionFosterLinks = [
 ];
 
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { color: string; icon: typeof CheckCircle2 }> = {
-    approved:  { color: "bg-green-100 text-green-600", icon: CheckCircle2 },
-    pending:   { color: "bg-yellow-100 text-yellow-600", icon: Clock },
-    rejected:  { color: "bg-red-100 text-red-500", icon: XCircle },
-    active:    { color: "bg-green-100 text-green-600", icon: CheckCircle2 },
-    completed: { color: "bg-blue-100 text-blue-500", icon: CheckCircle2 },
+  const map: Record<string, { color: string; icon: typeof CheckCircle2; label: string }> = {
+    approved:    { color: "bg-green-100 text-green-600", icon: CheckCircle2, label: "Approved" },
+    pending:     { color: "bg-yellow-100 text-yellow-600", icon: Clock, label: "Pending" },
+    rejected:    { color: "bg-red-100 text-red-500", icon: XCircle, label: "Rejected" },
+    active:      { color: "bg-green-100 text-green-600", icon: CheckCircle2, label: "Active" },
+    in_progress: { color: "bg-blue-100 text-blue-600", icon: Clock, label: "In Progress" },
+    completed:   { color: "bg-purple-100 text-purple-600", icon: CheckCircle2, label: "Completed" },
   };
-  const conf = map[status] ?? { color: "bg-gray-100 text-gray-500", icon: Clock };
+  const conf = map[status] ?? { color: "bg-gray-100 text-gray-500", icon: Clock, label: status };
   const Icon = conf.icon;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold capitalize ${conf.color}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${conf.color}`}>
       <Icon className="w-3 h-3" />
-      {status}
+      {conf.label}
     </span>
   );
 }
@@ -4090,45 +4093,71 @@ export default function Profile() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {notifications.map((notif) => (
-                      <button
-                        key={notif.id}
-                        onClick={() => { if (!notif.read) markRead.mutate(notif.id); }}
-                        className={`w-full text-start flex items-start gap-4 p-4 rounded-xl border transition-colors ${
-                          notif.read
-                            ? "bg-white border-gray-100 opacity-70"
-                            : "bg-primary/5 border-primary/20 hover:bg-primary/10"
-                        }`}
-                      >
-                        <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
-                          (notif.type?.includes("accepted") || notif.type?.startsWith("new_")) ? "bg-green-100" : "bg-red-100"
-                        }`}>
-                          {(notif.type?.includes("accepted") || notif.type?.startsWith("new_"))
-                            ? <CheckCircle2 className="w-5 h-5 text-green-600" />
-                            : <XCircle className="w-5 h-5 text-red-500" />
-                          }
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-sm text-[#1E2A3A]">
-                              {notif.petName ?? t("profile.yourPet")}
-                            </span>
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                              (notif.type?.includes("accepted") || notif.type?.startsWith("new_"))
-                                ? "bg-green-100 text-green-600"
-                                : "bg-red-100 text-red-500"
-                            }`}>
-                              {(notif.type?.includes("accepted") || notif.type?.startsWith("new_")) ? t("profile.notifAccepted") : t("profile.notifRejected")}
-                            </span>
-                            {!notif.read && (
-                              <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                            )}
+                    {notifications.map((notif) => {
+                      const isApproval = notif.type === "adoption_accepted" || notif.type === "foster_accepted";
+                      const whatsappLink = notif.metadata?.whatsappLink;
+                      const isAccepted = notif.type?.includes("accepted") || notif.type?.startsWith("new_");
+
+                      const handleWhatsAppClick = async (e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        try {
+                          await fetch(`/api/users/me/notifications/${notif.id}/whatsapp-click`, {
+                            method: "POST",
+                            credentials: "include",
+                          });
+                        } catch {}
+                        if (whatsappLink) window.open(whatsappLink, "_blank", "noopener,noreferrer");
+                      };
+
+                      return (
+                        <div
+                          key={notif.id}
+                          onClick={() => { if (!notif.read) markRead.mutate(notif.id); }}
+                          className={`w-full text-start flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer ${
+                            notif.read
+                              ? "bg-white border-gray-100 opacity-70"
+                              : "bg-primary/5 border-primary/20 hover:bg-primary/10"
+                          }`}
+                        >
+                          <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
+                            isAccepted ? "bg-green-100" : "bg-red-100"
+                          }`}>
+                            {isAccepted
+                              ? <CheckCircle2 className="w-5 h-5 text-green-600" />
+                              : <XCircle className="w-5 h-5 text-red-500" />
+                            }
                           </div>
-                          <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{notif.message}</p>
-                          <p className="text-xs text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-sm text-[#1E2A3A]">
+                                {notif.petName ?? t("profile.yourPet")}
+                              </span>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                                isAccepted
+                                  ? "bg-green-100 text-green-600"
+                                  : "bg-red-100 text-red-500"
+                              }`}>
+                                {isAccepted ? t("profile.notifAccepted") : t("profile.notifRejected")}
+                              </span>
+                              {!notif.read && (
+                                <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{notif.message}</p>
+                            {isApproval && whatsappLink && (
+                              <button
+                                onClick={handleWhatsAppClick}
+                                className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] text-white text-xs font-bold hover:bg-[#1ebe5a] transition-colors"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                Contact via WhatsApp
+                              </button>
+                            )}
+                            <p className="text-xs text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                          </div>
                         </div>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

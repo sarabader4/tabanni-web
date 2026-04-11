@@ -13,4 +13,6 @@ export const AdoptionRequestStatus = {
   pending: "pending",
   approved: "approved",
   rejected: "rejected",
+  in_progress: "in_progress",
+  completed: "completed",
 } as const;

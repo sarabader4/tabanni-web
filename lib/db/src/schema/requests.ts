@@ -4,7 +4,7 @@ import { z } from "zod/v4";
 import { usersTable } from "./users";
 import { petsTable } from "./pets";
 
-export const requestStatusEnum = pgEnum("request_status", ["pending", "approved", "rejected"]);
+export const requestStatusEnum = pgEnum("request_status", ["pending", "approved", "rejected", "in_progress", "completed"]);
 
 export const adoptionRequestsTable = pgTable("adoption_requests", {
   id: serial("id").primaryKey(),

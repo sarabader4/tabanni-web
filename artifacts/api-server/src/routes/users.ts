@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable, notificationsTable } from "@workspace/db";
-import { eq, desc, and, sql, lt } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import { UpdateMyProfileBody } from "@workspace/api-zod";
 import bcrypt from "bcryptjs";
 
@@ -203,6 +203,7 @@ router.get("/users/me/notifications", async (req, res): Promise<void> => {
       title: notificationsTable.title,
       message: notificationsTable.message,
       read: notificationsTable.read,
+      metadata: notificationsTable.metadata,
       createdAt: notificationsTable.createdAt,
     })
       .from(notificationsTable)
@@ -264,10 +265,63 @@ router.patch("/users/me/notifications/:id/read", async (req, res): Promise<void>
       res.status(404).json({ error: "not_found", message: "Notification not found" });
       return;
     }
+
+    if (notif.type === "adoption_accepted" && notif.petId) {
+      try {
+        await db.update(adoptionRequestsTable)
+          .set({ status: "in_progress" })
+          .where(
+            and(
+              eq(adoptionRequestsTable.requesterId, req.userId),
+              eq(adoptionRequestsTable.petId, notif.petId),
+              eq(adoptionRequestsTable.status, "approved"),
+            )
+          );
+      } catch (updateErr) {
+        req.log.error({ updateErr }, "Error updating adoption request to in_progress");
+      }
+    } else if (notif.type === "foster_accepted" && notif.petId) {
+      try {
+        await db.update(fosterRequestsTable)
+          .set({ status: "in_progress" })
+          .where(
+            and(
+              eq(fosterRequestsTable.requesterId, req.userId),
+              eq(fosterRequestsTable.petId, notif.petId),
+              eq(fosterRequestsTable.status, "approved"),
+            )
+          );
+      } catch (updateErr) {
+        req.log.error({ updateErr }, "Error updating foster request to in_progress");
+      }
+    }
+
     res.json(notif);
   } catch (err) {
     req.log.error({ err }, "Error marking notification as read");
     res.status(500).json({ error: "internal_error", message: "Failed to mark notification as read" });
+  }
+});
+
+router.post("/users/me/notifications/:id/whatsapp-click", async (req, res): Promise<void> => {
+  try {
+    if (!requireAuth(req, res)) return;
+    const notifId = parseInt(req.params.id);
+    if (isNaN(notifId)) {
+      res.status(400).json({ error: "validation_error", message: "Invalid notification id" });
+      return;
+    }
+    const [notif] = await db.select().from(notificationsTable)
+      .where(and(eq(notificationsTable.id, notifId), eq(notificationsTable.userId, req.userId)));
+    if (!notif) {
+      res.status(404).json({ error: "not_found", message: "Notification not found" });
+      return;
+    }
+    req.log.info({ notifId, userId: req.userId, type: notif.type }, "WhatsApp link clicked from notification");
+    res.json({ success: true });
+  } catch (err) {
+    req.log.error({ err }, "Error logging WhatsApp click");
+    res.status(500).json({ error: "internal_error", message: "Failed to log WhatsApp click" });
   }
 });
 
