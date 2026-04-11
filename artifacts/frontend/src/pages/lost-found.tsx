@@ -3,8 +3,6 @@ import { Link } from "wouter";
 import {
   useListLostFoundReports,
   useCreateLostFoundReport,
-  useDeleteLostFoundReport,
-  useResolveLostFoundReport,
 } from "@workspace/api-client-react";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
 import { Search, Loader2, ChevronLeft, ChevronRight, X, ImagePlus, CheckCircle2 } from "lucide-react";
@@ -15,7 +13,6 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
-import { useQueryClient } from "@tanstack/react-query";
 import WhatsAppPhoneInput from "@/components/whatsapp-phone-input";
 
 const MAX_IMAGES = 5;
@@ -73,7 +70,6 @@ export default function LostFound() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const pageSize = 20;
 
   const isClientFiltering = !!(search || filters.month || filters.minAge);
@@ -89,8 +85,6 @@ export default function LostFound() {
   });
 
   const createMutation = useCreateLostFoundReport();
-  const deleteMutation = useDeleteLostFoundReport();
-  const resolveMutation = useResolveLostFoundReport();
 
   const form = useForm<ReportFormValues>({
     resolver: zodResolver(reportSchema),
@@ -170,35 +164,6 @@ export default function LostFound() {
       refetch();
     } catch {
       toast({ title: t("lostFound.reportError"), variant: "destructive" });
-    }
-  };
-
-  const handleDelete = async (id: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this report?")) return;
-    try {
-      await deleteMutation.mutateAsync({ id });
-      queryClient.invalidateQueries({ queryKey: ["/api/lost-found"] });
-      toast({ title: "Report deleted" });
-      refetch();
-    } catch {
-      toast({ title: "Failed to delete", variant: "destructive" });
-    }
-  };
-
-  const handleResolve = async (id: number, reportType: "lost" | "found", e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const label = reportType === "lost" ? "Found My Pet" : "Found Owner";
-    if (!confirm(`Mark as resolved (${label})?`)) return;
-    try {
-      await resolveMutation.mutateAsync({ id });
-      queryClient.invalidateQueries({ queryKey: ["/api/lost-found"] });
-      toast({ title: "Report resolved" });
-      refetch();
-    } catch {
-      toast({ title: "Failed to resolve", variant: "destructive" });
     }
   };
 
@@ -320,7 +285,6 @@ export default function LostFound() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {reports.map((report) => {
-              const isOwner = user?.id === report.reporterId;
               return (
                 <div key={report.id} className="relative">
                   <Link
@@ -368,23 +332,6 @@ export default function LostFound() {
                       </div>
                     </div>
                   </Link>
-
-                  {isOwner && (
-                    <div className="flex gap-1.5 mt-2 px-1">
-                      <button
-                        onClick={(e) => handleResolve(report.id, report.reportType, e)}
-                        className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
-                      >
-                        {report.reportType === "lost" ? "Found My Pet" : "Found Owner"}
-                      </button>
-                      <button
-                        onClick={(e) => handleDelete(report.id, e)}
-                        className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
                 </div>
               );
             })}

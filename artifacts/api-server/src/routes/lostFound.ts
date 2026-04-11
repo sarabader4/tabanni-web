@@ -100,11 +100,11 @@ router.delete("/lost-found/:id", async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
 
-    const userId = (req.session as any)?.userId;
+    const userId = req.userId;
     const [report] = await db.select().from(lostFoundReportsTable).where(eq(lostFoundReportsTable.id, id));
     if (!report) return res.status(404).json({ error: "not_found", message: "Report not found" });
 
-    const isAdmin = (req.session as any)?.role === "admin";
+    const isAdmin = req.userRole === "admin";
     if (!isAdmin && report.reporterId !== userId) {
       return res.status(403).json({ error: "forbidden", message: "Not authorized" });
     }
@@ -122,11 +122,11 @@ router.post("/lost-found/:id/resolve", async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
 
-    const userId = (req.session as any)?.userId;
+    const userId = req.userId;
     const [report] = await db.select().from(lostFoundReportsTable).where(eq(lostFoundReportsTable.id, id));
     if (!report) return res.status(404).json({ error: "not_found", message: "Report not found" });
 
-    const isAdmin = (req.session as any)?.role === "admin";
+    const isAdmin = req.userRole === "admin";
     if (!isAdmin && report.reporterId !== userId) {
       return res.status(403).json({ error: "forbidden", message: "Not authorized" });
     }
