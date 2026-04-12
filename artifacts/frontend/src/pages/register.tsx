@@ -27,6 +27,14 @@ export default function Register() {
       setError(t("register.fillRequired"));
       return;
     }
+    if (!phone.trim()) {
+      setError(t("register.phoneRequired"));
+      return;
+    }
+    if (!/^\+?[\d\s\-()+]{9,20}$/.test(phone.trim())) {
+      setError(t("register.phoneInvalid"));
+      return;
+    }
     if (!city.trim()) {
       setError(t("register.cityRequired"));
       return;
@@ -48,7 +56,7 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      await register({ fullName, email, phone: phone || undefined, city: city.trim(), password });
+      await register({ fullName, email, phone: phone.trim(), city: city.trim(), password });
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("register.registrationFailed"));
@@ -113,7 +121,7 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
-                {t("register.phoneNumber")} <span className="text-[#1E2A3A]/40 font-normal">{t("register.optional")}</span>
+                {t("register.phoneNumber")} <span className="text-[#FF6B35]">{t("register.required")}</span>
               </label>
               <input
                 type="tel"

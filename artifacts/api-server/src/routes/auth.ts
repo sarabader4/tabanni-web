@@ -29,6 +29,10 @@ router.post("/auth/register", async (req, res) => {
       res.status(400).json({ error: "validation_error", message: "fullName, email, and password are required" });
       return;
     }
+    if (!phone || !phone.trim()) {
+      res.status(400).json({ error: "validation_error", message: "Phone number is required" });
+      return;
+    }
     if (!city || !city.trim()) {
       res.status(400).json({ error: "validation_error", message: "City is required" });
       return;

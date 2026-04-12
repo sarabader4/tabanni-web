@@ -2098,7 +2098,7 @@ function validateEmail(email: string): string | undefined {
 }
 
 function validatePhone(phone: string, countryCode: CountryCode): string | undefined {
-  if (!phone.trim()) return undefined;
+  if (!phone.trim()) return i18next.t("profile.errPhoneRequired");
   const parsed = parsePhoneNumberFromString(phone, countryCode);
   if (!parsed || !parsed.isValid()) return i18next.t("profile.errPhoneInvalid");
   return undefined;
