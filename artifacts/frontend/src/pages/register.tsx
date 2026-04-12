@@ -4,7 +4,9 @@ import { PawPrint, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslation } from "react-i18next";
 
-const PHONE_REGEX = /^\+?[\d\s\-()+]{9,20}$/;
+const PHONE_ALLOWED_CHARS = /^[+\d\s\-()+]+$/;
+const PHONE_MIN_DIGITS = 9;
+const PHONE_MAX_DIGITS = 15;
 
 export default function Register() {
   const [, navigate] = useLocation();
