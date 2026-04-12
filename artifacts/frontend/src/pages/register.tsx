@@ -4,6 +4,8 @@ import { PawPrint, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslation } from "react-i18next";
 
+const PHONE_REGEX = /^\+?[\d\s\-()+]{9,20}$/;
+
 export default function Register() {
   const [, navigate] = useLocation();
   const { register } = useAuth();
@@ -12,12 +14,28 @@ export default function Register() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [city, setCity] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  function validatePhone(value: string): string {
+    if (!value.trim()) return t("register.phoneRequired");
+    if (!PHONE_REGEX.test(value.trim())) return t("register.phoneInvalid");
+    return "";
+  }
+
+  function handlePhoneChange(value: string) {
+    setPhone(value);
+    if (phoneError) setPhoneError(validatePhone(value));
+  }
+
+  function handlePhoneBlur() {
+    setPhoneError(validatePhone(phone));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,14 +45,13 @@ export default function Register() {
       setError(t("register.fillRequired"));
       return;
     }
-    if (!phone.trim()) {
-      setError(t("register.phoneRequired"));
+
+    const phoneErr = validatePhone(phone);
+    if (phoneErr) {
+      setPhoneError(phoneErr);
       return;
     }
-    if (!/^\+?[\d\s\-()+]{9,20}$/.test(phone.trim())) {
-      setError(t("register.phoneInvalid"));
-      return;
-    }
+
     if (!city.trim()) {
       setError(t("register.cityRequired"));
       return;
@@ -64,6 +81,13 @@ export default function Register() {
       setIsLoading(false);
     }
   }
+
+  const inputCls = (hasError?: boolean) =>
+    `w-full border rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 transition-all ${
+      hasError
+        ? "border-red-400 focus:ring-red-200"
+        : "border-gray-200 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35]"
+    }`;
 
   return (
     <div className="min-h-screen bg-[#FFF8F3] flex items-center justify-center px-4 py-8">
@@ -98,7 +122,7 @@ export default function Register() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder={t("register.placeholderName")}
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
+                className={inputCls()}
                 autoComplete="name"
                 disabled={isLoading}
               />
@@ -113,7 +137,7 @@ export default function Register() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t("register.placeholderEmail")}
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
+                className={inputCls()}
                 autoComplete="email"
                 disabled={isLoading}
               />
@@ -126,12 +150,16 @@ export default function Register() {
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                onBlur={handlePhoneBlur}
                 placeholder={t("register.placeholderPhone")}
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
+                className={inputCls(!!phoneError)}
                 autoComplete="tel"
                 disabled={isLoading}
               />
+              {phoneError && (
+                <p className="mt-1 text-xs text-red-500">{phoneError}</p>
+              )}
             </div>
 
             <div>
@@ -143,7 +171,7 @@ export default function Register() {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder={t("register.placeholderCity")}
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
+                className={inputCls()}
                 autoComplete="address-level2"
                 disabled={isLoading}
               />
@@ -159,7 +187,7 @@ export default function Register() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t("register.minChars")}
-                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 pr-10 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
+                  className={inputCls()}
                   autoComplete="new-password"
                   disabled={isLoading}
                 />
@@ -182,7 +210,7 @@ export default function Register() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder={t("register.repeatPassword")}
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
+                className={inputCls()}
                 autoComplete="new-password"
                 disabled={isLoading}
               />

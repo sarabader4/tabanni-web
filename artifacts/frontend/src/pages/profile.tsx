@@ -3301,7 +3301,7 @@ export default function Profile() {
     setIsEditing(true);
     setShowPassword(false);
     setPasswordChanged(false);
-    setTouched(NO_TOUCHED);
+    setTouched({ ...NO_TOUCHED, phone: !form.phone.trim() });
   };
 
   const handleCancel = () => {
