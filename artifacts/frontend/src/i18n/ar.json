@@ -214,6 +214,7 @@
     "emailAddress": "البريد الإلكتروني",
     "phoneNumber": "رقم الهاتف",
     "optional": "(اختياري)",
+    "countryCodeRequired": "رمز الدولة مطلوب",
     "phoneRequired": "رقم الهاتف مطلوب",
     "phoneInvalid": "يرجى إدخال رقم هاتف صحيح (9–15 رقماً)",
     "password": "كلمة المرور",

@@ -3,10 +3,12 @@ import { Link, useLocation } from "wouter";
 import { PawPrint, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslation } from "react-i18next";
-
-const PHONE_ALLOWED_CHARS = /^[+\d\s\-()+]+$/;
-const PHONE_MIN_DIGITS = 9;
-const PHONE_MAX_DIGITS = 15;
+import { parsePhoneNumberFromString } from "libphonenumber-js";
+import {
+  CountryPhoneDropdown,
+  DEFAULT_COUNTRY,
+  type CountryOption,
+} from "@/components/country-phone-dropdown";
 
 export default function Register() {
   const [, navigate] = useLocation();
@@ -15,8 +17,10 @@ export default function Register() {
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [country, setCountry] = useState<CountryOption>(DEFAULT_COUNTRY);
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [city, setCity] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,19 +28,12 @@ export default function Register() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  function validatePhone(value: string): string {
+  function validatePhone(value: string, selectedCountry: CountryOption): string {
+    if (!selectedCountry) return t("register.countryCodeRequired");
     if (!value.trim()) return t("register.phoneRequired");
-    if (!PHONE_REGEX.test(value.trim())) return t("register.phoneInvalid");
+    const parsed = parsePhoneNumberFromString(value, selectedCountry.code);
+    if (!parsed || !parsed.isValid()) return t("register.phoneRequired");
     return "";
-  }
-
-  function handlePhoneChange(value: string) {
-    setPhone(value);
-    if (phoneError) setPhoneError(validatePhone(value));
-  }
-
-  function handlePhoneBlur() {
-    setPhoneError(validatePhone(phone));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -48,9 +45,10 @@ export default function Register() {
       return;
     }
 
-    const phoneErr = validatePhone(phone);
+    const phoneErr = validatePhone(phone, country);
     if (phoneErr) {
       setPhoneError(phoneErr);
+      setPhoneTouched(true);
       return;
     }
 
@@ -73,9 +71,12 @@ export default function Register() {
       return;
     }
 
+    const parsedPhone = parsePhoneNumberFromString(phone, country.code);
+    const e164Phone = parsedPhone?.format("E.164") ?? `${country.dialCode}${phone.replace(/\D/g, "")}`;
+
     setIsLoading(true);
     try {
-      await register({ fullName, email, phone: phone.trim(), city: city.trim(), password });
+      await register({ fullName, email, phone: e164Phone, city: city.trim(), password });
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("register.registrationFailed"));
@@ -149,19 +150,26 @@ export default function Register() {
               <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
                 {t("register.phoneNumber")} <span className="text-[#FF6B35]">{t("register.required")}</span>
               </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                onBlur={handlePhoneBlur}
-                placeholder={t("register.placeholderPhone")}
-                className={inputCls(!!phoneError)}
-                autoComplete="tel"
+              <CountryPhoneDropdown
+                selectedCountry={country}
+                onCountryChange={(c) => {
+                  setCountry(c);
+                  setPhone("");
+                  setPhoneTouched(false);
+                  setPhoneError("");
+                }}
+                phoneValue={phone}
+                onPhoneChange={(val) => {
+                  setPhone(val);
+                  setPhoneTouched(true);
+                  if (phoneError) setPhoneError(validatePhone(val, country));
+                }}
                 disabled={isLoading}
+                error={phoneError}
+                touched={phoneTouched}
+                label=""
+                instanceId="register"
               />
-              {phoneError && (
-                <p className="mt-1 text-xs text-red-500">{phoneError}</p>
-              )}
             </div>
 
             <div>

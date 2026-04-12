@@ -214,6 +214,7 @@
     "emailAddress": "Email Address",
     "phoneNumber": "Phone Number",
     "optional": "(optional)",
+    "countryCodeRequired": "Country code is required",
     "phoneRequired": "Phone number is required",
     "phoneInvalid": "Please enter a valid phone number (9–15 digits)",
     "password": "Password",
