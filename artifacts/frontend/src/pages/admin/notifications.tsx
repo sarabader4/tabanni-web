@@ -72,6 +72,7 @@ function useMarkAllAdminNotificationsRead() {
 }
 
 function useBroadcastNotification() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: { title: string; message: string; targetGroup: string }) => {
       const res = await fetch("/api/admin/notifications/broadcast", {
@@ -83,6 +84,10 @@ function useBroadcastNotification() {
       if (!res.ok) throw new Error("Failed to send broadcast");
       return res.json() as Promise<{ success: boolean; count: number }>;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/notifications/unread-count"] });
+    },
   });
 }
 
@@ -93,6 +98,7 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: 
   payment_confirmed: { icon: CreditCard, color: "text-green-600", bg: "bg-green-100", label: "Payment" },
   payment_proof: { icon: CreditCard, color: "text-amber-600", bg: "bg-amber-100", label: "Payment Proof" },
   general: { icon: Bell, color: "text-blue-600", bg: "bg-blue-100", label: "Broadcast" },
+  broadcast: { icon: Send, color: "text-indigo-600", bg: "bg-indigo-100", label: "Broadcast Sent" },
 };
 
 function getTypeConfig(type: string) {

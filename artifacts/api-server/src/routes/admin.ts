@@ -685,28 +685,38 @@ router.post("/admin/notifications/broadcast", async (req, res) => {
     const validTargets = ["all", "adopters", "volunteers"];
     const target = validTargets.includes(targetGroup ?? "") ? targetGroup! : "all";
 
-    let userCondition;
+    const targetLabel = target === "adopters" ? "Adopters" : target === "volunteers" ? "Volunteers" : "All Users";
+
+    let userIds: number[] = [];
     if (target === "adopters") {
       const adopters = await db.selectDistinct({ userId: adoptionRequestsTable.requesterId }).from(adoptionRequestsTable);
-      if (adopters.length === 0) return res.json({ count: 0 });
-      const ids = adopters.map(a => a.userId).filter((id): id is number => id !== null);
-      userCondition = inArray(usersTable.id, ids);
+      userIds = adopters.map(a => a.userId).filter((id): id is number => id !== null);
     } else if (target === "volunteers") {
-      userCondition = eq(usersTable.role, "volunteer");
+      const volunteers = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.role, "volunteer"));
+      userIds = volunteers.map(u => u.id);
     } else {
-      userCondition = eq(usersTable.isActive, true);
+      const allActive = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.isActive, true));
+      userIds = allActive.map(u => u.id);
     }
 
-    const users = await db.select({ id: usersTable.id }).from(usersTable).where(userCondition);
-
     let count = 0;
-    for (const u of users) {
+    for (const id of userIds) {
       try {
-        await createNotification(u.id, "general", title, message);
+        await createNotification(id, "general", title, message);
         count++;
       } catch {
       }
     }
+
+    createAdminNotification(
+      "broadcast",
+      `Broadcast Sent — ${targetLabel}`,
+      `"${title}" was delivered to ${count} user${count !== 1 ? "s" : ""}.`,
+      null,
+      { targetGroup: target, sentCount: count },
+    ).catch((err) => {
+      req.log.error({ err }, "Failed to record broadcast admin notification");
+    });
 
     res.json({ success: true, count });
   } catch (err) {
