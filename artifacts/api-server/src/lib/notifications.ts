@@ -53,13 +53,15 @@ export async function createAdminNotification(
   metadata?: Record<string, unknown> | null,
 ): Promise<void> {
   try {
-    await db.insert(adminNotificationsTable).values({
+    const [inserted] = await db.insert(adminNotificationsTable).values({
       type,
       title,
       message,
       userId: userId ?? null,
       metadata: metadata ?? null,
-    });
+    }).returning({ id: adminNotificationsTable.id });
+
+    const notifId = inserted?.id;
 
     const adminEmailEnv = process.env.ADMIN_EMAIL;
     const smtpFrom = process.env.SMTP_FROM ?? "noreply@tabanni.com";
@@ -77,10 +79,27 @@ export async function createAdminNotification(
     }
 
     const sentAt = new Date();
-    for (const email of recipients) {
-      sendAdminEmail({ to: email, type, title, message, timestamp: sentAt }).catch((err) => {
-        logger.error({ err }, "Failed to send admin notification email");
-      });
+    const results = await Promise.all(
+      Array.from(recipients).map((email) =>
+        sendAdminEmail({ to: email, type, title, message, timestamp: sentAt }).catch((err) => {
+          logger.error({ err }, "Failed to send admin notification email");
+          return false;
+        }),
+      ),
+    );
+
+    if (notifId !== undefined) {
+      const anySucceeded = results.some(Boolean);
+      const allFailed = results.length > 0 && results.every((r) => !r);
+      if (anySucceeded) {
+        await db.update(adminNotificationsTable)
+          .set({ emailSentAt: sentAt })
+          .where(eq(adminNotificationsTable.id, notifId));
+      } else if (allFailed) {
+        await db.update(adminNotificationsTable)
+          .set({ emailFailed: true })
+          .where(eq(adminNotificationsTable.id, notifId));
+      }
     }
   } catch (err) {
     logger.error({ err }, "Failed to create admin notification");

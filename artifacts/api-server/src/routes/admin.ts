@@ -617,6 +617,8 @@ router.get("/admin/notifications", async (req, res) => {
         metadata: adminNotificationsTable.metadata,
         read: adminNotificationsTable.read,
         createdAt: adminNotificationsTable.createdAt,
+        emailSentAt: adminNotificationsTable.emailSentAt,
+        emailFailed: adminNotificationsTable.emailFailed,
         userName: usersTable.fullName,
         userEmail: usersTable.email,
       })

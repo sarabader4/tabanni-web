@@ -13,6 +13,8 @@ interface AdminNotification {
   metadata: Record<string, unknown> | null;
   read: boolean;
   createdAt: string;
+  emailSentAt: string | null;
+  emailFailed: boolean;
   userName: string | null;
   userEmail: string | null;
 }
@@ -306,6 +308,16 @@ export default function AdminNotifications() {
                                 <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.color}`}>
                                   {cfg.label}
                                 </span>
+                                {n.emailSentAt && (
+                                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                                    📧 Emailed
+                                  </span>
+                                )}
+                                {!n.emailSentAt && n.emailFailed && (
+                                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600">
+                                    📧 Failed
+                                  </span>
+                                )}
                                 {!n.read && (
                                   <span className="w-2 h-2 rounded-full bg-orange-500 inline-block" />
                                 )}

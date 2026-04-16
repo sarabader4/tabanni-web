@@ -189,9 +189,9 @@ export async function sendAdminEmail({
   title: string;
   message: string;
   timestamp?: Date;
-}): Promise<void> {
+}): Promise<boolean> {
   const transport = createTransport();
-  if (!transport) return;
+  if (!transport) return false;
 
   const emoji = type === "new_pet" ? "🐾" : type === "new_adoption_request" ? "❤️" : type === "new_foster_request" ? "🏠" : type === "payment_confirmed" || type === "payment_proof" ? "💳" : "📋";
   const deepPath = ADMIN_DEEP_LINKS[type] ?? "/admin";
@@ -227,8 +227,10 @@ export async function sendAdminEmail({
       html: htmlBody,
     });
     logger.info({ to, type }, "Admin notification email sent");
+    return true;
   } catch (err) {
     logger.error({ err, to }, "Failed to send admin notification email");
+    return false;
   }
 }
 

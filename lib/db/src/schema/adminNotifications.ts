@@ -10,6 +10,8 @@ export const adminNotificationsTable = pgTable("admin_notifications", {
   metadata: jsonb("metadata"),
   read: boolean("read").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  emailSentAt: timestamp("email_sent_at"),
+  emailFailed: boolean("email_failed").notNull().default(false),
 });
 
 export type AdminNotification = typeof adminNotificationsTable.$inferSelect;
