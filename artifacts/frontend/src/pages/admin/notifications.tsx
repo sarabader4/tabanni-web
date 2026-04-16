@@ -83,6 +83,26 @@ function useMarkAllAdminNotificationsRead() {
   });
 }
 
+function useResendAdminEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/admin/notifications/${id}/resend-email`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.message ?? "Failed to resend email");
+      }
+      return res.json() as Promise<{ success: boolean; emailSentAt: string }>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/notifications"] });
+    },
+  });
+}
+
 function useBroadcastNotification() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -201,6 +221,7 @@ export default function AdminNotifications() {
   const toggleRead = useToggleAdminNotificationRead();
   const markAllRead = useMarkAllAdminNotificationsRead();
   const broadcast = useBroadcastNotification();
+  const resendEmail = useResendAdminEmail();
   const { toast } = useToast();
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
@@ -377,6 +398,24 @@ export default function AdminNotifications() {
                                   {cfg.label}
                                 </span>
                                 <EmailLogBadge emailSentAt={n.emailSentAt} emailFailed={n.emailFailed} emailLogs={n.emailLogs} />
+                                {!n.emailSentAt && n.emailFailed && (
+                                  <button
+                                    onClick={() =>
+                                      resendEmail.mutate(n.id, {
+                                        onSuccess: () => {
+                                          toast({ title: "Email resent", description: "The notification email was sent successfully." });
+                                        },
+                                        onError: (err) => {
+                                          toast({ title: "Retry failed", description: err instanceof Error ? err.message : "Could not resend the email.", variant: "destructive" });
+                                        },
+                                      })
+                                    }
+                                    disabled={resendEmail.isPending && resendEmail.variables === n.id}
+                                    className="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 hover:bg-orange-200 transition-colors disabled:opacity-50"
+                                  >
+                                    {resendEmail.isPending && resendEmail.variables === n.id ? "Retrying…" : "Retry"}
+                                  </button>
+                                )}
                                 {!n.read && (
                                   <span className="w-2 h-2 rounded-full bg-orange-500 inline-block" />
                                 )}

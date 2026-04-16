@@ -3,6 +3,7 @@ import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, 
 import { eq, and, ilike, desc, sql, gte, lte, lt, inArray } from "drizzle-orm";
 import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams, UpdateAdminVolunteerStatusBody } from "@workspace/api-zod";
 import { createNotification, createAdminNotification } from "../lib/notifications";
+import { sendAdminEmail } from "../lib/mailer";
 
 const router: IRouter = Router();
 
@@ -702,6 +703,69 @@ router.patch("/admin/notifications/:id/read", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Error toggling admin notification read state");
     res.status(500).json({ error: "internal_error", message: "Failed to update notification" });
+  }
+});
+
+router.post("/admin/notifications/:id/resend-email", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    }
+
+    const [notif] = await db.select({
+      id: adminNotificationsTable.id,
+      type: adminNotificationsTable.type,
+      title: adminNotificationsTable.title,
+      message: adminNotificationsTable.message,
+      createdAt: adminNotificationsTable.createdAt,
+    }).from(adminNotificationsTable).where(eq(adminNotificationsTable.id, id));
+
+    if (!notif) {
+      return res.status(404).json({ error: "not_found", message: "Notification not found" });
+    }
+
+    const adminEmailEnv = process.env.ADMIN_EMAIL;
+    const smtpFrom = process.env.SMTP_FROM ?? "noreply@tabanni.com";
+    const adminsFromDb = await db.select({ email: usersTable.email }).from(usersTable).where(eq(usersTable.role, "admin"));
+
+    const recipients = new Set<string>();
+    for (const admin of adminsFromDb) {
+      recipients.add(admin.email);
+    }
+    if (adminEmailEnv) {
+      recipients.add(adminEmailEnv);
+    }
+    if (recipients.size === 0) {
+      recipients.add(smtpFrom);
+    }
+
+    const sentAt = new Date();
+    const results = await Promise.all(
+      Array.from(recipients).map((email) =>
+        sendAdminEmail({ to: email, type: notif.type, title: notif.title, message: notif.message, timestamp: sentAt }).catch(() => false),
+      ),
+    );
+
+    const anySucceeded = results.some(Boolean);
+    const allFailed = results.length > 0 && results.every((r) => !r);
+
+    if (anySucceeded) {
+      await db.update(adminNotificationsTable)
+        .set({ emailSentAt: sentAt, emailFailed: false })
+        .where(eq(adminNotificationsTable.id, id));
+      return res.json({ success: true, emailSentAt: sentAt.toISOString() });
+    } else if (allFailed) {
+      await db.update(adminNotificationsTable)
+        .set({ emailFailed: true })
+        .where(eq(adminNotificationsTable.id, id));
+      return res.status(502).json({ error: "email_failed", message: "Failed to send email. Check SMTP configuration." });
+    }
+
+    return res.json({ success: true, emailSentAt: sentAt.toISOString() });
+  } catch (err) {
+    req.log.error({ err }, "Error resending admin notification email");
+    res.status(500).json({ error: "internal_error", message: "Failed to resend email" });
   }
 });
 
