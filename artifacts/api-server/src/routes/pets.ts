@@ -139,10 +139,11 @@ router.post("/pets", requireAuth, async (req, res) => {
       approved: false, featured: false, addedByAdmin: false,
     }).returning();
 
+    const [submitter] = await db.select({ fullName: usersTable.fullName }).from(usersTable).where(eq(usersTable.id, req.userId!));
     createAdminNotification(
       "new_pet",
       "New Pet Submission",
-      `A new pet "${name}" has been submitted and is awaiting review.`,
+      `${submitter?.fullName ?? "A user"} submitted a new pet "${name}" for review.`,
       req.userId,
       { petId: pet.id },
     ).catch(() => {});

@@ -147,8 +147,8 @@ export async function sendNotificationEmail({
       ${message ?? "There is a new notification waiting for you."}
     </p>
     <div style="text-align:center;margin:24px 0;">
-      <a href="https://tabanni.com" target="_blank" style="display:inline-block;background:#FF6B35;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:700;">
-        View on Tabanni
+      <a href="https://tabanni.com/profile#notifications" target="_blank" style="display:inline-block;background:#FF6B35;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:700;">
+        View My Notifications
       </a>
     </div>`;
 
@@ -159,7 +159,7 @@ export async function sendNotificationEmail({
       from: SMTP_FROM,
       to,
       subject: subjectLine,
-      text: `${title ? title + "\n\n" : ""}${message ?? "There is a notification waiting for you. Please log in to your account to view more details."}`,
+      text: `${title ? title + "\n\n" : ""}${message ?? "There is a notification waiting for you. Please log in to your account to view more details."}\n\nView my notifications: https://tabanni.com/profile#notifications`,
       html: htmlBody,
     });
     logger.info({ to }, "Notification email sent");
