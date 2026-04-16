@@ -3,6 +3,7 @@ import { db, donationsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { getUncachableStripeClient, getStripePublishableKey } from "../stripeClient";
 import { Client, Environment, OrdersController, CheckoutPaymentIntent } from "@paypal/paypal-server-sdk";
+import { createAdminNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -94,10 +95,20 @@ router.post("/payments/stripe/confirm", async (req, res) => {
     const stripe = await getUncachableStripeClient();
     const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
     const status = intent.status === "succeeded" ? "success" : "failed";
-    await db
+    const [updatedDonation] = await db
       .update(donationsTable)
       .set({ status })
-      .where(eq(donationsTable.stripePaymentIntentId, paymentIntentId));
+      .where(eq(donationsTable.stripePaymentIntentId, paymentIntentId))
+      .returning();
+    if (status === "success" && updatedDonation) {
+      createAdminNotification(
+        "payment_confirmed",
+        "Donation Received (Card)",
+        `${updatedDonation.donorName} completed a card payment of ${updatedDonation.amount} JOD.`,
+        null,
+        { donationId: updatedDonation.id, amount: updatedDonation.amount, method: "Card" },
+      ).catch(() => {});
+    }
     res.json({ ok: true, status });
   } catch (err) {
     req.log.error({ err }, "Stripe confirm error");
@@ -191,10 +202,21 @@ router.post("/payments/paypal/capture-order", async (req, res) => {
     const captureStatus = capture.status ?? "UNKNOWN";
     const success = captureStatus === "COMPLETED";
 
-    await db
+    const [updatedPaypalDonation] = await db
       .update(donationsTable)
       .set({ status: success ? "success" : "failed" })
-      .where(eq(donationsTable.paypalOrderId, orderId));
+      .where(eq(donationsTable.paypalOrderId, orderId))
+      .returning();
+
+    if (success && updatedPaypalDonation) {
+      createAdminNotification(
+        "payment_confirmed",
+        "Donation Received (PayPal)",
+        `${updatedPaypalDonation.donorName} completed a PayPal payment of ${updatedPaypalDonation.amount} JOD.`,
+        null,
+        { donationId: updatedPaypalDonation.id, amount: updatedPaypalDonation.amount, method: "PayPal" },
+      ).catch(() => {});
+    }
 
     res.json({ success, status: captureStatus });
   } catch (err) {
@@ -223,6 +245,13 @@ router.post("/payments/cliq/confirm", async (req, res) => {
       frequency: (frequency as "one_time" | "monthly") ?? "one_time",
       status: "pending",
     }).returning();
+    createAdminNotification(
+      "payment_proof",
+      "CliQ Payment Proof Submitted",
+      `${donation.donorName} submitted a CliQ payment proof of ${donation.amount} JOD. Please verify and confirm.`,
+      null,
+      { donationId: donation.id, amount: donation.amount, method: "CliQ" },
+    ).catch(() => {});
     res.status(201).json(donation);
   } catch (err) {
     req.log.error({ err }, "CliQ confirm error");

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, PawPrint, Heart, Home, Clock, CheckCircle, RefreshCw, User, Send, Users } from "lucide-react";
+import { Bell, PawPrint, Heart, Home, Clock, CheckCircle, RefreshCw, User, Send, Users, CreditCard } from "lucide-react";
 import { AdminLayout } from "./index";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../hooks/use-toast";
@@ -90,6 +90,8 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: 
   new_pet: { icon: PawPrint, color: "text-orange-600", bg: "bg-orange-100", label: "New Pet" },
   new_adoption_request: { icon: Heart, color: "text-rose-600", bg: "bg-rose-100", label: "Adoption Request" },
   new_foster_request: { icon: Home, color: "text-teal-600", bg: "bg-teal-100", label: "Foster Request" },
+  payment_confirmed: { icon: CreditCard, color: "text-green-600", bg: "bg-green-100", label: "Payment" },
+  payment_proof: { icon: CreditCard, color: "text-amber-600", bg: "bg-amber-100", label: "Payment Proof" },
   general: { icon: Bell, color: "text-blue-600", bg: "bg-blue-100", label: "Broadcast" },
 };
 

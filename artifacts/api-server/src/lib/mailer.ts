@@ -168,21 +168,38 @@ export async function sendNotificationEmail({
   }
 }
 
+const ADMIN_DEEP_LINKS: Record<string, string> = {
+  new_pet: "/admin/pets",
+  new_adoption_request: "/admin/adoptions",
+  new_foster_request: "/admin/fosters",
+  payment_confirmed: "/admin",
+  payment_proof: "/admin",
+  general: "/admin",
+};
+
 export async function sendAdminEmail({
   to,
   type,
   title,
   message,
+  timestamp,
 }: {
   to: string;
   type: string;
   title: string;
   message: string;
+  timestamp?: Date;
 }): Promise<void> {
   const transport = createTransport();
   if (!transport) return;
 
-  const emoji = type === "new_pet" ? "🐾" : type === "new_adoption_request" ? "❤️" : type === "new_foster_request" ? "🏠" : "📋";
+  const emoji = type === "new_pet" ? "🐾" : type === "new_adoption_request" ? "❤️" : type === "new_foster_request" ? "🏠" : type === "payment_confirmed" || type === "payment_proof" ? "💳" : "📋";
+  const deepPath = ADMIN_DEEP_LINKS[type] ?? "/admin";
+  const deepUrl = `https://tabanni.com${deepPath}`;
+  const ts = (timestamp ?? new Date()).toLocaleString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit", timeZone: "Asia/Amman",
+  });
 
   const headerContent = `
     <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">${emoji} ${title}</h1>
@@ -192,9 +209,10 @@ export async function sendAdminEmail({
     <p style="margin:0 0 16px;color:#1E2A3A;font-size:15px;line-height:1.6;">
       ${message}
     </p>
+    <p style="margin:0 0 24px;color:#9CA3AF;font-size:12px;">🕐 ${ts} (Amman time)</p>
     <div style="text-align:center;margin:24px 0;">
-      <a href="https://tabanni.com/admin" target="_blank" style="display:inline-block;background:#1E2A3A;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:700;">
-        Open Admin Panel
+      <a href="${deepUrl}" target="_blank" style="display:inline-block;background:#1E2A3A;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:700;">
+        View in Admin Panel
       </a>
     </div>`;
 
@@ -205,7 +223,7 @@ export async function sendAdminEmail({
       from: SMTP_FROM,
       to,
       subject: `[Tabanni Admin] ${title}`,
-      text: `${title}\n\n${message}\n\nOpen admin panel: https://tabanni.com/admin`,
+      text: `${title}\n\n${message}\n\n${ts}\n\nView in admin panel: ${deepUrl}`,
       html: htmlBody,
     });
     logger.info({ to, type }, "Admin notification email sent");

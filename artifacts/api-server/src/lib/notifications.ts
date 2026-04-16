@@ -62,6 +62,7 @@ export async function createAdminNotification(
     });
 
     const adminEmailEnv = process.env.ADMIN_EMAIL;
+    const smtpFrom = process.env.SMTP_FROM ?? "noreply@tabanni.com";
     const adminsFromDb = await db.select({ email: usersTable.email }).from(usersTable).where(eq(usersTable.role, "admin"));
 
     const recipients = new Set<string>();
@@ -71,9 +72,13 @@ export async function createAdminNotification(
     if (adminEmailEnv) {
       recipients.add(adminEmailEnv);
     }
+    if (recipients.size === 0) {
+      recipients.add(smtpFrom);
+    }
 
+    const sentAt = new Date();
     for (const email of recipients) {
-      sendAdminEmail({ to: email, type, title, message }).catch((err) => {
+      sendAdminEmail({ to: email, type, title, message, timestamp: sentAt }).catch((err) => {
         logger.error({ err }, "Failed to send admin notification email");
       });
     }
