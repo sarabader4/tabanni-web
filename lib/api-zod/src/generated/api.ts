@@ -240,6 +240,8 @@ export const UpdatePetBody = zod.object({
   story: zod.string().optional(),
   approved: zod.boolean().optional(),
   featured: zod.boolean().optional(),
+  whatsappUrl: zod.string().optional(),
+  paymentProof: zod.string().optional(),
 });
 
 export const UpdatePetResponse = zod.object({
