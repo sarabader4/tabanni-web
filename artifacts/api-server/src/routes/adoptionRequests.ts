@@ -8,7 +8,7 @@ import {
   UpdateAdoptionRequestStatusBody,
   UpdateAdoptionRequestStatusParams,
 } from "@workspace/api-zod";
-import { createNotification } from "../lib/notifications";
+import { createNotification, createAdminNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -211,6 +211,13 @@ router.post("/adoption-requests", requireAuth, async (req, res): Promise<void> =
           `${requester?.fullName ?? "Someone"} has submitted an adoption request for your pet "${pet.name}".`,
           petId,
         );
+        createAdminNotification(
+          "new_adoption_request",
+          "New Adoption Request",
+          `${requester?.fullName ?? "Someone"} submitted an adoption request for "${pet.name}".`,
+          req.userId,
+          { petId },
+        ).catch(() => {});
       } catch (err) {
         req.log.error({ err }, "Error creating new adoption request notification");
       }

@@ -16,6 +16,7 @@ export const usersTable = pgTable("users", {
   isActive: boolean("is_active").notNull().default(true),
   passwordHash: text("password_hash"),
   isOnboardingCompleted: boolean("is_onboarding_completed").notNull().default(false),
+  emailNotificationsEnabled: boolean("email_notifications_enabled").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

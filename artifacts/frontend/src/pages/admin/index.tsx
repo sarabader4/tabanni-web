@@ -19,7 +19,9 @@ import {
   HandHeart,
   Search,
   Mail,
+  Bell,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import {
   LineChart,
   Line,
@@ -60,10 +62,23 @@ const SIDEBAR_NAV = [
   { label: "Volunteers", href: "/admin/volunteers", icon: HandHeart },
   { label: "Lost & Found", href: "/admin/lost-found", icon: Search },
   { label: "Contact Messages", href: "/admin/contact-messages", icon: Mail },
+  { label: "Notifications", href: "/admin/notifications", icon: Bell },
   { label: "Reports & Analytics", href: "/admin/analytics", icon: BarChart2 },
 ];
 
-function SidebarItem({ item, depth = 0 }: { item: typeof SIDEBAR_NAV[number]; depth?: number }) {
+function useAdminUnreadCount() {
+  return useQuery<{ count: number }>({
+    queryKey: ["/api/admin/notifications/unread-count"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/notifications/unread-count", { credentials: "include" });
+      if (!res.ok) return { count: 0 };
+      return res.json();
+    },
+    refetchInterval: 30000,
+  });
+}
+
+function SidebarItem({ item, badge, depth = 0 }: { item: typeof SIDEBAR_NAV[number]; badge?: number; depth?: number }) {
   const [location] = useLocation();
   const [open, setOpen] = useState(() => {
     if ("children" in item && item.children) {
@@ -111,13 +126,21 @@ function SidebarItem({ item, depth = 0 }: { item: typeof SIDEBAR_NAV[number]; de
     <Link href={navItem.href}>
       <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all text-sm ${active ? "bg-[#FF6B35] text-white font-semibold" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
         <Icon className="w-4 h-4 shrink-0" />
-        <span className="font-medium">{navItem.label}</span>
+        <span className="font-medium flex-1">{navItem.label}</span>
+        {badge != null && badge > 0 && (
+          <span className={`min-w-[18px] h-[18px] px-1 rounded-full text-xs font-bold flex items-center justify-center ${active ? "bg-white text-[#FF6B35]" : "bg-[#FF6B35] text-white"}`}>
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
       </div>
     </Link>
   );
 }
 
 export function AdminSidebar() {
+  const { data: unreadData } = useAdminUnreadCount();
+  const unreadCount = unreadData?.count ?? 0;
+
   return (
     <aside className="w-56 min-h-screen flex-shrink-0 flex flex-col" style={{ background: "#1E2A3A" }}>
       <div className="p-5 border-b border-white/10">
@@ -130,7 +153,11 @@ export function AdminSidebar() {
       </div>
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         {SIDEBAR_NAV.map(item => (
-          <SidebarItem key={item.label} item={item} />
+          <SidebarItem
+            key={item.label}
+            item={item}
+            badge={"href" in item && item.href === "/admin/notifications" ? unreadCount : undefined}
+          />
         ))}
       </nav>
       <div className="p-3 border-t border-white/10">

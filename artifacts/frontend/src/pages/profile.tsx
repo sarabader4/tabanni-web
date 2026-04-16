@@ -3311,6 +3311,25 @@ export default function Profile() {
   const { data: favourites, isLoading: favLoading } = useGetMyFavourites();
   const { data: notifications, isLoading: notifLoading } = useGetMyNotifications();
   const markRead = useMarkNotificationRead();
+  const queryClient = useQueryClient();
+
+  const [emailTogglePending, setEmailTogglePending] = useState(false);
+  async function toggleEmailNotifications(enabled: boolean) {
+    setEmailTogglePending(true);
+    try {
+      const res = await fetch("/api/users/me/preferences", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailNotificationsEnabled: enabled }),
+      });
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+      }
+    } finally {
+      setEmailTogglePending(false);
+    }
+  }
   const { data: lostFoundData, isLoading: lfLoading, refetch: refetchLF } = useListLostFoundReports(
     user?.id ? { reporterId: user.id, limit: 50 } : { limit: 0 }
   );
@@ -4149,6 +4168,24 @@ export default function Profile() {
             {activeTab === "Notifications" && (
               <div className="space-y-4">
                 <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.notifications")}</h2>
+
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-sm text-[#1E2A3A]">Email Notifications</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Receive email updates about your adoption and foster requests</p>
+                  </div>
+                  <button
+                    disabled={emailTogglePending}
+                    onClick={() => toggleEmailNotifications(!(profile as any)?.emailNotificationsEnabled)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${(profile as any)?.emailNotificationsEnabled !== false ? "bg-[#00B8A0]" : "bg-gray-200"}`}
+                    role="switch"
+                    aria-checked={(profile as any)?.emailNotificationsEnabled !== false}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${(profile as any)?.emailNotificationsEnabled !== false ? "translate-x-5" : "translate-x-0"}`}
+                    />
+                  </button>
+                </div>
                 {notifLoading ? (
                   <div className="flex items-center justify-center py-16">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />

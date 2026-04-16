@@ -9,3 +9,4 @@ export * from "./userProfiles";
 export * from "./notifications";
 export * from "./volunteerApplications";
 export * from "./contactMessages";
+export * from "./adminNotifications";

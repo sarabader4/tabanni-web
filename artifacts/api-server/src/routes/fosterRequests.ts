@@ -8,7 +8,7 @@ import {
   UpdateFosterRequestStatusBody,
   UpdateFosterRequestStatusParams,
 } from "@workspace/api-zod";
-import { createNotification } from "../lib/notifications";
+import { createNotification, createAdminNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -211,6 +211,13 @@ router.post("/foster-requests", requireAuth, async (req, res): Promise<void> => 
           `${requester?.fullName ?? "Someone"} has submitted a foster request for your pet "${pet.name}".`,
           petId,
         );
+        createAdminNotification(
+          "new_foster_request",
+          "New Foster Request",
+          `${requester?.fullName ?? "Someone"} submitted a foster request for "${pet.name}".`,
+          req.userId,
+          { petId },
+        ).catch(() => {});
       } catch (err) {
         req.log.error({ err }, "Error creating new foster request notification");
       }

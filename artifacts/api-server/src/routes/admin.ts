@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable, volunteerApplicationsTable } from "@workspace/db";
+import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable, volunteerApplicationsTable, adminNotificationsTable } from "@workspace/db";
 import { eq, and, ilike, desc, sql, gte, lte, lt } from "drizzle-orm";
 import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams, UpdateAdminVolunteerStatusBody } from "@workspace/api-zod";
 import { createNotification } from "../lib/notifications";
@@ -582,6 +582,80 @@ router.patch("/admin/volunteer-applications/:id/status", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Error updating volunteer application status");
     res.status(500).json({ error: "internal_error", message: "Failed to update status" });
+  }
+});
+
+router.get("/admin/notifications", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string ?? "1", 10) || 1;
+    const limit = parseInt(req.query.limit as string ?? "30", 10) || 30;
+    const offset = (page - 1) * limit;
+
+    const [notifications, countResult] = await Promise.all([
+      db.select({
+        id: adminNotificationsTable.id,
+        type: adminNotificationsTable.type,
+        userId: adminNotificationsTable.userId,
+        title: adminNotificationsTable.title,
+        message: adminNotificationsTable.message,
+        metadata: adminNotificationsTable.metadata,
+        read: adminNotificationsTable.read,
+        createdAt: adminNotificationsTable.createdAt,
+        userName: usersTable.fullName,
+        userEmail: usersTable.email,
+      })
+        .from(adminNotificationsTable)
+        .leftJoin(usersTable, eq(adminNotificationsTable.userId, usersTable.id))
+        .orderBy(desc(adminNotificationsTable.createdAt))
+        .limit(limit)
+        .offset(offset),
+      db.select({ count: sql<number>`count(*)::int` }).from(adminNotificationsTable),
+    ]);
+
+    res.json({ notifications, total: countResult[0]?.count ?? 0, page, limit });
+  } catch (err) {
+    req.log.error({ err }, "Error listing admin notifications");
+    res.status(500).json({ error: "internal_error", message: "Failed to list admin notifications" });
+  }
+});
+
+router.get("/admin/notifications/unread-count", async (req, res) => {
+  try {
+    const [result] = await db.select({ count: sql<number>`count(*)::int` })
+      .from(adminNotificationsTable)
+      .where(eq(adminNotificationsTable.read, false));
+    res.json({ count: result?.count ?? 0 });
+  } catch (err) {
+    req.log.error({ err }, "Error getting admin unread count");
+    res.status(500).json({ error: "internal_error", message: "Failed to get unread count" });
+  }
+});
+
+router.patch("/admin/notifications/read-all", async (req, res) => {
+  try {
+    await db.update(adminNotificationsTable).set({ read: true }).where(eq(adminNotificationsTable.read, false));
+    res.json({ success: true });
+  } catch (err) {
+    req.log.error({ err }, "Error marking all admin notifications as read");
+    res.status(500).json({ error: "internal_error", message: "Failed to mark all as read" });
+  }
+});
+
+router.patch("/admin/notifications/:id/read", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    }
+    const [notif] = await db.update(adminNotificationsTable)
+      .set({ read: true })
+      .where(eq(adminNotificationsTable.id, id))
+      .returning();
+    if (!notif) return res.status(404).json({ error: "not_found", message: "Notification not found" });
+    res.json(notif);
+  } catch (err) {
+    req.log.error({ err }, "Error marking admin notification as read");
+    res.status(500).json({ error: "internal_error", message: "Failed to mark as read" });
   }
 });
 

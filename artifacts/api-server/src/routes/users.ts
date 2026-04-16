@@ -309,6 +309,27 @@ router.patch("/users/me/notifications/:id/read", async (req, res): Promise<void>
   }
 });
 
+router.patch("/users/me/preferences", async (req, res): Promise<void> => {
+  try {
+    if (!requireAuth(req, res)) return;
+    const { emailNotificationsEnabled } = req.body as { emailNotificationsEnabled?: boolean };
+    if (typeof emailNotificationsEnabled !== "boolean") {
+      res.status(400).json({ error: "validation_error", message: "emailNotificationsEnabled must be a boolean" });
+      return;
+    }
+    const [user] = await db.update(usersTable)
+      .set({ emailNotificationsEnabled } as any)
+      .where(eq(usersTable.id, req.userId))
+      .returning();
+    if (!user) { res.status(404).json({ error: "not_found", message: "User not found" }); return; }
+    const { passwordHash: _pw, ...safeUser } = user;
+    res.json(safeUser);
+  } catch (err) {
+    req.log.error({ err }, "Error updating user preferences");
+    res.status(500).json({ error: "internal_error", message: "Failed to update preferences" });
+  }
+});
+
 router.post("/users/me/notifications/:id/whatsapp-click", async (req, res): Promise<void> => {
   try {
     if (!requireAuth(req, res)) return;

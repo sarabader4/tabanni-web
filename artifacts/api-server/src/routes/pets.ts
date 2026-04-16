@@ -12,6 +12,7 @@ import {
   ToggleFavouriteParams,
   ToggleFavouriteBody,
 } from "@workspace/api-zod";
+import { createAdminNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -137,6 +138,14 @@ router.post("/pets", requireAuth, async (req, res) => {
       ownerId: req.userId,
       approved: false, featured: false, addedByAdmin: false,
     }).returning();
+
+    createAdminNotification(
+      "new_pet",
+      "New Pet Submission",
+      `A new pet "${name}" has been submitted and is awaiting review.`,
+      req.userId,
+      { petId: pet.id },
+    ).catch(() => {});
 
     res.status(201).json(pet);
   } catch (err) {

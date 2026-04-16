@@ -55,6 +55,7 @@ scripts/
 | `lost_found_reports` | Lost & found pet reports |
 | `messages` | User messaging system |
 | `notifications` | User notifications |
+| `admin_notifications` | Admin activity feed (new pets, adoption/foster requests) |
 
 ## Frontend Pages
 
@@ -94,6 +95,7 @@ scripts/
 | `/admin/users` | `AdminUsers` | User management with search/filter by role |
 | `/admin/adoptions` | `AdminAdoptions` | Adoption request approval/rejection |
 | `/admin/fosters` | `AdminFosters` | Foster request approval/rejection |
+| `/admin/notifications` | `AdminNotifications` | Activity feed: new pets + adoption/foster requests with unread badge |
 
 ## API Endpoints
 
