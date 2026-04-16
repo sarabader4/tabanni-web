@@ -641,6 +641,7 @@ router.get("/admin/notifications", async (req, res) => {
         })
           .from(adminNotificationEmailLogsTable)
           .where(inArray(adminNotificationEmailLogsTable.notificationId, notifIds))
+          .orderBy(adminNotificationEmailLogsTable.sentAt, adminNotificationEmailLogsTable.id)
       : [];
 
     const logsByNotifId = new Map<number, typeof emailLogs>();

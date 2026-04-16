@@ -91,7 +91,7 @@ export async function createAdminNotification(
       email: recipientList[i],
       success: r.status === "fulfilled" && r.value === true,
       errorMessage: r.status === "rejected"
-        ? String(r.reason)
+        ? (r.reason instanceof Error ? r.reason.message : typeof r.reason === "string" ? r.reason : "Unknown error")
         : r.status === "fulfilled" && !r.value
           ? "Email delivery failed"
           : null,
