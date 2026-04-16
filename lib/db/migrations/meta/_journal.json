@@ -71,6 +71,13 @@
       "when": 1776348000000,
       "tag": "0011_admin_notification_email_status",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1776349000000,
+      "tag": "0012_admin_notification_email_logs",
+      "breakpoints": true
     }
   ]
 }

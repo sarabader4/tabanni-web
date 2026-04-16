@@ -16,3 +16,15 @@ export const adminNotificationsTable = pgTable("admin_notifications", {
 
 export type AdminNotification = typeof adminNotificationsTable.$inferSelect;
 export type InsertAdminNotification = typeof adminNotificationsTable.$inferInsert;
+
+export const adminNotificationEmailLogsTable = pgTable("admin_notification_email_logs", {
+  id: serial("id").primaryKey(),
+  notificationId: integer("notification_id").notNull().references(() => adminNotificationsTable.id, { onDelete: "cascade" }),
+  recipientEmail: text("recipient_email").notNull(),
+  success: boolean("success").notNull(),
+  errorMessage: text("error_message"),
+  sentAt: timestamp("sent_at").notNull().defaultNow(),
+});
+
+export type AdminNotificationEmailLog = typeof adminNotificationEmailLogsTable.$inferSelect;
+export type InsertAdminNotificationEmailLog = typeof adminNotificationEmailLogsTable.$inferInsert;

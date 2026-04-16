@@ -3,6 +3,15 @@ import { Bell, PawPrint, Heart, Home, Clock, CheckCircle, RefreshCw, User, Send,
 import { AdminLayout } from "./index";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../hooks/use-toast";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+
+interface EmailLog {
+  notificationId: number;
+  recipientEmail: string;
+  success: boolean;
+  errorMessage: string | null;
+  sentAt: string;
+}
 
 interface AdminNotification {
   id: number;
@@ -17,6 +26,7 @@ interface AdminNotification {
   emailFailed: boolean;
   userName: string | null;
   userEmail: string | null;
+  emailLogs: EmailLog[];
 }
 
 interface AdminNotificationsResponse {
@@ -105,6 +115,64 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: 
 
 function getTypeConfig(type: string) {
   return TYPE_CONFIG[type] ?? { icon: Bell, color: "text-gray-600", bg: "bg-gray-100", label: "Notification" };
+}
+
+function EmailLogBadge({ emailSentAt, emailFailed, emailLogs }: { emailSentAt: string | null; emailFailed: boolean; emailLogs: EmailLog[] }) {
+  if (!emailSentAt && !emailFailed) return null;
+
+  const badge = emailSentAt ? (
+    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 cursor-default select-none">
+      📧 Emailed
+    </span>
+  ) : (
+    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600 cursor-default select-none">
+      📧 Failed
+    </span>
+  );
+
+  if (emailLogs.length === 0) return badge;
+
+  const tooltipContent = (
+    <div className="min-w-[220px] max-w-[320px] text-xs">
+      <p className="font-semibold text-gray-700 mb-2">Email Delivery ({emailLogs.length} recipient{emailLogs.length !== 1 ? "s" : ""})</p>
+      <div className="space-y-1.5">
+        {emailLogs.map((log, i) => (
+          <div key={i} className="flex items-start gap-2">
+            <span className={`mt-0.5 shrink-0 text-[11px] ${log.success ? "text-emerald-600" : "text-red-500"}`}>
+              {log.success ? "✓" : "✗"}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className={`truncate font-medium ${log.success ? "text-gray-800" : "text-gray-600"}`}>{log.recipientEmail}</p>
+              {!log.success && log.errorMessage && (
+                <p className="text-red-400 text-[10px] leading-tight mt-0.5 line-clamp-2">{log.errorMessage}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <TooltipPrimitive.Provider delayDuration={150}>
+      <TooltipPrimitive.Root>
+        <TooltipPrimitive.Trigger asChild>
+          {badge}
+        </TooltipPrimitive.Trigger>
+        <TooltipPrimitive.Portal>
+          <TooltipPrimitive.Content
+            side="bottom"
+            align="start"
+            sideOffset={6}
+            className="z-50 bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-3 animate-in fade-in-0 zoom-in-95"
+          >
+            {tooltipContent}
+            <TooltipPrimitive.Arrow className="fill-white" />
+          </TooltipPrimitive.Content>
+        </TooltipPrimitive.Portal>
+      </TooltipPrimitive.Root>
+    </TooltipPrimitive.Provider>
+  );
 }
 
 function formatDate(dateStr: string) {
@@ -308,16 +376,7 @@ export default function AdminNotifications() {
                                 <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.color}`}>
                                   {cfg.label}
                                 </span>
-                                {n.emailSentAt && (
-                                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
-                                    📧 Emailed
-                                  </span>
-                                )}
-                                {!n.emailSentAt && n.emailFailed && (
-                                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600">
-                                    📧 Failed
-                                  </span>
-                                )}
+                                <EmailLogBadge emailSentAt={n.emailSentAt} emailFailed={n.emailFailed} emailLogs={n.emailLogs} />
                                 {!n.read && (
                                   <span className="w-2 h-2 rounded-full bg-orange-500 inline-block" />
                                 )}

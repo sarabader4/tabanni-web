@@ -1,4 +1,4 @@
-import { db, notificationsTable, adminNotificationsTable, usersTable, NotificationType } from "@workspace/db";
+import { db, notificationsTable, adminNotificationsTable, adminNotificationEmailLogsTable, usersTable, NotificationType } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { sendNotificationEmail, sendAdminEmail } from "./mailer";
 import { logger } from "./logger";
@@ -79,18 +79,28 @@ export async function createAdminNotification(
     }
 
     const sentAt = new Date();
-    const results = await Promise.all(
-      Array.from(recipients).map((email) =>
-        sendAdminEmail({ to: email, type, title, message, timestamp: sentAt }).catch((err) => {
-          logger.error({ err }, "Failed to send admin notification email");
-          return false;
-        }),
+    const recipientList = Array.from(recipients);
+
+    const rawResults = await Promise.allSettled(
+      recipientList.map((email) =>
+        sendAdminEmail({ to: email, type, title, message, timestamp: sentAt }),
       ),
     );
 
-    if (notifId !== undefined) {
-      const anySucceeded = results.some(Boolean);
-      const allFailed = results.length > 0 && results.every((r) => !r);
+    const results = rawResults.map((r, i) => ({
+      email: recipientList[i],
+      success: r.status === "fulfilled" && r.value === true,
+      errorMessage: r.status === "rejected"
+        ? String(r.reason)
+        : r.status === "fulfilled" && !r.value
+          ? "Email delivery failed"
+          : null,
+    }));
+
+    if (notifId !== undefined && results.length > 0) {
+      const anySucceeded = results.some((r) => r.success);
+      const allFailed = results.every((r) => !r.success);
+
       if (anySucceeded) {
         await db.update(adminNotificationsTable)
           .set({ emailSentAt: sentAt })
@@ -100,6 +110,16 @@ export async function createAdminNotification(
           .set({ emailFailed: true })
           .where(eq(adminNotificationsTable.id, notifId));
       }
+
+      await db.insert(adminNotificationEmailLogsTable).values(
+        results.map((r) => ({
+          notificationId: notifId,
+          recipientEmail: r.email,
+          success: r.success,
+          errorMessage: r.errorMessage ?? null,
+          sentAt,
+        })),
+      );
     }
   } catch (err) {
     logger.error({ err }, "Failed to create admin notification");

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable, volunteerApplicationsTable, adminNotificationsTable } from "@workspace/db";
+import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable, volunteerApplicationsTable, adminNotificationsTable, adminNotificationEmailLogsTable } from "@workspace/db";
 import { eq, and, ilike, desc, sql, gte, lte, lt, inArray } from "drizzle-orm";
 import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams, UpdateAdminVolunteerStatusBody } from "@workspace/api-zod";
 import { createNotification, createAdminNotification } from "../lib/notifications";
@@ -607,7 +607,7 @@ router.get("/admin/notifications", async (req, res) => {
     const limit = parseInt(req.query.limit as string ?? "30", 10) || 30;
     const offset = (page - 1) * limit;
 
-    const [notifications, countResult] = await Promise.all([
+    const [rawNotifications, countResult] = await Promise.all([
       db.select({
         id: adminNotificationsTable.id,
         type: adminNotificationsTable.type,
@@ -629,6 +629,32 @@ router.get("/admin/notifications", async (req, res) => {
         .offset(offset),
       db.select({ count: sql<number>`count(*)::int` }).from(adminNotificationsTable),
     ]);
+
+    const notifIds = rawNotifications.map((n) => n.id);
+    const emailLogs = notifIds.length > 0
+      ? await db.select({
+          notificationId: adminNotificationEmailLogsTable.notificationId,
+          recipientEmail: adminNotificationEmailLogsTable.recipientEmail,
+          success: adminNotificationEmailLogsTable.success,
+          errorMessage: adminNotificationEmailLogsTable.errorMessage,
+          sentAt: adminNotificationEmailLogsTable.sentAt,
+        })
+          .from(adminNotificationEmailLogsTable)
+          .where(inArray(adminNotificationEmailLogsTable.notificationId, notifIds))
+      : [];
+
+    const logsByNotifId = new Map<number, typeof emailLogs>();
+    for (const log of emailLogs) {
+      if (!logsByNotifId.has(log.notificationId)) {
+        logsByNotifId.set(log.notificationId, []);
+      }
+      logsByNotifId.get(log.notificationId)!.push(log);
+    }
+
+    const notifications = rawNotifications.map((n) => ({
+      ...n,
+      emailLogs: logsByNotifId.get(n.id) ?? [],
+    }));
 
     res.json({ notifications, total: countResult[0]?.count ?? 0, page, limit });
   } catch (err) {
