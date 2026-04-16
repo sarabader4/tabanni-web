@@ -318,7 +318,7 @@ router.patch("/users/me/preferences", async (req, res): Promise<void> => {
       return;
     }
     const [user] = await db.update(usersTable)
-      .set({ emailNotificationsEnabled } as any)
+      .set({ emailNotificationsEnabled })
       .where(eq(usersTable.id, req.userId))
       .returning();
     if (!user) { res.status(404).json({ error: "not_found", message: "User not found" }); return; }

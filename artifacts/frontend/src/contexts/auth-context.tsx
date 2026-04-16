@@ -11,6 +11,7 @@ export interface AuthUser {
   avatarUrl: string | null;
   role: "user" | "admin" | "volunteer";
   isOnboardingCompleted: boolean;
+  emailNotificationsEnabled: boolean;
 }
 
 interface AuthContextValue {

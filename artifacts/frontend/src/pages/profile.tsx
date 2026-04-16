@@ -3313,8 +3313,11 @@ export default function Profile() {
   const markRead = useMarkNotificationRead();
   const queryClient = useQueryClient();
 
+  const [emailToggleOptimistic, setEmailToggleOptimistic] = useState<boolean | null>(null);
   const [emailTogglePending, setEmailTogglePending] = useState(false);
+  const effectiveEmailEnabled = emailToggleOptimistic !== null ? emailToggleOptimistic : (user?.emailNotificationsEnabled ?? true);
   async function toggleEmailNotifications(enabled: boolean) {
+    setEmailToggleOptimistic(enabled);
     setEmailTogglePending(true);
     try {
       const res = await fetch("/api/users/me/preferences", {
@@ -3324,8 +3327,15 @@ export default function Profile() {
         body: JSON.stringify({ emailNotificationsEnabled: enabled }),
       });
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+        toast({ title: enabled ? "Email notifications enabled" : "Email notifications disabled", description: enabled ? "You will receive email updates about your requests." : "You will no longer receive email updates." });
+      } else {
+        setEmailToggleOptimistic(!enabled);
+        toast({ title: "Failed to update preference", description: "Please try again.", variant: "destructive" });
       }
+    } catch {
+      setEmailToggleOptimistic(!enabled);
+      toast({ title: "Network error", description: "Could not save your preference. Please try again.", variant: "destructive" });
     } finally {
       setEmailTogglePending(false);
     }
@@ -4176,13 +4186,13 @@ export default function Profile() {
                   </div>
                   <button
                     disabled={emailTogglePending}
-                    onClick={() => toggleEmailNotifications(!(profile as any)?.emailNotificationsEnabled)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${(profile as any)?.emailNotificationsEnabled !== false ? "bg-[#00B8A0]" : "bg-gray-200"}`}
+                    onClick={() => toggleEmailNotifications(!effectiveEmailEnabled)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${effectiveEmailEnabled ? "bg-[#00B8A0]" : "bg-gray-200"}`}
                     role="switch"
-                    aria-checked={(profile as any)?.emailNotificationsEnabled !== false}
+                    aria-checked={effectiveEmailEnabled}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${(profile as any)?.emailNotificationsEnabled !== false ? "translate-x-5" : "translate-x-0"}`}
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${effectiveEmailEnabled ? "translate-x-5" : "translate-x-0"}`}
                     />
                   </button>
                 </div>

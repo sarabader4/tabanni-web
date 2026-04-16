@@ -61,9 +61,19 @@ export async function createAdminNotification(
       metadata: metadata ?? null,
     });
 
-    const admins = await db.select({ email: usersTable.email }).from(usersTable).where(eq(usersTable.role, "admin"));
-    for (const admin of admins) {
-      sendAdminEmail({ to: admin.email, type, title, message }).catch((err) => {
+    const adminEmailEnv = process.env.ADMIN_EMAIL;
+    const adminsFromDb = await db.select({ email: usersTable.email }).from(usersTable).where(eq(usersTable.role, "admin"));
+
+    const recipients = new Set<string>();
+    for (const admin of adminsFromDb) {
+      recipients.add(admin.email);
+    }
+    if (adminEmailEnv) {
+      recipients.add(adminEmailEnv);
+    }
+
+    for (const email of recipients) {
+      sendAdminEmail({ to: email, type, title, message }).catch((err) => {
         logger.error({ err }, "Failed to send admin notification email");
       });
     }

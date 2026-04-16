@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable, volunteerApplicationsTable, adminNotificationsTable } from "@workspace/db";
-import { eq, and, ilike, desc, sql, gte, lte, lt } from "drizzle-orm";
+import { eq, and, ilike, desc, sql, gte, lte, lt, inArray } from "drizzle-orm";
 import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams, UpdateAdminVolunteerStatusBody } from "@workspace/api-zod";
 import { createNotification } from "../lib/notifications";
 
@@ -647,15 +647,55 @@ router.patch("/admin/notifications/:id/read", async (req, res) => {
     if (isNaN(id)) {
       return res.status(400).json({ error: "validation_error", message: "Invalid id" });
     }
+    const readValue = typeof req.body?.read === "boolean" ? req.body.read : true;
     const [notif] = await db.update(adminNotificationsTable)
-      .set({ read: true })
+      .set({ read: readValue })
       .where(eq(adminNotificationsTable.id, id))
       .returning();
     if (!notif) return res.status(404).json({ error: "not_found", message: "Notification not found" });
     res.json(notif);
   } catch (err) {
-    req.log.error({ err }, "Error marking admin notification as read");
-    res.status(500).json({ error: "internal_error", message: "Failed to mark as read" });
+    req.log.error({ err }, "Error toggling admin notification read state");
+    res.status(500).json({ error: "internal_error", message: "Failed to update notification" });
+  }
+});
+
+router.post("/admin/notifications/broadcast", async (req, res) => {
+  try {
+    const { title, message, targetGroup } = req.body as { title?: string; message?: string; targetGroup?: string };
+    if (!title || !message) {
+      return res.status(400).json({ error: "validation_error", message: "title and message are required" });
+    }
+    const validTargets = ["all", "adopters", "volunteers"];
+    const target = validTargets.includes(targetGroup ?? "") ? targetGroup! : "all";
+
+    let userCondition;
+    if (target === "adopters") {
+      const adopters = await db.selectDistinct({ userId: adoptionRequestsTable.requesterId }).from(adoptionRequestsTable);
+      if (adopters.length === 0) return res.json({ count: 0 });
+      const ids = adopters.map(a => a.userId).filter((id): id is number => id !== null);
+      userCondition = inArray(usersTable.id, ids);
+    } else if (target === "volunteers") {
+      userCondition = eq(usersTable.role, "volunteer");
+    } else {
+      userCondition = eq(usersTable.isActive, true);
+    }
+
+    const users = await db.select({ id: usersTable.id }).from(usersTable).where(userCondition);
+
+    let count = 0;
+    for (const u of users) {
+      try {
+        await createNotification(u.id, "general", title, message);
+        count++;
+      } catch {
+      }
+    }
+
+    res.json({ success: true, count });
+  } catch (err) {
+    req.log.error({ err }, "Error broadcasting admin notification");
+    res.status(500).json({ error: "internal_error", message: "Failed to broadcast notification" });
   }
 });
 

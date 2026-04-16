@@ -57,6 +57,13 @@
       "when": 1745000000000,
       "tag": "0009_add_payment_proof_to_pets",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1745100000000,
+      "tag": "0010_admin_notifications_and_email_pref",
+      "breakpoints": true
     }
   ]
 }

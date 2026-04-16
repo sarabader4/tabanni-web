@@ -17,6 +17,7 @@ export const NOTIFICATION_TYPES = [
   "adoption_rejected",
   "foster_accepted",
   "foster_rejected",
+  "general",
 ] as const;
 
 export type NotificationType = typeof NOTIFICATION_TYPES[number];
