@@ -371,6 +371,15 @@ router.put("/adoption-requests/:id/status", requireAuth, async (req, res): Promi
       }
     }
 
+    const actionLabel = newStatus === "approved" ? "approved" : newStatus === "rejected" ? "rejected" : newStatus;
+    createAdminNotification(
+      newStatus === "approved" ? "adoption_approved" : "adoption_status_changed",
+      `Adoption Request ${actionLabel.charAt(0).toUpperCase() + actionLabel.slice(1)}`,
+      `Adoption request for "${existingRequest.petName}" has been ${actionLabel}.`,
+      existingRequest.requesterId ?? null,
+      { requestId: requestId, petId: existingRequest.petId },
+    ).catch(() => {});
+
     res.json(updated);
   } catch (err: unknown) {
     const code = err instanceof Error ? (err as Error & { code?: string }).code : undefined;

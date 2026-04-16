@@ -72,6 +72,7 @@ router.post("/auth/register", async (req, res) => {
       city: user.city,
       role: user.role,
       isOnboardingCompleted: user.isOnboardingCompleted,
+      emailNotificationsEnabled: user.emailNotificationsEnabled,
     });
   } catch (err) {
     logger.error({ err }, "Error during registration");
@@ -117,6 +118,7 @@ router.post("/auth/login", async (req, res) => {
       avatarUrl: user.avatarUrl,
       role: user.role,
       isOnboardingCompleted: user.isOnboardingCompleted,
+      emailNotificationsEnabled: user.emailNotificationsEnabled,
     });
   } catch (err) {
     logger.error({ err }, "Error during login");

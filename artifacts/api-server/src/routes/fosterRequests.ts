@@ -371,6 +371,15 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
       }
     }
 
+    const fosterActionLabel = newStatus === "approved" ? "approved" : newStatus === "rejected" ? "rejected" : newStatus;
+    createAdminNotification(
+      newStatus === "approved" ? "foster_approved" : "foster_status_changed",
+      `Foster Request ${fosterActionLabel.charAt(0).toUpperCase() + fosterActionLabel.slice(1)}`,
+      `Foster request for "${existingRequest.petName}" has been ${fosterActionLabel}.`,
+      existingRequest.requesterId ?? null,
+      { requestId: requestId, petId: existingRequest.petId },
+    ).catch(() => {});
+
     res.json(updated);
   } catch (err: unknown) {
     const code = err instanceof Error ? (err as Error & { code?: string }).code : undefined;

@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable, volunteerApplicationsTable, adminNotificationsTable } from "@workspace/db";
 import { eq, and, ilike, desc, sql, gte, lte, lt, inArray } from "drizzle-orm";
 import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams, UpdateAdminVolunteerStatusBody } from "@workspace/api-zod";
-import { createNotification } from "../lib/notifications";
+import { createNotification, createAdminNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -223,6 +223,14 @@ router.put("/admin/pets/:id/approve", async (req, res) => {
       }
     }
 
+    createAdminNotification(
+      "pet_approved",
+      "Pet Approved",
+      `Pet "${pet.name}" has been approved and is now listed.`,
+      pet.ownerId ?? null,
+      { petId: pet.id },
+    ).catch(() => {});
+
     res.json(pet);
   } catch (err) {
     req.log.error({ err }, "Error approving pet");
@@ -253,6 +261,14 @@ router.put("/admin/pets/:id/reject", async (req, res) => {
         req.log.error({ err }, "Error creating rejection notification");
       }
     }
+
+    createAdminNotification(
+      "pet_rejected",
+      "Pet Rejected",
+      `Pet "${pet.name}" submission has been rejected.`,
+      pet.ownerId ?? null,
+      { petId: pet.id },
+    ).catch(() => {});
 
     res.json(pet);
   } catch (err) {
