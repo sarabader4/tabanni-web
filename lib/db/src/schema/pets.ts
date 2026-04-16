@@ -33,6 +33,7 @@ export const petsTable = pgTable("pets", {
   rejected: boolean("rejected").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
   addedByAdmin: boolean("added_by_admin").notNull().default(false),
+  paymentProof: text("payment_proof"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

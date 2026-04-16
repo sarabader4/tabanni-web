@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut, Plus, Camera, Inbox, Trash2, ChevronRight, ChevronLeft, ClipboardList, Sparkles, ExternalLink,
+  User, PawPrint, FileText, Heart, Bell, Users, MapPin, Edit2, Loader2, CheckCircle2, Clock, XCircle, ChevronDown, Search, X, Eye, EyeOff, LogOut, Plus, Camera, Inbox, Trash2, ChevronRight, ChevronLeft, ClipboardList, Sparkles, ExternalLink, Upload,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useLocation } from "wouter";
@@ -2201,6 +2201,9 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>(initialData?.imageUrls ?? []);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string>("");
+  const paymentProofInputRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const aiGenerateMutation = useAiGenerateDescription({
@@ -2271,6 +2274,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
     const e: Record<string, string> = {};
     if (!form.whatsappUrl.trim()) e.whatsappUrl = t("profile.addPetErrWhatsapp");
     if (!form.purpose) e.purpose = t("profile.addPetErrPurpose");
+    if (!isEditMode && !paymentProofFile) e.paymentProof = t("profile.addPetErrPaymentProof");
     return e;
   };
 
@@ -2322,6 +2326,15 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
     }
     const imageUrls: string[] = [...existingImageUrls, ...newBase64];
 
+    let paymentProofBase64: string | undefined;
+    if (paymentProofFile) {
+      try {
+        [paymentProofBase64] = await filesToBase64([paymentProofFile]);
+      } catch {
+        paymentProofBase64 = undefined;
+      }
+    }
+
     const ageMonths = (() => {
       if (!form.birthday) return 0;
       const birth = new Date(form.birthday);
@@ -2345,6 +2358,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
       story: form.story || undefined,
       imageUrls,
       whatsappUrl: form.whatsappUrl || undefined,
+      paymentProof: paymentProofBase64,
     };
 
     if (isEditMode && initialData) {
@@ -2665,6 +2679,59 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
                   ))}
                 </div>
               </div>
+
+              {!isEditMode && (
+                <div className="space-y-3">
+                  <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3">
+                    <p className="text-sm font-semibold text-red-600">{t("profile.addPetPaymentNotice")}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                      {t("profile.addPetPaymentProofLabel")} *
+                    </label>
+                    <div
+                      onClick={() => paymentProofInputRef.current?.click()}
+                      className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors hover:bg-gray-50 ${
+                        touched.paymentProof && errors.paymentProof ? "border-red-400 bg-red-50" : "border-gray-200"
+                      }`}
+                    >
+                      {paymentProofPreview ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <img
+                            src={paymentProofPreview}
+                            alt="Payment proof"
+                            className="max-h-32 rounded-lg object-contain border border-gray-200"
+                          />
+                          <span className="text-xs text-[#FF6B35] font-semibold">{t("profile.addPetPaymentProofChange")}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 mx-auto mb-1.5 text-gray-300" />
+                          <p className="text-sm text-gray-500">{t("profile.addPetPaymentProofBtn")}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">JPG, PNG, WEBP</p>
+                        </>
+                      )}
+                      <input
+                        ref={paymentProofInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setPaymentProofFile(file);
+                          setPaymentProofPreview(URL.createObjectURL(file));
+                          setErrors(prev => ({ ...prev, paymentProof: "" }));
+                        }}
+                      />
+                    </div>
+                    {touched.paymentProof && errors.paymentProof && (
+                      <p className="text-xs text-red-500 mt-0.5">{errors.paymentProof}</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-between pt-2">
                 <button

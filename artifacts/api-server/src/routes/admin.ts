@@ -513,6 +513,7 @@ router.get("/admin/pets", async (req, res) => {
         rejected: petsTable.rejected,
         featured: petsTable.featured,
         addedByAdmin: petsTable.addedByAdmin,
+        paymentProof: petsTable.paymentProof,
         createdAt: petsTable.createdAt,
       })
         .from(petsTable)

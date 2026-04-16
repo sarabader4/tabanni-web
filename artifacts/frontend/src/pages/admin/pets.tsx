@@ -38,6 +38,7 @@ interface AdminPet {
   rejected: boolean;
   featured: boolean;
   addedByAdmin: boolean;
+  paymentProof: string | null;
   createdAt: string;
 }
 
@@ -496,6 +497,9 @@ export default function AdminPets() {
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Purpose</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Pet Status</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Approval</th>
+                {activeTab === "pending" && (
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Payment Proof</th>
+                )}
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Created</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
               </tr>
@@ -562,6 +566,21 @@ export default function AdminPets() {
                       return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${badge.cls}`}>{badge.label}</span>;
                     })()}
                   </td>
+                  {activeTab === "pending" && (
+                    <td className="px-5 py-3.5">
+                      {pet.paymentProof ? (
+                        <a href={pet.paymentProof} target="_blank" rel="noopener noreferrer" title="View payment proof">
+                          <img
+                            src={pet.paymentProof}
+                            alt="Payment proof"
+                            className="w-12 h-12 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity cursor-pointer"
+                          />
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">None</span>
+                      )}
+                    </td>
+                  )}
                   <td className="px-5 py-3.5">
                     <span className="text-xs text-gray-500">{formatDate(pet.createdAt)}</span>
                   </td>
