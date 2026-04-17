@@ -6,6 +6,8 @@ import { usersTable } from "./users";
 export const galleryPostsTable = pgTable("gallery_posts", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
+  headline: text("headline").notNull().default(""),
+  ownerName: text("owner_name").notNull().default(""),
   content: text("content").notNull(),
   imageUrl: text("image_url"),
   authorId: integer("author_id").references(() => usersTable.id),

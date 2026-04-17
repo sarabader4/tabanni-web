@@ -9,6 +9,8 @@
 export interface GalleryPost {
   id: number;
   title: string;
+  headline?: string;
+  ownerName?: string;
   content: string;
   imageUrl?: string | null;
   authorId?: number | null;

@@ -51,7 +51,7 @@ scripts/
 | `adoption_requests` | Adoption request management |
 | `foster_requests` | Foster request management |
 | `donations` | Monetary + supply donations |
-| `gallery_posts` | Success stories gallery |
+| `gallery_posts` | Success stories gallery (with `headline`, `owner_name` fields) |
 | `lost_found_reports` | Lost & found pet reports |
 | `messages` | User messaging system |
 | `notifications` | User notifications |
@@ -68,7 +68,8 @@ scripts/
 | `/pets/:id` | `PetDetail` | Pet detail + adopt/foster request form |
 | `/lost-found` | `LostFound` | Lost/found reports grid with search + "Lost Pet" button + filters |
 | `/donate` | `Donate` | Monetary & supply donation forms |
-| `/gallery` | `Gallery` | 3-column masonry grid with "Read More" cards |
+| `/gallery` | `Gallery` | 3-column masonry grid — each card shows headline + ownerName with user icon + "Read More" |
+| `/gallery/:id` | `GalleryDetail` | Full story: headline (h1), ownerName as subtitle, full story text |
 | `/about` | `About` | About page |
 | `/shop` | `Shop` | Mlabbas + PetsJo shop cards + support section |
 | `/profile` | `Profile` | User profile with dark navy sidebar + edit form + My Pets tab (submit pets for adoption/fostering) |
@@ -96,6 +97,7 @@ scripts/
 | `/admin/adoptions` | `AdminAdoptions` | Adoption request approval/rejection |
 | `/admin/fosters` | `AdminFosters` | Foster request approval/rejection |
 | `/admin/notifications` | `AdminNotifications` | Activity feed: new pets + adoption/foster requests with unread badge |
+| `/admin/gallery` | `AdminGallery` | Pet Stories / Gallery management — add/edit/delete with Owner Name, Headline, Story, image upload |
 
 ## API Endpoints
 

@@ -1,5 +1,5 @@
 import { useListGalleryPosts } from "@workspace/api-client-react";
-import { Loader2, PawPrint } from "lucide-react";
+import { Loader2, User } from "lucide-react";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 
@@ -34,22 +34,22 @@ export default function Gallery() {
         {post.imageUrl && (
           <img
             src={post.imageUrl}
-            alt={post.title}
+            alt={post.headline || post.title}
             className="w-full object-cover"
             loading="lazy"
             style={{ maxHeight: "280px" }}
           />
         )}
         <div className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-              <PawPrint className="w-4 h-4 text-white" />
+          <h3 className="font-bold text-[#1E2A3A] text-sm leading-snug mb-2 line-clamp-2">
+            {post.headline || post.title}
+          </h3>
+          {post.ownerName && (
+            <div className="flex items-center gap-1.5 mb-3">
+              <User className="w-3.5 h-3.5 text-gray-400" />
+              <span className="text-xs text-gray-500">{post.ownerName}</span>
             </div>
-            <span className="text-xs font-bold text-[#1E2A3A]">tabbanni</span>
-          </div>
-          <p className="text-xs text-gray-500 leading-relaxed mb-3 line-clamp-2">
-            {post.content || post.title}
-          </p>
+          )}
           <Link
             href={`/gallery/${post.id}`}
             className="inline-block px-4 py-1.5 border border-gray-200 rounded-full text-xs font-semibold text-[#1E2A3A] hover:border-primary hover:text-primary transition-colors"

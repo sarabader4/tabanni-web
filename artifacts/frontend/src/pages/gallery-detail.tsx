@@ -1,6 +1,6 @@
 import { useParams, Link } from "wouter";
 import { useGetGalleryPost, useListGalleryPosts } from "@workspace/api-client-react";
-import { ArrowLeft, Loader2, PawPrint } from "lucide-react";
+import { ArrowLeft, Loader2, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function GalleryDetail() {
@@ -57,17 +57,23 @@ export default function GalleryDetail() {
           {post.imageUrl && (
             <img
               src={post.imageUrl}
-              alt={post.title}
+              alt={post.headline || post.title}
               className="w-full object-cover"
               style={{ maxHeight: "420px" }}
             />
           )}
           <div className="p-8">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <PawPrint className="w-5 h-5 text-white" />
+            <h1 className="font-display text-3xl font-bold text-[#1E2A3A] mb-3 leading-tight">
+              {post.headline || post.title}
+            </h1>
+
+            <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-5">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <User className="w-4 h-4 text-gray-500" />
               </div>
-              <span className="text-sm font-bold text-[#1E2A3A]">{post.authorName || "tabbanni"}</span>
+              <span className="text-sm font-semibold text-[#1E2A3A]">
+                {post.ownerName || post.authorName || "tabbanni"}
+              </span>
               {post.createdAt && (
                 <span className="text-xs text-gray-400 ml-auto">
                   {new Date(post.createdAt).toLocaleDateString(undefined, {
@@ -78,10 +84,6 @@ export default function GalleryDetail() {
                 </span>
               )}
             </div>
-
-            <h1 className="font-display text-3xl font-bold text-[#1E2A3A] mb-6 leading-tight">
-              {post.title}
-            </h1>
 
             <div className="text-gray-600 leading-relaxed whitespace-pre-wrap text-sm">
               {post.content}
@@ -99,22 +101,20 @@ export default function GalleryDetail() {
                     {item.imageUrl && (
                       <img
                         src={item.imageUrl}
-                        alt={item.title}
+                        alt={item.headline || item.title}
                         className="w-full h-36 object-cover"
                       />
                     )}
                     <div className="p-4">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                          <PawPrint className="w-3 h-3 text-white" />
-                        </div>
-                        <span className="text-xs font-semibold text-gray-500">
-                          {item.authorName || "tabbanni"}
-                        </span>
-                      </div>
-                      <h3 className="font-bold text-sm text-[#1E2A3A] line-clamp-2 leading-snug">
-                        {item.title}
+                      <h3 className="font-bold text-sm text-[#1E2A3A] line-clamp-2 leading-snug mb-1.5">
+                        {item.headline || item.title}
                       </h3>
+                      {item.ownerName && (
+                        <div className="flex items-center gap-1 text-xs text-gray-400">
+                          <User className="w-3 h-3" />
+                          <span>{item.ownerName}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Link>

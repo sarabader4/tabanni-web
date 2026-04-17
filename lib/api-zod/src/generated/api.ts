@@ -475,6 +475,8 @@ export const ListGalleryPostsQueryParams = zod.object({
 export const ListGalleryPostsResponseItem = zod.object({
   id: zod.number(),
   title: zod.string(),
+  headline: zod.string().optional(),
+  ownerName: zod.string().optional(),
   content: zod.string(),
   imageUrl: zod.string().nullish(),
   authorId: zod.number().nullish(),
@@ -488,9 +490,22 @@ export const ListGalleryPostsResponse = zod.array(ListGalleryPostsResponseItem);
  */
 export const CreateGalleryPostBody = zod.object({
   title: zod.string(),
+  headline: zod.string().optional(),
+  ownerName: zod.string().optional(),
   content: zod.string(),
   imageUrl: zod.string().optional(),
   authorId: zod.number().optional(),
+});
+
+/**
+ * @summary Update a gallery post (all fields optional; send imageUrl as "" or null to clear it)
+ */
+export const UpdateGalleryPostBody = zod.object({
+  title: zod.string().optional(),
+  headline: zod.string().optional(),
+  ownerName: zod.string().optional(),
+  content: zod.string().optional(),
+  imageUrl: zod.union([zod.string(), zod.null()]).optional(),
 });
 
 /**
@@ -503,6 +518,8 @@ export const GetGalleryPostParams = zod.object({
 export const GetGalleryPostResponse = zod.object({
   id: zod.number(),
   title: zod.string(),
+  headline: zod.string().optional(),
+  ownerName: zod.string().optional(),
   content: zod.string(),
   imageUrl: zod.string().nullish(),
   authorId: zod.number().nullish(),

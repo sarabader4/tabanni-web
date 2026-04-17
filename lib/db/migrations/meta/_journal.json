@@ -78,6 +78,13 @@
       "when": 1776349000000,
       "tag": "0012_admin_notification_email_logs",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1776450000000,
+      "tag": "0013_gallery_owner_headline",
+      "breakpoints": true
     }
   ]
 }

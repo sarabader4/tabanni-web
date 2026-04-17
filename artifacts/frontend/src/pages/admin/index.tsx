@@ -20,6 +20,7 @@ import {
   Search,
   Mail,
   Bell,
+  Image,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -60,6 +61,7 @@ const SIDEBAR_NAV = [
   },
   { label: "Donors", href: "/admin/donors", icon: DollarSign },
   { label: "Volunteers", href: "/admin/volunteers", icon: HandHeart },
+  { label: "Pet Stories / Gallery", href: "/admin/gallery", icon: Image },
   { label: "Lost & Found", href: "/admin/lost-found", icon: Search },
   { label: "Contact Messages", href: "/admin/contact-messages", icon: Mail },
   { label: "Notifications", href: "/admin/notifications", icon: Bell },
