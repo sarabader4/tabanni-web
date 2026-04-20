@@ -58,7 +58,7 @@ export function PetCard({ pet, onFavorite, isFavorited, isFavoritePending, varia
         />
 
         {/* Verified by Tabanni badge — left side */}
-        {(pet.approved || pet.addedByAdmin) && (
+        {pet.addedByAdmin && (
           <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-[#00B8A0] text-white text-xs font-bold shadow-sm backdrop-blur-sm">
             <ShieldCheck className="w-3.5 h-3.5" />
             Verified by Tabanni

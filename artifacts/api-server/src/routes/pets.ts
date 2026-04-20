@@ -137,7 +137,7 @@ router.post("/pets", requireAuth, async (req, res) => {
       imageUrls: imageUrls ?? [],
       story, whatsappUrl, paymentProof,
       ownerId: req.userId,
-      approved: false, featured: false, addedByAdmin: false,
+      approved: false, featured: false, addedByAdmin: req.userRole === "admin",
     }).returning();
 
     const [submitter] = await db.select({ fullName: usersTable.fullName }).from(usersTable).where(eq(usersTable.id, req.userId!));

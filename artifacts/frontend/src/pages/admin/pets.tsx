@@ -116,6 +116,7 @@ interface PetFormData {
   purpose: string;
   status: string;
   featured: boolean;
+  addedByAdmin: boolean;
   story: string;
   imageUrls: string;
   ownerId: string;
@@ -148,6 +149,7 @@ function PetModal({
     purpose: pet?.purpose ?? "adopt",
     status: pet?.status ?? "available",
     featured: pet?.featured ?? false,
+    addedByAdmin: pet?.addedByAdmin ?? false,
     story: pet?.story ?? "",
     imageUrls: (pet?.imageUrls ?? []).join(", "),
     ownerId: String(pet?.ownerId ?? ""),
@@ -180,7 +182,7 @@ function PetModal({
             await fetch(`${base}/api/admin/pets/${created.id}/settings`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: form.status, featured: form.featured, approved: true }),
+              body: JSON.stringify({ status: form.status, featured: form.featured, approved: true, addedByAdmin: true }),
             });
             onSuccess();
             onClose();
@@ -207,7 +209,7 @@ function PetModal({
             await fetch(`${base}/api/admin/pets/${pet.id}/settings`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: form.status, featured: form.featured }),
+              body: JSON.stringify({ status: form.status, featured: form.featured, addedByAdmin: form.addedByAdmin }),
             });
             onSuccess();
             onClose();
@@ -330,7 +332,7 @@ function PetModal({
                 <option value="found">Found</option>
               </select>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-5">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -339,6 +341,16 @@ function PetModal({
                   className="w-4 h-4 rounded accent-orange-500"
                 />
                 <span className="text-xs font-semibold text-gray-500">Featured (show on home page)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.addedByAdmin}
+                  onChange={(e) => setForm(prev => ({ ...prev, addedByAdmin: e.target.checked }))}
+                  className="w-4 h-4 rounded"
+                  style={{ accentColor: "#00B8A0" }}
+                />
+                <span className="text-xs font-semibold" style={{ color: "#00B8A0" }}>Verified by Tabanni</span>
               </label>
             </div>
           </div>

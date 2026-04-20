@@ -176,8 +176,8 @@ router.put("/admin/pets/:id/settings", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
-    const { status, featured, approved, rejected } = req.body;
-    const updates: Partial<{ status: "available" | "adopted" | "fostered" | "pending" | "lost" | "found"; featured: boolean; approved: boolean; rejected: boolean }> = {};
+    const { status, featured, approved, rejected, addedByAdmin } = req.body;
+    const updates: Partial<{ status: "available" | "adopted" | "fostered" | "pending" | "lost" | "found"; featured: boolean; approved: boolean; rejected: boolean; addedByAdmin: boolean }> = {};
     const validStatuses = ["available", "adopted", "fostered", "pending", "lost", "found"] as const;
     if (typeof status === "string" && validStatuses.includes(status as typeof validStatuses[number])) {
       updates.status = status as typeof validStatuses[number];
@@ -185,6 +185,7 @@ router.put("/admin/pets/:id/settings", async (req, res) => {
     if (typeof featured === "boolean") updates.featured = featured;
     if (typeof approved === "boolean") updates.approved = approved;
     if (typeof rejected === "boolean") updates.rejected = rejected;
+    if (typeof addedByAdmin === "boolean") updates.addedByAdmin = addedByAdmin;
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "validation_error", message: "No valid fields to update" });
     }
