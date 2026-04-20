@@ -130,19 +130,31 @@ router.get("/admin/users", async (req, res) => {
       .limit(limitNum)
       .offset(offset);
 
+    const userIds = users.map(u => u.id);
+
     const adoptionMap = new Map<number, number>();
     const fosterMap = new Map<number, number>();
     const petsMap = new Map<number, number>();
 
-    for (const u of users) {
-      const [ar, fr, po] = await Promise.all([
-        db.select({ cnt: sql<number>`count(*)::int` }).from(adoptionRequestsTable).where(eq(adoptionRequestsTable.requesterId, u.id)),
-        db.select({ cnt: sql<number>`count(*)::int` }).from(fosterRequestsTable).where(eq(fosterRequestsTable.requesterId, u.id)),
-        db.select({ cnt: sql<number>`count(*)::int` }).from(petsTable).where(eq(petsTable.ownerId, u.id)),
+    if (userIds.length > 0) {
+      const [adoptionCounts, fosterCounts, petCounts] = await Promise.all([
+        db.select({ userId: adoptionRequestsTable.requesterId, cnt: sql<number>`count(*)::int` })
+          .from(adoptionRequestsTable)
+          .where(inArray(adoptionRequestsTable.requesterId, userIds))
+          .groupBy(adoptionRequestsTable.requesterId),
+        db.select({ userId: fosterRequestsTable.requesterId, cnt: sql<number>`count(*)::int` })
+          .from(fosterRequestsTable)
+          .where(inArray(fosterRequestsTable.requesterId, userIds))
+          .groupBy(fosterRequestsTable.requesterId),
+        db.select({ userId: petsTable.ownerId, cnt: sql<number>`count(*)::int` })
+          .from(petsTable)
+          .where(inArray(petsTable.ownerId, userIds))
+          .groupBy(petsTable.ownerId),
       ]);
-      adoptionMap.set(u.id, ar[0]?.cnt ?? 0);
-      fosterMap.set(u.id, fr[0]?.cnt ?? 0);
-      petsMap.set(u.id, po[0]?.cnt ?? 0);
+
+      for (const row of adoptionCounts) adoptionMap.set(row.userId, row.cnt);
+      for (const row of fosterCounts) fosterMap.set(row.userId, row.cnt);
+      for (const row of petCounts) petsMap.set(row.userId, row.cnt);
     }
 
     const enriched = users.map(u => ({
