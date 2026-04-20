@@ -285,18 +285,6 @@ export default function LostFoundDetail() {
               )}
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
-              <p className="text-sm text-gray-500 mb-4">
-                {isLost
-                  ? t("lostFoundDetail.spottedMessage")
-                  : t("lostFoundDetail.isYourPet")}
-              </p>
-              <button className={`w-full py-3 rounded-xl font-bold text-white transition-colors ${
-                isLost ? "bg-primary hover:bg-primary/90" : "bg-[#00B8A0] hover:bg-[#00B8A0]/90"
-              }`}>
-                {isLost ? t("lostFoundDetail.seenThisPet") : t("lostFoundDetail.thisIsMyPet")}
-              </button>
-            </div>
           </div>
         </div>
       </div>
