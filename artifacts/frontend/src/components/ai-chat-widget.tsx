@@ -76,7 +76,7 @@ export default function AIChatWidget() {
         aria-label={open ? t("common.close") : t("aiChat.assistantName")}
         data-testid="ai-chat-toggle"
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white transition-all hover:scale-110"
-        style={{ background: open ? "#1E2A3A" : "#FF6B35" }}
+        style={{ background: open ? "#333E48" : "#FA8D29" }}
       >
         {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
       </button>
@@ -87,10 +87,10 @@ export default function AIChatWidget() {
           style={{ height: "520px" }}
         >
           {/* Header */}
-          <div className="px-5 py-4 flex items-center gap-3 shrink-0" style={{ background: "#1E2A3A" }}>
+          <div className="px-5 py-4 flex items-center gap-3 shrink-0" style={{ background: "#333E48" }}>
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center"
-              style={{ background: "#FF6B35" }}
+              style={{ background: "#FA8D29" }}
             >
               <Bot className="w-5 h-5 text-white" />
             </div>
@@ -107,7 +107,7 @@ export default function AIChatWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ background: "#FFF8F3" }}>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ background: "#FFFAF7" }}>
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
@@ -116,7 +116,7 @@ export default function AIChatWidget() {
                       ? "text-white rounded-br-sm"
                       : "text-gray-800 rounded-bl-sm border border-orange-100"
                   }`}
-                  style={msg.role === "user" ? { background: "#FF6B35" } : { background: "white" }}
+                  style={msg.role === "user" ? { background: "#FA8D29" } : { background: "white" }}
                 >
                   {msg.content}
                 </div>
@@ -164,7 +164,7 @@ export default function AIChatWidget() {
                 onClick={() => sendMessage()}
                 disabled={loading || !input.trim()}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-white transition-all disabled:opacity-50"
-                style={{ background: "#FF6B35" }}
+                style={{ background: "#FA8D29" }}
               >
                 <Send className="w-4 h-4" />
               </button>

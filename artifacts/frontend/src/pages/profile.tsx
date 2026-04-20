@@ -261,7 +261,7 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-[#1E2A3A]">{t("profile.adoptionReadinessTitle")} — {request.requesterName || t("profile.requester")}</h2>
+            <h2 className="text-lg font-bold text-[#333E48]">{t("profile.adoptionReadinessTitle")} — {request.requesterName || t("profile.requester")}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
               {requestType === "adoption" ? t("profile.adoption") : t("profile.foster")} {t("profile.requestFor")} {request.petName}
             </p>
@@ -281,7 +281,7 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
             />
             <div>
               <p className="text-xs font-semibold text-blue-600 mb-0.5 uppercase tracking-wide">{t("profile.petRequested")}</p>
-              <p className="font-bold text-sm text-[#1E2A3A]">{request.petName || t("profile.unknownPet")}</p>
+              <p className="font-bold text-sm text-[#333E48]">{request.petName || t("profile.unknownPet")}</p>
               <p className="text-xs text-gray-500 capitalize">{requestType === "adoption" ? t("profile.adoption") : t("profile.foster")} {t("profile.requestFor")}</p>
             </div>
           </div>
@@ -324,28 +324,28 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
               ].map(([label, value]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
-                  <p className="text-sm text-[#1E2A3A]">{value}</p>
+                  <p className="text-sm text-[#333E48]">{value}</p>
                 </div>
               ))}
 
               <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
                 <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.adoptionReason")}</p>
-                <p className="text-sm text-[#1E2A3A]">{profile.adoptionReason}</p>
+                <p className="text-sm text-[#333E48]">{profile.adoptionReason}</p>
               </div>
               <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
                 <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.dailyCarePlan")}</p>
-                <p className="text-sm text-[#1E2A3A]">{profile.dailyCarePlan}</p>
+                <p className="text-sm text-[#333E48]">{profile.dailyCarePlan}</p>
               </div>
               {profile.previousPetExperience && (
                 <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
                   <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.previousPetExperience")}</p>
-                  <p className="text-sm text-[#1E2A3A]">{profile.previousPetExperience}</p>
+                  <p className="text-sm text-[#333E48]">{profile.previousPetExperience}</p>
                 </div>
               )}
               {profile.travelPlan && (
                 <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
                   <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.travelPlan")}</p>
-                  <p className="text-sm text-[#1E2A3A]">{profile.travelPlan}</p>
+                  <p className="text-sm text-[#333E48]">{profile.travelPlan}</p>
                 </div>
               )}
 
@@ -374,7 +374,7 @@ function RequesterProfileModal({ request, requestType, onClose, onAccept, onReje
                   <p className="text-xs font-semibold text-gray-500 mb-2">{t("profile.trainingExpectations")}</p>
                   <div className="flex flex-wrap gap-1">
                     {profile.trainingExpectations?.map(exp => (
-                      <span key={exp} className="px-2 py-0.5 bg-[#1E2A3A]/10 text-[#1E2A3A] rounded-full text-xs font-medium">{exp}</span>
+                      <span key={exp} className="px-2 py-0.5 bg-[#333E48]/10 text-[#333E48] rounded-full text-xs font-medium">{exp}</span>
                     ))}
                   </div>
                 </div>
@@ -598,7 +598,7 @@ function ReadinessProfileSection() {
           <ClipboardList className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-[#1E2A3A]">{t("profile.adoptionReadiness")}</p>
+          <p className="font-bold text-sm text-[#333E48]">{t("profile.adoptionReadiness")}</p>
           <p className="text-xs text-gray-500 mt-0.5">
             {loading ? t("common.loading") : isComplete ? t("profile.readinessCompleted") : t("profile.viewReadinessProfile")}
           </p>
@@ -641,7 +641,7 @@ function ReadinessProfileSection() {
           ) : !profileData?.areaOfResidence ? (
             <div className="text-center py-8 text-gray-400">
               <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm text-[#1E2A3A] font-semibold mb-1">{t("profile.readinessNotCompleted")}</p>
+              <p className="text-sm text-[#333E48] font-semibold mb-1">{t("profile.readinessNotCompleted")}</p>
               <p className="text-xs mb-4">{t("profile.viewReadinessProfile")}</p>
               <button
                 onClick={startEdit}
@@ -678,26 +678,26 @@ function ReadinessProfileSection() {
                 ] as [string, string][]).filter(([, v]) => v).map(([label, value]) => (
                   <div key={label} className="bg-gray-50 rounded-xl p-3">
                     <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
-                    <p className="text-sm text-[#1E2A3A]">{value}</p>
+                    <p className="text-sm text-[#333E48]">{value}</p>
                   </div>
                 ))}
 
                 {profileData.adoptionReason && (
                   <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
                     <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.adoptionReason")}</p>
-                    <p className="text-sm text-[#1E2A3A]">{profileData.adoptionReason}</p>
+                    <p className="text-sm text-[#333E48]">{profileData.adoptionReason}</p>
                   </div>
                 )}
                 {profileData.dailyCarePlan && (
                   <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
                     <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.dailyCarePlan")}</p>
-                    <p className="text-sm text-[#1E2A3A]">{profileData.dailyCarePlan}</p>
+                    <p className="text-sm text-[#333E48]">{profileData.dailyCarePlan}</p>
                   </div>
                 )}
                 {profileData.previousPetExperience && (
                   <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
                     <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.previousPetExperience")}</p>
-                    <p className="text-sm text-[#1E2A3A]">{profileData.previousPetExperience}</p>
+                    <p className="text-sm text-[#333E48]">{profileData.previousPetExperience}</p>
                   </div>
                 )}
                 {(profileData.activities?.length ?? 0) > 0 && (
@@ -725,7 +725,7 @@ function ReadinessProfileSection() {
                     <p className="text-xs font-semibold text-gray-500 mb-2">{t("profile.trainingExpectations")}</p>
                     <div className="flex flex-wrap gap-1">
                       {profileData.trainingExpectations.map(exp => (
-                        <span key={exp} className="px-2 py-0.5 bg-[#1E2A3A]/10 text-[#1E2A3A] rounded-full text-xs font-medium">{exp}</span>
+                        <span key={exp} className="px-2 py-0.5 bg-[#333E48]/10 text-[#333E48] rounded-full text-xs font-medium">{exp}</span>
                       ))}
                     </div>
                   </div>
@@ -780,7 +780,7 @@ function PetDetailModal({ request, requestType, onClose }: { request: MyRequestI
 
         <div className="flex-1 overflow-y-auto p-5">
           <div className="flex items-start justify-between gap-3 mb-3">
-            <h2 className="text-xl font-bold text-[#1E2A3A]">{request.petName || t("profile.unknownPet")}</h2>
+            <h2 className="text-xl font-bold text-[#333E48]">{request.petName || t("profile.unknownPet")}</h2>
             <StatusBadge status={request.status} />
           </div>
 
@@ -993,10 +993,10 @@ function AdoptionReadinessFormContent({
   const { t } = useTranslation();
 
   return (
-    <div className="bg-[#FFF8F3] rounded-2xl border border-orange-100">
+    <div className="bg-[#FFFAF7] rounded-2xl border border-orange-100">
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <div>
-          <h3 className="font-display text-base font-bold text-[#1E2A3A]">{t("profile.adoptionReadinessFormTitle")}</h3>
+          <h3 className="font-display text-base font-bold text-[#333E48]">{t("profile.adoptionReadinessFormTitle")}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">{t("profile.stepOf", { n: step + 1, total: READINESS_STEPS.length })} — {t(READINESS_STEPS[step].title)}</p>
         </div>
         <button onClick={onCancel} className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors">
@@ -1178,7 +1178,7 @@ function AdoptionReadinessFormContent({
               {formErrors.breedingIntention && <p className={rfErrorClass}>{formErrors.breedingIntention}</p>}
             </div>
             <div className="sm:col-span-2 flex items-center gap-3">
-              <input type="checkbox" id="spay-readiness-inline" checked={profileForm.spayNeuterCommitment} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FF6B35]" />
+              <input type="checkbox" id="spay-readiness-inline" checked={profileForm.spayNeuterCommitment} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FA8D29]" />
               <label htmlFor="spay-readiness-inline" className="text-sm text-foreground">{t("profile.labelSpayCommit")}</label>
             </div>
           </div>
@@ -1216,7 +1216,7 @@ function AdoptionReadinessFormContent({
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                 {TRAINING_EXPECTATION_OPTION_KEYS.map(({ value, key }) => (
                   <button key={value} type="button" onClick={() => toggleArr("trainingExpectations", value)}
-                    className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(value) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"}`}>
+                    className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(value) ? "bg-[#333E48] text-white border-[#333E48]" : "bg-white border-border hover:border-[#333E48]/50"}`}>
                     {t(key)}
                   </button>
                 ))}
@@ -1262,7 +1262,7 @@ function AdoptionReadinessFormContent({
             </div>
             <div className="sm:col-span-2 bg-primary/5 border border-primary/20 rounded-2xl p-4">
               <div className="flex items-start gap-3">
-                <input type="checkbox" id="confirmed-readiness-inline" checked={profileForm.confirmed} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FF6B35]" />
+                <input type="checkbox" id="confirmed-readiness-inline" checked={profileForm.confirmed} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FA8D29]" />
                 <label htmlFor="confirmed-readiness-inline" className="text-sm text-foreground leading-relaxed">
                   {t("profile.labelConfirm")}
                 </label>
@@ -1464,7 +1464,7 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-[#FFF8F3] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-[#FFFAF7] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-6 pt-6 pb-3 shrink-0">
           <div>
             <div className="flex items-center gap-3 mb-1">
@@ -1474,7 +1474,7 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
                 className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
               />
               <div>
-                <h2 className="font-display text-lg font-bold text-[#1E2A3A]">
+                <h2 className="font-display text-lg font-bold text-[#333E48]">
                   {requestType === "adoption" ? t("profile.adoption") : t("profile.foster")} — {request.petName || t("petDetail.unknown")}
                 </h2>
                 <div className="flex items-center gap-2">
@@ -1682,7 +1682,7 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
                     {formErrors.breedingIntention && <p className={rfErrorClass}>{formErrors.breedingIntention}</p>}
                   </div>
                   <div className="sm:col-span-2 flex items-center gap-3">
-                    <input type="checkbox" id="spay-modal" checked={profileForm.spayNeuterCommitment} disabled={!isPending} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FF6B35]" />
+                    <input type="checkbox" id="spay-modal" checked={profileForm.spayNeuterCommitment} disabled={!isPending} onChange={e => set("spayNeuterCommitment", e.target.checked)} className="w-4 h-4 accent-[#FA8D29]" />
                     <label htmlFor="spay-modal" className="text-sm text-foreground">{t("profile.labelSpayCommit")}</label>
                   </div>
                 </div>
@@ -1720,7 +1720,7 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                       {TRAINING_EXPECTATION_OPTION_KEYS.map(({ value, key }) => (
                         <button key={value} type="button" disabled={!isPending} onClick={() => toggleArr("trainingExpectations", value)}
-                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(value) ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "bg-white border-border hover:border-[#1E2A3A]/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
+                          className={`text-start px-3 py-2 rounded-xl text-sm font-medium border transition-all ${profileForm.trainingExpectations.includes(value) ? "bg-[#333E48] text-white border-[#333E48]" : "bg-white border-border hover:border-[#333E48]/50"} ${!isPending ? "opacity-60 cursor-not-allowed" : ""}`}>
                           {t(key)}
                         </button>
                       ))}
@@ -1766,7 +1766,7 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
                   </div>
                   <div className="sm:col-span-2 bg-primary/5 border border-primary/20 rounded-2xl p-4">
                     <div className="flex items-start gap-3">
-                      <input type="checkbox" id="confirmed-modal" checked={profileForm.confirmed} disabled={!isPending} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FF6B35]" />
+                      <input type="checkbox" id="confirmed-modal" checked={profileForm.confirmed} disabled={!isPending} onChange={e => set("confirmed", e.target.checked)} className="w-4 h-4 mt-0.5 accent-[#FA8D29]" />
                       <label htmlFor="confirmed-modal" className="text-sm text-foreground leading-relaxed">
                         {t("profile.labelConfirm")}
                       </label>
@@ -1820,11 +1820,11 @@ function MyRequestDetailModal({ request, requestType, onClose, onDeleted }: MyRe
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                 <Trash2 className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-[#1E2A3A]">{t("profile.deleteRequest")}</h3>
+              <h3 className="text-lg font-bold text-[#333E48]">{t("profile.deleteRequest")}</h3>
             </div>
             <p className="text-sm text-gray-500 mb-6">{t("profile.deleteConfirmDesc")}</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#1E2A3A] hover:bg-gray-50 transition-colors">
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#333E48] hover:bg-gray-50 transition-colors">
                 {t("common.cancel")}
               </button>
               <button onClick={handleDelete} disabled={isDeleting} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-50">
@@ -1992,7 +1992,7 @@ function AdoptionReadinessFormModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-[#FFF8F3] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-[#FFFAF7] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         {profileLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -2394,7 +2394,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
   };
 
   const inputCls = (field: string) =>
-    `w-full border rounded-xl px-3 py-2.5 text-sm text-[#1E2A3A] outline-none focus:ring-2 transition-colors ${
+    `w-full border rounded-xl px-3 py-2.5 text-sm text-[#333E48] outline-none focus:ring-2 transition-colors ${
       touched[field] && errors[field]
         ? "border-red-400 focus:ring-red-200"
         : "border-gray-200 focus:ring-primary/20"
@@ -2405,7 +2405,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-[#1E2A3A]">{isEditMode ? t("profile.editPet") : t("profile.addPet")}</h2>
+            <h2 className="text-lg font-bold text-[#333E48]">{isEditMode ? t("profile.editPet") : t("profile.addPet")}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
               {section === 1 ? t("profile.addPetSection1") : t("profile.addPetSection2")}
             </p>
@@ -2557,7 +2557,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
                     onClick={generateAIStory}
                     disabled={generatingStory}
                     className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                    style={{ background: "#FF6B35" }}
+                    style={{ background: "#FA8D29" }}
                   >
                     {generatingStory ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -2704,7 +2704,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
                             alt="Payment proof"
                             className="max-h-32 rounded-lg object-contain border border-gray-200"
                           />
-                          <span className="text-xs text-[#FF6B35] font-semibold">{t("profile.addPetPaymentProofChange")}</span>
+                          <span className="text-xs text-[#FA8D29] font-semibold">{t("profile.addPetPaymentProofChange")}</span>
                         </div>
                       ) : (
                         <>
@@ -2928,7 +2928,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
   const isLoading = submitMutation.isPending || updateMutation.isPending;
 
   const inputCls = (field: keyof VolunteerFormData) =>
-    `w-full border rounded-xl px-3 py-2.5 text-sm text-[#1E2A3A] outline-none focus:ring-2 transition-colors ${
+    `w-full border rounded-xl px-3 py-2.5 text-sm text-[#333E48] outline-none focus:ring-2 transition-colors ${
       touchedFields.has(field) && formErrors[field]
         ? "border-red-400 focus:ring-red-200"
         : "border-gray-200 focus:ring-primary/20"
@@ -2941,7 +2941,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-8 h-8 text-green-500" />
           </div>
-          <h2 className="text-xl font-bold text-[#1E2A3A] mb-2">{t("profile.volSubmitted")}</h2>
+          <h2 className="text-xl font-bold text-[#333E48] mb-2">{t("profile.volSubmitted")}</h2>
           <p className="text-sm text-gray-500 mb-6">
             {t("profile.volSubmittedDesc")}
           </p>
@@ -2961,7 +2961,7 @@ function VolunteerApplicationModal({ onClose, initialData, isResubmit, profileDa
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-[#1E2A3A]">
+            <h2 className="text-lg font-bold text-[#333E48]">
               {isResubmit ? t("profile.editResubmitApplication") : t("profile.joinOrganization")}
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">{t("profile.volModalSubtitle")}</p>
@@ -3150,14 +3150,14 @@ function VolunteerSection({ profile }: { profile: { fullName?: string | null; em
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.tabVolunteer")}</h2>
+      <h2 className="font-display font-bold text-lg text-[#333E48]">{t("profile.tabVolunteer")}</h2>
 
       {!application ? (
         <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8 text-primary" />
           </div>
-          <h3 className="font-bold text-[#1E2A3A] mb-2">{t("profile.volunteerMakeDifference")}</h3>
+          <h3 className="font-bold text-[#333E48] mb-2">{t("profile.volunteerMakeDifference")}</h3>
           <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
             {t("profile.volunteerDescription")}
           </p>
@@ -3173,7 +3173,7 @@ function VolunteerSection({ profile }: { profile: { fullName?: string | null; em
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{t("profile.applicationType")}</p>
-              <p className="font-bold text-[#1E2A3A]">
+              <p className="font-bold text-[#333E48]">
                 {application.applicationType === "member" ? t("profile.becomeAMember") : t("profile.oneTimeVolunteer")}
               </p>
             </div>
@@ -3231,20 +3231,20 @@ function VolunteerSection({ profile }: { profile: { fullName?: string | null; em
             ].map(([label, value]) => (
               <div key={label} className="bg-gray-50 rounded-xl p-3">
                 <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
-                <p className="text-sm text-[#1E2A3A]">{value}</p>
+                <p className="text-sm text-[#333E48]">{value}</p>
               </div>
             ))}
             <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
               <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.address")}</p>
-              <p className="text-sm text-[#1E2A3A]">{application.address}</p>
+              <p className="text-sm text-[#333E48]">{application.address}</p>
             </div>
             <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
               <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.skills")}</p>
-              <p className="text-sm text-[#1E2A3A]">{application.skills}</p>
+              <p className="text-sm text-[#333E48]">{application.skills}</p>
             </div>
             <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
               <p className="text-xs font-semibold text-gray-500 mb-0.5">{t("profile.motivation")}</p>
-              <p className="text-sm text-[#1E2A3A]">{application.motivation}</p>
+              <p className="text-sm text-[#333E48]">{application.motivation}</p>
             </div>
           </div>
 
@@ -3465,9 +3465,9 @@ export default function Profile() {
   const displayName = profile?.fullName || t("profile.user");
   const avatarLetter = displayName.charAt(0).toUpperCase();
 
-  const readOnlyClass = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#1E2A3A] outline-none bg-gray-50 text-gray-500 cursor-default";
-  const editClass = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#1E2A3A] outline-none focus:ring-2 focus:ring-primary/30 bg-white";
-  const errorClass = "w-full border border-red-400 rounded-xl px-4 py-2.5 text-sm text-[#1E2A3A] outline-none focus:ring-2 focus:ring-red-200 bg-white";
+  const readOnlyClass = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#333E48] outline-none bg-gray-50 text-gray-500 cursor-default";
+  const editClass = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#333E48] outline-none focus:ring-2 focus:ring-primary/30 bg-white";
+  const errorClass = "w-full border border-red-400 rounded-xl px-4 py-2.5 text-sm text-[#333E48] outline-none focus:ring-2 focus:ring-red-200 bg-white";
 
   function fieldClass(field: keyof ErrorsState) {
     if (!isEditing) return readOnlyClass;
@@ -3483,7 +3483,7 @@ export default function Profile() {
           {/* Sidebar */}
           <div
             className="w-full md:w-64 flex-shrink-0 rounded-2xl p-5 text-white"
-            style={{ backgroundColor: "#1E2A3A" }}
+            style={{ backgroundColor: "#333E48" }}
           >
             <div className="flex flex-col items-center mb-6 pt-2">
               <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center mb-3 text-2xl font-bold text-white overflow-hidden">
@@ -3513,7 +3513,7 @@ export default function Profile() {
                     key={link.label}
                     onClick={() => { setActiveTab(link.label); setAdoptionFosterOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                      isActive ? "bg-white text-[#1E2A3A]" : "text-white/70 hover:bg-white/10"
+                      isActive ? "bg-white text-[#333E48]" : "text-white/70 hover:bg-white/10"
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -3544,7 +3544,7 @@ export default function Profile() {
                           key={link.label}
                           onClick={() => setActiveTab(link.label)}
                           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                            isActive ? "bg-white text-[#1E2A3A]" : "text-white/60 hover:bg-white/10 hover:text-white/90"
+                            isActive ? "bg-white text-[#333E48]" : "text-white/60 hover:bg-white/10 hover:text-white/90"
                           }`}
                         >
                           <Icon className="w-4 h-4" />
@@ -3565,7 +3565,7 @@ export default function Profile() {
                     key={link.label}
                     onClick={() => { setActiveTab(link.label); setAdoptionFosterOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                      isActive ? "bg-white text-[#1E2A3A]" : "text-white/70 hover:bg-white/10"
+                      isActive ? "bg-white text-[#333E48]" : "text-white/70 hover:bg-white/10"
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -3803,7 +3803,7 @@ export default function Profile() {
                           <Trash2 className="w-5 h-5 text-red-600" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-[#1E2A3A] text-base">{t("profile.deletePetTitle")}</h3>
+                          <h3 className="font-bold text-[#333E48] text-base">{t("profile.deletePetTitle")}</h3>
                           <p className="text-sm text-gray-500">{t("profile.deletePetSubtitle")}</p>
                         </div>
                       </div>
@@ -3846,7 +3846,7 @@ export default function Profile() {
                 ) : (
                   <div>
                     <div className="flex items-center justify-between mb-5">
-                      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.myPets")}</h2>
+                      <h2 className="font-display font-bold text-lg text-[#333E48]">{t("profile.myPets")}</h2>
                       <button
                         onClick={() => setShowAddPetModal(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
@@ -3857,7 +3857,7 @@ export default function Profile() {
                     {(!myPets || (myPets as (Pet & { rejected?: boolean })[]).filter(p => p.status !== "adopted" && p.status !== "fostered").length === 0) ? (
                       <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                         <PawPrint className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                        <p className="text-base font-semibold text-[#1E2A3A]">{t("profile.noPets")}</p>
+                        <p className="text-base font-semibold text-[#333E48]">{t("profile.noPets")}</p>
                         <p className="text-sm mt-1">{t("profile.addPet")}</p>
                       </div>
                     ) : (
@@ -3887,7 +3887,7 @@ export default function Profile() {
                                 )}
                               </div>
                               <div className="p-3">
-                                <p className="font-bold text-sm text-[#1E2A3A] truncate">{pet.name}</p>
+                                <p className="font-bold text-sm text-[#333E48] truncate">{pet.name}</p>
                                 <p className="text-xs text-gray-400 capitalize mb-2">{pet.type} · {pet.breed || "Mixed"}</p>
                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${badge.color}`}>
                                   <BadgeIcon className="w-3 h-3" />
@@ -3930,7 +3930,7 @@ export default function Profile() {
               ) : (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.applications")}</h2>
+                    <h2 className="font-display font-bold text-lg text-[#333E48]">{t("profile.applications")}</h2>
                     <p className="text-sm text-gray-500 mt-0.5">{t("profile.noRequests")}</p>
                   </div>
 
@@ -3940,7 +3940,7 @@ export default function Profile() {
                     return visibleAdoption.length === 0 && visibleFoster.length === 0 ? (
                       <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                         <Inbox className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                        <p className="text-lg font-semibold text-[#1E2A3A]">{t("profile.noRequests")}</p>
+                        <p className="text-lg font-semibold text-[#333E48]">{t("profile.noRequests")}</p>
                         <p className="text-sm mt-1">{t("profile.noRequests")}</p>
                       </div>
                     ) : (
@@ -3959,9 +3959,9 @@ export default function Profile() {
                                     {(req.requesterName || "?").charAt(0).toUpperCase()}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.requesterName || t("profile.unknownApplicant")}</p>
+                                    <p className="font-bold text-sm text-[#333E48] truncate">{req.requesterName || t("profile.unknownApplicant")}</p>
                                     <p className="text-xs text-gray-500 mt-0.5">
-                                      {t("profile.wantsToAdopt")} <span className="font-semibold text-[#1E2A3A]">{req.petName || t("profile.yourPet")}</span>
+                                      {t("profile.wantsToAdopt")} <span className="font-semibold text-[#333E48]">{req.petName || t("profile.yourPet")}</span>
                                     </p>
                                     <p className="text-xs text-gray-400 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
                                   </div>
@@ -3989,9 +3989,9 @@ export default function Profile() {
                                     {(req.requesterName || "?").charAt(0).toUpperCase()}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.requesterName || t("profile.unknownApplicant")}</p>
+                                    <p className="font-bold text-sm text-[#333E48] truncate">{req.requesterName || t("profile.unknownApplicant")}</p>
                                     <p className="text-xs text-gray-500 mt-0.5">
-                                      {t("profile.wantsToFoster")} <span className="font-semibold text-[#1E2A3A]">{req.petName || t("profile.yourPet")}</span>
+                                      {t("profile.wantsToFoster")} <span className="font-semibold text-[#333E48]">{req.petName || t("profile.yourPet")}</span>
                                     </p>
                                     <p className="text-xs text-gray-400 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
                                   </div>
@@ -4020,7 +4020,7 @@ export default function Profile() {
               ) : (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.myRequests")}</h2>
+                    <h2 className="font-display font-bold text-lg text-[#333E48]">{t("profile.myRequests")}</h2>
                     <p className="text-sm text-gray-500 mt-0.5">{t("profile.noMyRequests")}</p>
                   </div>
 
@@ -4029,7 +4029,7 @@ export default function Profile() {
                   {!applications?.adoptionRequests?.length && !applications?.fosterRequests?.length ? (
                     <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                       <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p className="text-lg font-semibold text-[#1E2A3A]">{t("profile.noMyRequests")}</p>
+                      <p className="text-lg font-semibold text-[#333E48]">{t("profile.noMyRequests")}</p>
                       <p className="text-sm mt-1">{t("profile.noMyRequests")}</p>
                       <Link href="/adopt" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
                         {t("adopt.title")}
@@ -4059,7 +4059,7 @@ export default function Profile() {
                                     className="w-14 h-14 rounded-xl object-cover shrink-0"
                                   />
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || t("profile.unknownPet")}</p>
+                                    <p className="font-bold text-sm text-[#333E48] truncate">{req.petName || t("profile.unknownPet")}</p>
                                     <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                                       {req.petType && <span className="text-xs capitalize text-gray-500">{req.petType}</span>}
                                       {ageLabel && <span className="text-xs text-gray-400">· {ageLabel}</span>}
@@ -4106,7 +4106,7 @@ export default function Profile() {
                                     className="w-14 h-14 rounded-xl object-cover shrink-0"
                                   />
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-[#1E2A3A] truncate">{req.petName || t("profile.unknownPet")}</p>
+                                    <p className="font-bold text-sm text-[#333E48] truncate">{req.petName || t("profile.unknownPet")}</p>
                                     <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                                       {req.petType && <span className="text-xs capitalize text-gray-500">{req.petType}</span>}
                                       {ageLabel && <span className="text-xs text-gray-400">· {ageLabel}</span>}
@@ -4145,7 +4145,7 @@ export default function Profile() {
               ) : !favourites || favourites.length === 0 ? (
                 <div className="text-center py-16 text-gray-400">
                   <Heart className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p className="text-lg font-semibold text-[#1E2A3A]">{t("profile.noFavourites")}</p>
+                  <p className="text-lg font-semibold text-[#333E48]">{t("profile.noFavourites")}</p>
                   <p className="text-sm mt-1">{t("profile.noFavourites")}</p>
                   <Link href="/adopt" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
                     {t("adopt.title")}
@@ -4153,7 +4153,7 @@ export default function Profile() {
                 </div>
               ) : (
                 <div>
-                  <h2 className="font-display font-bold text-lg text-[#1E2A3A] mb-4">{t("profile.favourites")}</h2>
+                  <h2 className="font-display font-bold text-lg text-[#333E48] mb-4">{t("profile.favourites")}</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {favourites.map((pet) => (
                       <Link key={pet.id} href={`/pets/${pet.id}`}>
@@ -4164,7 +4164,7 @@ export default function Profile() {
                             className="w-full h-28 object-cover"
                           />
                           <div className="p-3">
-                            <p className="font-bold text-sm text-[#1E2A3A]">{pet.name}</p>
+                            <p className="font-bold text-sm text-[#333E48]">{pet.name}</p>
                             <p className="text-xs text-gray-400 capitalize">{pet.type} · {pet.city}</p>
                           </div>
                         </div>
@@ -4178,17 +4178,17 @@ export default function Profile() {
             {/* ── Notifications Tab ── */}
             {activeTab === "Notifications" && (
               <div className="space-y-4">
-                <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.notifications")}</h2>
+                <h2 className="font-display font-bold text-lg text-[#333E48]">{t("profile.notifications")}</h2>
 
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-semibold text-sm text-[#1E2A3A]">Email Notifications</p>
+                    <p className="font-semibold text-sm text-[#333E48]">Email Notifications</p>
                     <p className="text-xs text-gray-500 mt-0.5">Receive email updates about your adoption and foster requests</p>
                   </div>
                   <button
                     disabled={emailTogglePending}
                     onClick={() => toggleEmailNotifications(!effectiveEmailEnabled)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${effectiveEmailEnabled ? "bg-[#00B8A0]" : "bg-gray-200"}`}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${effectiveEmailEnabled ? "bg-[#3D937F]" : "bg-gray-200"}`}
                     role="switch"
                     aria-checked={effectiveEmailEnabled}
                   >
@@ -4204,7 +4204,7 @@ export default function Profile() {
                 ) : !notifications || notifications.length === 0 ? (
                   <div className="text-center py-10 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400">
                     <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p className="font-semibold text-[#1E2A3A]">{t("profile.noNotifications")}</p>
+                    <p className="font-semibold text-[#333E48]">{t("profile.noNotifications")}</p>
                     <p className="text-sm mt-1">{t("profile.noNotifications")}</p>
                   </div>
                 ) : (
@@ -4245,7 +4245,7 @@ export default function Profile() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-sm text-[#1E2A3A]">
+                              <span className="font-bold text-sm text-[#333E48]">
                                 {notif.petName ?? t("profile.yourPet")}
                               </span>
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
@@ -4289,7 +4289,7 @@ export default function Profile() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="font-display font-bold text-lg text-[#1E2A3A]">{t("profile.myLostFound")}</h2>
+                      <h2 className="font-display font-bold text-lg text-[#333E48]">{t("profile.myLostFound")}</h2>
                       <p className="text-sm text-gray-500 mt-0.5">Your submitted reports and their current status.</p>
                     </div>
                     <Link href="/lost-found" className="text-sm font-bold text-primary hover:underline">
@@ -4303,7 +4303,7 @@ export default function Profile() {
                     return visibleReports.length === 0 ? (
                       <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                         <MapPin className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                        <p className="text-lg font-semibold text-[#1E2A3A]">{t("profile.noReports")}</p>
+                        <p className="text-lg font-semibold text-[#333E48]">{t("profile.noReports")}</p>
                         <p className="text-sm mt-1">Submit a report if you've lost or found a pet.</p>
                         <Link href="/lost-found" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
                           {t("lostFound.title")}
@@ -4327,7 +4327,7 @@ export default function Profile() {
                                   alt={report.name}
                                   className="w-full h-32 object-cover"
                                 />
-                                <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-xs font-bold ${report.reportType === "lost" ? "bg-red-500" : "bg-[#00B8A0]"}`}>
+                                <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-xs font-bold ${report.reportType === "lost" ? "bg-red-500" : "bg-[#3D937F]"}`}>
                                   {report.reportType === "lost" ? t("lostFound.lost") : t("lostFound.found")}
                                 </span>
                                 <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold ${badge.className}`}>
@@ -4335,7 +4335,7 @@ export default function Profile() {
                                 </span>
                               </div>
                               <div className="p-3">
-                                <p className="font-bold text-sm text-[#1E2A3A]">{report.name}</p>
+                                <p className="font-bold text-sm text-[#333E48]">{report.name}</p>
                                 <p className="text-xs text-gray-400 capitalize">{report.type} · {[report.area, report.city].filter(Boolean).join(", ")}</p>
                                 <p className="text-xs text-gray-300 mt-1">
                                   {report.createdAt ? new Date(report.createdAt).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" }) : ""}
@@ -4457,13 +4457,13 @@ export default function Profile() {
             <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
               <Trash2 className="w-5 h-5 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-[#1E2A3A]">{t("profile.deleteRequest")}</h3>
+            <h3 className="text-lg font-bold text-[#333E48]">{t("profile.deleteRequest")}</h3>
           </div>
           <p className="text-sm text-gray-500 mb-6">{t("profile.deleteRequest")}</p>
           <div className="flex gap-3">
             <button
               onClick={() => setDeletingRequest(null)}
-              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#1E2A3A] hover:bg-gray-50 transition-colors"
+              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#333E48] hover:bg-gray-50 transition-colors"
             >
               {t("profile.cancel")}
             </button>
@@ -4501,13 +4501,13 @@ export default function Profile() {
             <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
               <LogOut className="w-5 h-5 text-red-500" />
             </div>
-            <h2 className="text-lg font-bold text-[#1E2A3A]">{t("profile.logoutTitle")}</h2>
+            <h2 className="text-lg font-bold text-[#333E48]">{t("profile.logoutTitle")}</h2>
           </div>
           <p className="text-sm text-gray-500 mb-6">{t("profile.logoutDesc")}</p>
           <div className="flex gap-3">
             <button
               onClick={() => setShowLogoutDialog(false)}
-              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#1E2A3A] hover:bg-gray-50 transition-colors"
+              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#333E48] hover:bg-gray-50 transition-colors"
             >
               {t("profile.cancel")}
             </button>

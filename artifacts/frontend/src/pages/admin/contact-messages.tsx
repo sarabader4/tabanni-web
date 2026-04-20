@@ -96,7 +96,7 @@ export default function AdminContactMessages() {
               onClick={() => setFilter(tab.key)}
               className={`px-4 py-3.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
                 filter === tab.key
-                  ? "border-[#FF6B35] text-[#FF6B35]"
+                  ? "border-[#FA8D29] text-[#FA8D29]"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -107,7 +107,7 @@ export default function AdminContactMessages() {
 
         {isLoading ? (
           <div className="flex justify-center py-16">
-            <div className="w-8 h-8 border-4 border-[#FF6B35]/20 border-t-[#FF6B35] rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-[#FA8D29]/20 border-t-[#FA8D29] rounded-full animate-spin" />
           </div>
         ) : isError ? (
           <div className="text-center py-16 text-gray-400">
@@ -128,7 +128,7 @@ export default function AdminContactMessages() {
             {filtered.map(msg => (
               <div
                 key={msg.id}
-                className={`transition-colors ${!msg.read ? "bg-[#FF6B35]/5" : "bg-white"}`}
+                className={`transition-colors ${!msg.read ? "bg-[#FA8D29]/5" : "bg-white"}`}
               >
                 {/* Header row */}
                 <div
@@ -138,10 +138,10 @@ export default function AdminContactMessages() {
                     if (!msg.read) markReadMutation.mutate(msg.id);
                   }}
                 >
-                  <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${!msg.read ? "bg-[#FF6B35]" : "bg-gray-200"}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${!msg.read ? "bg-[#FA8D29]" : "bg-gray-200"}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="font-semibold text-[#1E2A3A] text-sm">{msg.name}</span>
+                      <span className="font-semibold text-[#333E48] text-sm">{msg.name}</span>
                       {msg.email && (
                         <span className="flex items-center gap-1 text-xs text-gray-400">
                           <AtSign className="w-3 h-3" /> {msg.email}
@@ -165,7 +165,7 @@ export default function AdminContactMessages() {
                         <Check className="w-3 h-3" /> Read
                       </span>
                     ) : (
-                      <span className="text-xs bg-[#FF6B35]/10 text-[#FF6B35] px-2.5 py-1 rounded-full font-medium">New</span>
+                      <span className="text-xs bg-[#FA8D29]/10 text-[#FA8D29] px-2.5 py-1 rounded-full font-medium">New</span>
                     )}
                   </div>
                 </div>
@@ -173,14 +173,14 @@ export default function AdminContactMessages() {
                 {/* Expanded body */}
                 {expanded === msg.id && (
                   <div className="px-6 pb-5 space-y-3 bg-gray-50 border-t border-gray-100">
-                    <div className="pt-4 bg-white rounded-xl p-4 text-sm text-[#1E2A3A] whitespace-pre-wrap shadow-sm border border-gray-100 mt-3">
+                    <div className="pt-4 bg-white rounded-xl p-4 text-sm text-[#333E48] whitespace-pre-wrap shadow-sm border border-gray-100 mt-3">
                       {msg.message}
                     </div>
                     <div className="flex gap-2 justify-end">
                       {msg.email && (
                         <a
                           href={`mailto:${msg.email}`}
-                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-[#FF6B35] text-white rounded-lg hover:bg-[#e55a28] transition-colors"
+                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-[#FA8D29] text-white rounded-lg hover:bg-[#e55a28] transition-colors"
                         >
                           <Mail className="w-3.5 h-3.5" /> Reply by Email
                         </a>

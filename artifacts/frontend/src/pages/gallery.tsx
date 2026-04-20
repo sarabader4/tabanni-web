@@ -42,7 +42,7 @@ export default function Gallery() {
           />
         )}
         <div className="p-4">
-          <h3 className="font-bold text-[#1E2A3A] text-sm leading-snug mb-2 line-clamp-2">
+          <h3 className="font-bold text-[#333E48] text-sm leading-snug mb-2 line-clamp-2">
             {post.headline || post.title}
           </h3>
           {post.ownerName && (
@@ -53,7 +53,7 @@ export default function Gallery() {
           )}
           <Link
             href={`/gallery/${post.id}`}
-            className="inline-block px-4 py-1.5 border border-gray-200 rounded-full text-xs font-semibold text-[#1E2A3A] hover:border-primary hover:text-primary transition-colors"
+            className="inline-block px-4 py-1.5 border border-gray-200 rounded-full text-xs font-semibold text-[#333E48] hover:border-primary hover:text-primary transition-colors"
           >
             {t("gallery.readMore")}
           </Link>

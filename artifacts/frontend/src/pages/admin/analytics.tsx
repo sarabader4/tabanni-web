@@ -12,7 +12,7 @@ interface AnalyticsData {
   topCities: { city: string | null; count: number }[];
 }
 
-const PIE_COLORS = ["#FF6B35", "#00B8A0", "#6366F1", "#F59E0B", "#EC4899"];
+const PIE_COLORS = ["#FA8D29", "#3D937F", "#6366F1", "#F59E0B", "#EC4899"];
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -77,7 +77,7 @@ export default function AdminAnalytics() {
                 <XAxis dataKey="city" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }} />
-                <Bar dataKey="count" fill="#FF6B35" radius={[6, 6, 0, 0]} name="Pets" />
+                <Bar dataKey="count" fill="#FA8D29" radius={[6, 6, 0, 0]} name="Pets" />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
@@ -89,7 +89,7 @@ export default function AdminAnalytics() {
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }} />
-                <Bar dataKey="count" fill="#00B8A0" radius={[6, 6, 0, 0]} name="Adoptions" />
+                <Bar dataKey="count" fill="#3D937F" radius={[6, 6, 0, 0]} name="Adoptions" />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>

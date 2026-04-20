@@ -270,7 +270,7 @@ export default function AdminNotifications() {
                       key={opt.value}
                       type="button"
                       onClick={() => setBroadcastTarget(opt.value)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${broadcastTarget === opt.value ? "bg-[#1E2A3A] text-white border-[#1E2A3A]" : "text-gray-600 border-gray-200 hover:bg-gray-50"}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${broadcastTarget === opt.value ? "bg-[#333E48] text-white border-[#333E48]" : "text-gray-600 border-gray-200 hover:bg-gray-50"}`}
                     >
                       <Users className="w-3 h-3" />
                       {opt.label}
@@ -285,7 +285,7 @@ export default function AdminNotifications() {
                   value={broadcastTitle}
                   onChange={e => setBroadcastTitle(e.target.value)}
                   placeholder="Notification title"
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35]"
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FA8D29]/30 focus:border-[#FA8D29]"
                   maxLength={100}
                   required
                 />
@@ -297,7 +297,7 @@ export default function AdminNotifications() {
                   onChange={e => setBroadcastMessage(e.target.value)}
                   placeholder="Notification message..."
                   rows={4}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] resize-none"
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FA8D29]/30 focus:border-[#FA8D29] resize-none"
                   maxLength={500}
                   required
                 />
@@ -305,7 +305,7 @@ export default function AdminNotifications() {
               <button
                 type="submit"
                 disabled={broadcast.isPending || !broadcastTitle.trim() || !broadcastMessage.trim()}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF6B35] text-white text-sm font-semibold hover:bg-[#e85d2a] transition-colors disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#FA8D29] text-white text-sm font-semibold hover:bg-[#e85d2a] transition-colors disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
                 {broadcast.isPending ? "Sending..." : "Send Notification"}

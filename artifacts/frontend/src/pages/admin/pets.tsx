@@ -348,9 +348,9 @@ function PetModal({
                   checked={form.addedByAdmin}
                   onChange={(e) => setForm(prev => ({ ...prev, addedByAdmin: e.target.checked }))}
                   className="w-4 h-4 rounded"
-                  style={{ accentColor: "#00B8A0" }}
+                  style={{ accentColor: "#3D937F" }}
                 />
-                <span className="text-xs font-semibold" style={{ color: "#00B8A0" }}>Verified by Tabanni</span>
+                <span className="text-xs font-semibold" style={{ color: "#3D937F" }}>Verified by Tabanni</span>
               </label>
             </div>
           </div>
@@ -367,7 +367,7 @@ function PetModal({
                 disabled={generatingDesc}
                 data-testid="generate-desc-btn"
                 className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ background: "#FF6B35" }}
+                style={{ background: "#FA8D29" }}
               >
                 {generatingDesc ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -385,7 +385,7 @@ function PetModal({
             <button
               type="submit"
               disabled={isPending}
-              className="px-5 py-2 rounded-xl bg-[#FF6B35] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors disabled:opacity-50"
+              className="px-5 py-2 rounded-xl bg-[#FA8D29] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors disabled:opacity-50"
             >
               {isPending ? (mode === "add" ? "Adding..." : "Saving...") : (mode === "add" ? "Add Pet" : "Save Changes")}
             </button>
@@ -448,7 +448,7 @@ export default function AdminPets() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors capitalize ${activeTab === tab ? "bg-[#FF6B35] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"}`}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors capitalize ${activeTab === tab ? "bg-[#FA8D29] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"}`}
           >
             {tab === "pending" ? (
               <span className="flex items-center gap-2">
@@ -464,7 +464,7 @@ export default function AdminPets() {
         ))}
         <button
           onClick={() => setModal({ mode: "add" })}
-          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6B35] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors"
+          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FA8D29] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors"
         >
           <Plus className="w-4 h-4" /> Add Pet
         </button>

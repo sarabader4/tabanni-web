@@ -92,7 +92,7 @@ export default function Adopt() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder={t("adopt.searchPlaceholder")}
-              className="w-full bg-white border border-gray-200 rounded-xl ps-12 pe-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+              className="w-full bg-white border border-gray-200 rounded-xl ps-12 pe-4 py-3 text-sm text-[#333E48] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
           </div>
           <button
@@ -104,7 +104,7 @@ export default function Adopt() {
               }
             }}
             className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap"
-            style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
+            style={{ background: "linear-gradient(135deg, #FA8D29, #e05a25)" }}
             title={t("home.aiPetMatchTooltip")}
           >
             <Sparkles className="w-4 h-4" />
@@ -147,7 +147,7 @@ export default function Adopt() {
           </div>
         ) : data?.pets?.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-            <h3 className="font-display font-bold text-xl mb-2 text-[#1E2A3A]">
+            <h3 className="font-display font-bold text-xl mb-2 text-[#333E48]">
               {t("adopt.noPetsFound")}
             </h3>
             <p className="text-gray-400 mb-6">{t("adopt.noPetsSub")}</p>

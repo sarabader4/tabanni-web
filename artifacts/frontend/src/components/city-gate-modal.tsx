@@ -36,11 +36,11 @@ export default function CityGateModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8">
         <div className="flex flex-col items-center mb-6">
-          <div className="bg-[#FF6B35]/10 p-3 rounded-full mb-3">
-            <MapPin className="w-7 h-7 text-[#FF6B35]" />
+          <div className="bg-[#FA8D29]/10 p-3 rounded-full mb-3">
+            <MapPin className="w-7 h-7 text-[#FA8D29]" />
           </div>
-          <h2 className="text-xl font-bold text-[#1E2A3A] text-center">{t("cityGate.title")}</h2>
-          <p className="text-sm text-[#1E2A3A]/60 text-center mt-2">{t("cityGate.subtitle")}</p>
+          <h2 className="text-xl font-bold text-[#333E48] text-center">{t("cityGate.title")}</h2>
+          <p className="text-sm text-[#333E48]/60 text-center mt-2">{t("cityGate.subtitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -51,15 +51,15 @@ export default function CityGateModal() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-[#1E2A3A] mb-1.5">
-              {t("cityGate.cityLabel")} <span className="text-[#FF6B35]">*</span>
+            <label className="block text-sm font-medium text-[#333E48] mb-1.5">
+              {t("cityGate.cityLabel")} <span className="text-[#FA8D29]">*</span>
             </label>
             <input
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               placeholder={t("cityGate.placeholder")}
-              className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all"
+              className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-[#333E48] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#FA8D29]/30 focus:border-[#FA8D29] transition-all"
               autoFocus
               disabled={isSaving}
             />
@@ -68,7 +68,7 @@ export default function CityGateModal() {
           <button
             type="submit"
             disabled={isSaving}
-            className="w-full py-2.5 bg-[#FF6B35] text-white font-bold text-sm rounded-lg hover:bg-[#FF6B35]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-[#FA8D29] text-white font-bold text-sm rounded-lg hover:bg-[#FA8D29]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
             {isSaving ? (
               <>

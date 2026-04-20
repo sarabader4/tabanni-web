@@ -58,7 +58,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: "#1E2A3A" }}>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "#333E48" }}>
         <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
       </div>
     );

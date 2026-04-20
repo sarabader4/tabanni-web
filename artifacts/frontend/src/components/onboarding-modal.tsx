@@ -248,7 +248,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
   if (submitted) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div className="bg-[#FFF8F3] rounded-3xl p-12 text-center max-w-md w-full shadow-2xl">
+        <div className="bg-[#FFFAF7] rounded-3xl p-12 text-center max-w-md w-full shadow-2xl">
           <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10 text-secondary" />
           </div>
@@ -261,7 +261,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-[#FFF8F3] rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-[#FFFAF7] rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-8 pt-8 pb-4 shrink-0">
           <div>
@@ -470,7 +470,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
                   id="spay"
                   checked={form.spayNeuterCommitment}
                   onChange={e => set("spayNeuterCommitment", e.target.checked)}
-                  className="w-4 h-4 accent-[#FF6B35]"
+                  className="w-4 h-4 accent-[#FA8D29]"
                 />
                 <label htmlFor="spay" className="text-sm text-foreground">
                   {t("profile.labelSpayCommit")}
@@ -534,8 +534,8 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
                       onClick={() => toggleArray("trainingExpectations", value)}
                       className={`text-left px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
                         form.trainingExpectations.includes(value)
-                          ? "bg-[#1E2A3A] text-white border-[#1E2A3A]"
-                          : "bg-white border-border hover:border-[#1E2A3A]/50"
+                          ? "bg-[#333E48] text-white border-[#333E48]"
+                          : "bg-white border-border hover:border-[#333E48]/50"
                       }`}
                     >
                       {t(key)}
@@ -588,7 +588,7 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
                     id="confirmed"
                     checked={form.confirmed}
                     onChange={e => set("confirmed", e.target.checked)}
-                    className="w-4 h-4 mt-0.5 accent-[#FF6B35]"
+                    className="w-4 h-4 mt-0.5 accent-[#FA8D29]"
                   />
                   <label htmlFor="confirmed" className="text-sm text-foreground leading-relaxed">
                     {t("profile.labelConfirm")}

@@ -35,7 +35,7 @@ export default function GalleryDetail() {
   if (!post) {
     return (
       <div className="max-w-3xl mx-auto text-center py-20">
-        <h2 className="text-3xl font-display font-bold mb-4 text-[#1E2A3A]">{t("galleryDetail.notFound")}</h2>
+        <h2 className="text-3xl font-display font-bold mb-4 text-[#333E48]">{t("galleryDetail.notFound")}</h2>
         <Link href="/gallery" className="text-primary hover:underline font-medium">
           ← {t("galleryDetail.backToGallery")}
         </Link>
@@ -48,7 +48,7 @@ export default function GalleryDetail() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <Link
           href="/gallery"
-          className="inline-flex items-center gap-2 text-gray-500 hover:text-[#1E2A3A] font-medium mb-8 transition-colors"
+          className="inline-flex items-center gap-2 text-gray-500 hover:text-[#333E48] font-medium mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> {t("galleryDetail.backToGallery")}
         </Link>
@@ -63,7 +63,7 @@ export default function GalleryDetail() {
             />
           )}
           <div className="p-8">
-            <h1 className="font-display text-3xl font-bold text-[#1E2A3A] mb-3 leading-tight">
+            <h1 className="font-display text-3xl font-bold text-[#333E48] mb-3 leading-tight">
               {post.headline || post.title}
             </h1>
 
@@ -71,7 +71,7 @@ export default function GalleryDetail() {
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                 <User className="w-4 h-4 text-gray-500" />
               </div>
-              <span className="text-sm font-semibold text-[#1E2A3A]">
+              <span className="text-sm font-semibold text-[#333E48]">
                 {post.ownerName || post.authorName || "tabbanni"}
               </span>
               {post.createdAt && (
@@ -93,7 +93,7 @@ export default function GalleryDetail() {
 
         {related.length > 0 && (
           <div className="mt-12">
-            <h2 className="font-display text-xl font-bold text-[#1E2A3A] mb-5">{t("galleryDetail.youMightLike")}</h2>
+            <h2 className="font-display text-xl font-bold text-[#333E48] mb-5">{t("galleryDetail.youMightLike")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {related.map((item) => (
                 <Link key={item.id} href={`/gallery/${item.id}`}>
@@ -106,7 +106,7 @@ export default function GalleryDetail() {
                       />
                     )}
                     <div className="p-4">
-                      <h3 className="font-bold text-sm text-[#1E2A3A] line-clamp-2 leading-snug mb-1.5">
+                      <h3 className="font-bold text-sm text-[#333E48] line-clamp-2 leading-snug mb-1.5">
                         {item.headline || item.title}
                       </h3>
                       {item.ownerName && (

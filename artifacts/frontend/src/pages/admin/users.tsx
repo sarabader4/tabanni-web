@@ -85,7 +85,7 @@ export default function AdminUsers() {
           <button
             key={tab.value}
             onClick={() => setActiveTab(tab.value)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${activeTab === tab.value ? "bg-[#1E2A3A] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"}`}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${activeTab === tab.value ? "bg-[#333E48] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"}`}
           >
             {tab.label}
           </button>
@@ -128,7 +128,7 @@ export default function AdminUsers() {
                       {user.avatarUrl ? (
                         <img src={user.avatarUrl} alt={user.fullName} className="w-9 h-9 rounded-full object-cover" />
                       ) : (
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: "#FF6B35" }}>
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: "#FA8D29" }}>
                           {user.fullName.charAt(0).toUpperCase()}
                         </div>
                       )}

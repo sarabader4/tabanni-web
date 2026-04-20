@@ -185,7 +185,7 @@ export function CountryPhoneDropdown({
                 setOpen(false);
               }
             }}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-[#1E2A3A] border-r border-gray-200 rounded-l-xl transition-colors h-full ${
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-[#333E48] border-r border-gray-200 rounded-l-xl transition-colors h-full ${
               disabled
                 ? "cursor-default opacity-60 bg-gray-50"
                 : "hover:bg-gray-50 cursor-pointer"
@@ -230,7 +230,7 @@ export function CountryPhoneDropdown({
                     onChange={(e) => setSearch(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
                     placeholder="Search country..."
-                    className="flex-1 bg-transparent text-sm outline-none text-[#1E2A3A] placeholder-gray-400"
+                    className="flex-1 bg-transparent text-sm outline-none text-[#333E48] placeholder-gray-400"
                   />
                   {search && (
                     <button
@@ -277,7 +277,7 @@ export function CountryPhoneDropdown({
                       <span className="text-base" aria-hidden="true">
                         {c.flag}
                       </span>
-                      <span className="flex-1 text-[#1E2A3A] truncate">
+                      <span className="flex-1 text-[#333E48] truncate">
                         {c.name}
                       </span>
                       <span className="text-gray-400 text-xs font-mono">
@@ -304,7 +304,7 @@ export function CountryPhoneDropdown({
             const formatted = formatter.input(raw.replace(/\D/g, ""));
             onPhoneChange(formatted);
           }}
-          className={`flex-1 px-3 py-2.5 text-sm text-[#1E2A3A] outline-none rounded-r-xl focus:ring-2 focus:ring-inset ${
+          className={`flex-1 px-3 py-2.5 text-sm text-[#333E48] outline-none rounded-r-xl focus:ring-2 focus:ring-inset ${
             hasError ? "focus:ring-red-300" : "focus:ring-primary/20"
           } ${disabled ? "bg-gray-50 text-gray-500" : "bg-white"}`}
           placeholder={disabled ? "" : "Enter phone number"}

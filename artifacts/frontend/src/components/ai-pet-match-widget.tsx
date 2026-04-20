@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Sparkles, Search, Loader2, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import type { Pet } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
@@ -28,6 +29,7 @@ interface AIPetMatchWidgetProps {
 }
 
 export default function AIPetMatchWidget({ mode = "search", currentPet }: AIPetMatchWidgetProps) {
+  const { t } = useTranslation();
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RecommendResult | null>(null);
@@ -87,7 +89,7 @@ export default function AIPetMatchWidget({ mode = "search", currentPet }: AIPetM
             onClick={() => handleFind()}
             data-testid="ai-similar-btn"
             className="w-full py-3 rounded-2xl text-white font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
-            style={{ background: "#FF6B35" }}
+            style={{ background: "#FA8D29" }}
           >
             <Sparkles className="w-4 h-4" />
             Find Similar Pets
@@ -143,21 +145,21 @@ export default function AIPetMatchWidget({ mode = "search", currentPet }: AIPetM
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="rounded-3xl overflow-hidden" style={{ background: "linear-gradient(135deg, #1E2A3A 0%, #2d3f55 100%)" }}>
+      <div className="rounded-3xl overflow-hidden" style={{ background: "linear-gradient(135deg, #333E48 0%, #2d3f55 100%)" }}>
         <div className="p-8 md:p-12">
           <div className="max-w-2xl mx-auto text-center mb-8">
             <div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold mb-4"
-              style={{ background: "rgba(255,107,53,0.2)", color: "#FF6B35" }}
+              style={{ background: "rgba(250,141,41,0.2)", color: "#FA8D29" }}
             >
               <Sparkles className="w-4 h-4" />
-              AI-Powered Matching
+              {t("home.aiWidgetBadge")}
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-              Find Your Perfect Companion
+              {t("home.aiWidgetTitle")}
             </h2>
             <p className="text-white/70">
-              Tell us about your lifestyle and what you're looking for — our AI will match you with the perfect pet from our shelter.
+              {t("home.aiWidgetDesc")}
             </p>
           </div>
 
@@ -169,8 +171,8 @@ export default function AIPetMatchWidget({ mode = "search", currentPet }: AIPetM
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="e.g. I live in an apartment in Amman, work from home, and want a calm, affectionate cat..."
                   rows={3}
-                  className="w-full rounded-2xl px-5 py-4 text-sm text-[#1E2A3A] placeholder-gray-400 outline-none resize-none focus:ring-2 focus:ring-orange-400/50"
-                  style={{ background: "#FFF8F3" }}
+                  className="w-full rounded-2xl px-5 py-4 text-sm text-[#333E48] placeholder-gray-400 outline-none resize-none focus:ring-2 focus:ring-orange-400/50"
+                  style={{ background: "#FFFAF7" }}
                   disabled={loading}
                 />
               </div>
@@ -179,7 +181,7 @@ export default function AIPetMatchWidget({ mode = "search", currentPet }: AIPetM
                 disabled={loading || !description.trim()}
                 data-testid="ai-match-btn"
                 className="sm:w-auto w-full px-6 py-4 rounded-2xl text-white font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed sm:self-end"
-                style={{ background: "#FF6B35" }}
+                style={{ background: "#FA8D29" }}
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />

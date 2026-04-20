@@ -221,13 +221,13 @@ export default function LostFound() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder={t("lostFound.searchPlaceholder")}
-              className="w-full bg-white border border-gray-200 rounded-xl ps-12 pe-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+              className="w-full bg-white border border-gray-200 rounded-xl ps-12 pe-4 py-3 text-sm text-[#333E48] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
           </div>
           <button
             onClick={openModal}
             className={`px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-colors whitespace-nowrap text-white ${
-              tab === "lost" ? "bg-primary shadow-primary/20 hover:bg-primary/90" : "bg-[#00B8A0] shadow-[#00B8A0]/20 hover:bg-[#00B8A0]/90"
+              tab === "lost" ? "bg-primary shadow-primary/20 hover:bg-primary/90" : "bg-[#3D937F] shadow-[#3D937F]/20 hover:bg-[#3D937F]/90"
             }`}
           >
             Report Pet
@@ -244,7 +244,7 @@ export default function LostFound() {
           <button
             onClick={() => { setTab("lost"); setPage(1); }}
             className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
-              tab === "lost" ? "bg-white text-[#1E2A3A] shadow-sm" : "text-gray-500 hover:text-[#1E2A3A]"
+              tab === "lost" ? "bg-white text-[#333E48] shadow-sm" : "text-gray-500 hover:text-[#333E48]"
             }`}
           >
             {t("lostFound.lostPets")}
@@ -252,7 +252,7 @@ export default function LostFound() {
           <button
             onClick={() => { setTab("found"); setPage(1); }}
             className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
-              tab === "found" ? "bg-white text-[#1E2A3A] shadow-sm" : "text-gray-500 hover:text-[#1E2A3A]"
+              tab === "found" ? "bg-white text-[#333E48] shadow-sm" : "text-gray-500 hover:text-[#333E48]"
             }`}
           >
             {t("lostFound.foundPets")}
@@ -275,7 +275,7 @@ export default function LostFound() {
           </div>
         ) : reports.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-            <h3 className="font-display font-bold text-xl mb-2 text-[#1E2A3A]">
+            <h3 className="font-display font-bold text-xl mb-2 text-[#333E48]">
               {t("lostFound.noReportsFound", { type: tab })}
             </h3>
             <p className="text-gray-400">{t("lostFound.noReportsSub", { type: tab })}</p>
@@ -298,18 +298,18 @@ export default function LostFound() {
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                       />
                       <div className={`absolute top-3 left-3 px-2 py-0.5 rounded-full text-white text-xs font-bold ${
-                        report.reportType === "lost" ? "bg-red-500" : "bg-[#00B8A0]"
+                        report.reportType === "lost" ? "bg-red-500" : "bg-[#3D937F]"
                       }`}>
                         {report.reportType === "lost" ? t("lostFound.lost") : t("lostFound.found")}
                       </div>
                     </div>
                     <div className="p-4 flex flex-col flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-display font-bold text-base text-[#1E2A3A]">{report.name}</h3>
+                        <h3 className="font-display font-bold text-base text-[#333E48]">{report.name}</h3>
                         <span className="text-xs text-gray-400 font-medium capitalize">{report.type}</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5 mb-3">
-                        <span className="px-2 py-0.5 bg-[#00B8A0]/10 text-[#00B8A0] rounded-full text-xs font-semibold capitalize">{report.type}</span>
+                        <span className="px-2 py-0.5 bg-[#3D937F]/10 text-[#3D937F] rounded-full text-xs font-semibold capitalize">{report.type}</span>
                         {report.gender && (
                           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${
                             report.gender === "male" ? "bg-blue-50 text-blue-500" : "bg-pink-50 text-pink-500"
@@ -325,7 +325,7 @@ export default function LostFound() {
                       </div>
                       <div className="mt-auto">
                         <span className={`block w-full text-center py-2.5 rounded-xl font-bold text-sm transition-colors text-white ${
-                          report.reportType === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#00B8A0] hover:bg-[#00B8A0]/90"
+                          report.reportType === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#3D937F] hover:bg-[#3D937F]/90"
                         }`}>
                           {report.reportType === "lost" ? t("lostFound.helpMe") : t("lostFound.helpThisPet")}
                         </span>
@@ -342,7 +342,7 @@ export default function LostFound() {
           <button
             onClick={openModal}
             className={`px-6 py-3 rounded-full font-bold text-sm shadow-md transition-colors text-white ${
-              tab === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#00B8A0] hover:bg-[#00B8A0]/90"
+              tab === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#3D937F] hover:bg-[#3D937F]/90"
             }`}
           >
             {tab === "lost" ? t("lostFound.reportLostPet") : t("lostFound.reportFoundPet")}
@@ -378,7 +378,7 @@ export default function LostFound() {
           {submitSuccess ? (
             <div className="flex flex-col items-center justify-center py-10 text-center gap-4">
               <CheckCircle2 className="w-16 h-16 text-green-500" />
-              <h3 className="font-display font-bold text-xl text-[#1E2A3A]">Report Submitted!</h3>
+              <h3 className="font-display font-bold text-xl text-[#333E48]">Report Submitted!</h3>
               <p className="text-gray-500 text-sm">Your report has been submitted and is pending admin approval. It will appear on the listing once approved.</p>
               <button
                 onClick={() => { setIsModalOpen(false); resetForm(); }}
@@ -390,7 +390,7 @@ export default function LostFound() {
           ) : (
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
               <div className="space-y-4">
-                <h3 className="font-display font-bold text-base text-[#1E2A3A] border-b border-gray-100 pb-2">Pet Information</h3>
+                <h3 className="font-display font-bold text-base text-[#333E48] border-b border-gray-100 pb-2">Pet Information</h3>
 
                 <div className="flex gap-4">
                   <label className={`flex items-center gap-2 px-4 py-3 rounded-xl flex-1 cursor-pointer border-2 transition-colors ${
@@ -400,9 +400,9 @@ export default function LostFound() {
                     <span className="text-sm font-medium">{t("lostFound.iLostPet")}</span>
                   </label>
                   <label className={`flex items-center gap-2 px-4 py-3 rounded-xl flex-1 cursor-pointer border-2 transition-colors ${
-                    reportType === "found" ? "border-[#00B8A0] bg-[#00B8A0]/5" : "border-gray-200 bg-gray-50"
+                    reportType === "found" ? "border-[#3D937F] bg-[#3D937F]/5" : "border-gray-200 bg-gray-50"
                   }`}>
-                    <input type="radio" value="found" {...form.register("reportType")} className="accent-[#00B8A0]" />
+                    <input type="radio" value="found" {...form.register("reportType")} className="accent-[#3D937F]" />
                     <span className="text-sm font-medium">{t("lostFound.iFoundPet")}</span>
                   </label>
                 </div>
@@ -558,7 +558,7 @@ export default function LostFound() {
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-display font-bold text-base text-[#1E2A3A] border-b border-gray-100 pb-2">Reporter Information</h3>
+                <h3 className="font-display font-bold text-base text-[#333E48] border-b border-gray-100 pb-2">Reporter Information</h3>
 
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">

@@ -89,8 +89,8 @@ export default function AdminLostFound() {
                 onClick={() => setStatusFilter(t.key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   statusFilter === t.key
-                    ? "bg-white text-[#1E2A3A] shadow-sm"
-                    : "text-gray-400 hover:text-[#1E2A3A]"
+                    ? "bg-white text-[#333E48] shadow-sm"
+                    : "text-gray-400 hover:text-[#333E48]"
                 }`}
               >
                 {t.label}
@@ -150,8 +150,8 @@ export default function AdminLostFound() {
                             <div className="w-10 h-10 rounded-xl bg-gray-100 shrink-0" />
                           )}
                           <div>
-                            <p className="font-semibold text-[#1E2A3A]">{report.name}</p>
-                            <span className={`text-xs font-bold ${report.reportType === "lost" ? "text-red-500" : "text-[#00B8A0]"}`}>
+                            <p className="font-semibold text-[#333E48]">{report.name}</p>
+                            <span className={`text-xs font-bold ${report.reportType === "lost" ? "text-red-500" : "text-[#3D937F]"}`}>
                               {report.reportType === "lost" ? "LOST" : "FOUND"}
                             </span>
                           </div>

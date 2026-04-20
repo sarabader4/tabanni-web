@@ -220,7 +220,7 @@ export default function PetDetail() {
                 {pet.name}
               </h1>
               {pet.addedByAdmin && (
-                <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-[#00B8A0] text-white text-xs font-bold shadow-sm">
+                <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-[#3D937F] text-white text-xs font-bold shadow-sm">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Verified by Tabanni
                 </div>

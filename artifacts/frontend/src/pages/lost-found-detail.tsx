@@ -38,7 +38,7 @@ export default function LostFoundDetail() {
   if (!report) {
     return (
       <div className="max-w-3xl mx-auto text-center py-20 px-4">
-        <h2 className="text-3xl font-display font-bold mb-4 text-[#1E2A3A]">{t("lostFoundDetail.notFound")}</h2>
+        <h2 className="text-3xl font-display font-bold mb-4 text-[#333E48]">{t("lostFoundDetail.notFound")}</h2>
         <Link href="/lost-found" className="text-primary hover:underline font-medium">
           ← {t("lostFoundDetail.backToLostFound")}
         </Link>
@@ -96,7 +96,7 @@ export default function LostFoundDetail() {
         <div className="flex items-center justify-between mb-8">
           <Link
             href="/lost-found"
-            className="inline-flex items-center gap-2 text-gray-500 hover:text-[#1E2A3A] font-medium transition-colors"
+            className="inline-flex items-center gap-2 text-gray-500 hover:text-[#333E48] font-medium transition-colors"
           >
             <ArrowLeft className="w-4 h-4 rtl:rotate-180" /> {t("lostFoundDetail.backToLostFound")}
           </Link>
@@ -118,7 +118,7 @@ export default function LostFoundDetail() {
                   className="w-full h-full object-cover"
                 />
                 <span className={`absolute top-4 start-4 px-4 py-1.5 rounded-full text-white text-sm font-bold tracking-wide ${
-                  isLost ? "bg-red-500" : "bg-[#00B8A0]"
+                  isLost ? "bg-red-500" : "bg-[#3D937F]"
                 }`}>
                   {isLost ? t("lostFoundDetail.lost") : t("lostFoundDetail.found")}
                 </span>
@@ -129,13 +129,13 @@ export default function LostFoundDetail() {
                       onClick={() => setPhotoIndex((i) => (i - 1 + images.length) % images.length)}
                       className="absolute start-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white shadow transition-colors"
                     >
-                      <ChevronLeft className="w-5 h-5 text-[#1E2A3A] rtl:rotate-180" />
+                      <ChevronLeft className="w-5 h-5 text-[#333E48] rtl:rotate-180" />
                     </button>
                     <button
                       onClick={() => setPhotoIndex((i) => (i + 1) % images.length)}
                       className="absolute end-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white shadow transition-colors"
                     >
-                      <ChevronRight className="w-5 h-5 text-[#1E2A3A] rtl:rotate-180" />
+                      <ChevronRight className="w-5 h-5 text-[#333E48] rtl:rotate-180" />
                     </button>
                     <div className="absolute bottom-3 start-0 end-0 flex justify-center gap-1.5">
                       {images.map((_, i) => (
@@ -171,7 +171,7 @@ export default function LostFoundDetail() {
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <div className="flex items-start justify-between mb-4">
-                <h1 className="font-display font-bold text-3xl text-[#1E2A3A]">{report.name}</h1>
+                <h1 className="font-display font-bold text-3xl text-[#333E48]">{report.name}</h1>
                 <div className="flex flex-wrap gap-2 justify-end">
                   {report.gender && (
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold capitalize ${
@@ -188,7 +188,7 @@ export default function LostFoundDetail() {
                 </div>
               </div>
 
-              <h3 className="font-display font-bold text-base text-[#1E2A3A] mb-3">{t("lostFoundDetail.petInformation")}</h3>
+              <h3 className="font-display font-bold text-base text-[#333E48] mb-3">{t("lostFoundDetail.petInformation")}</h3>
               <div className="divide-y divide-gray-100">
                 {[
                   { label: t("lostFoundDetail.type"), value: report.type },
@@ -200,14 +200,14 @@ export default function LostFoundDetail() {
                 ].filter(r => r.value).map(({ label, value }) => (
                   <div key={label} className="flex justify-between py-2.5">
                     <span className="text-sm text-gray-400 font-medium">{label}</span>
-                    <span className="text-sm font-semibold text-[#1E2A3A] capitalize">{value}</span>
+                    <span className="text-sm font-semibold text-[#333E48] capitalize">{value}</span>
                   </div>
                 ))}
               </div>
 
               {report.description && (
                 <div className="mt-5 pt-5 border-t border-gray-100">
-                  <h3 className="font-display font-bold text-base text-[#1E2A3A] mb-2">{t("lostFoundDetail.description")}</h3>
+                  <h3 className="font-display font-bold text-base text-[#333E48] mb-2">{t("lostFoundDetail.description")}</h3>
                   <p className="text-gray-600 text-sm leading-relaxed">{report.description}</p>
                 </div>
               )}
@@ -217,15 +217,15 @@ export default function LostFoundDetail() {
               isLost ? "bg-orange-50 border-orange-100" : "bg-teal-50 border-teal-100"
             }`}>
               <div className="flex items-center gap-2 mb-4">
-                <AlertCircle className={`w-5 h-5 ${isLost ? "text-primary" : "text-[#00B8A0]"}`} />
-                <h3 className="font-display font-bold text-base text-[#1E2A3A]">
+                <AlertCircle className={`w-5 h-5 ${isLost ? "text-primary" : "text-[#3D937F]"}`} />
+                <h3 className="font-display font-bold text-base text-[#333E48]">
                   {isLost ? t("lostFoundDetail.tipsLost") : t("lostFoundDetail.tipsFound")}
                 </h3>
               </div>
               <ul className="space-y-2.5">
                 {(isLost ? lostTips : foundTips).map((tip) => (
                   <li key={tip} className="flex items-start gap-2 text-sm text-gray-600">
-                    <CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${isLost ? "text-primary" : "text-[#00B8A0]"}`} />
+                    <CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${isLost ? "text-primary" : "text-[#3D937F]"}`} />
                     {tip}
                   </li>
                 ))}
@@ -235,14 +235,14 @@ export default function LostFoundDetail() {
 
           <div className="space-y-4">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h3 className="font-display font-bold text-base text-[#1E2A3A] mb-4">{t("lostFoundDetail.ownerReporter")}</h3>
+              <h3 className="font-display font-bold text-base text-[#333E48] mb-4">{t("lostFoundDetail.ownerReporter")}</h3>
 
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                   <User className="w-6 h-6 text-gray-400" />
                 </div>
                 <div>
-                  <p className="font-bold text-[#1E2A3A] text-sm">{report.reporterName || t("lostFoundDetail.anonymous")}</p>
+                  <p className="font-bold text-[#333E48] text-sm">{report.reporterName || t("lostFoundDetail.anonymous")}</p>
                   {report.city && (
                     <p className="text-xs text-gray-400 flex items-center gap-1">
                       <MapPin className="w-3 h-3" /> {report.city}
@@ -255,7 +255,7 @@ export default function LostFoundDetail() {
                 {report.reporterPhone && (
                   <a
                     href={`tel:${report.reporterPhone}`}
-                    className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors text-sm font-semibold text-[#1E2A3A]"
+                    className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors text-sm font-semibold text-[#333E48]"
                   >
                     <Phone className="w-4 h-4 text-gray-400" /> {report.reporterPhone}
                   </a>

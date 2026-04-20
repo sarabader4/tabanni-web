@@ -230,7 +230,7 @@ export default function AdminVolunteers() {
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors capitalize ${
-                statusFilter === s ? "bg-[#FF6B35] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                statusFilter === s ? "bg-[#FA8D29] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               {s || "All"}

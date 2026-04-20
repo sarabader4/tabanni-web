@@ -126,11 +126,11 @@ function SidebarItem({ item, badge, depth = 0 }: { item: typeof SIDEBAR_NAV[numb
 
   return (
     <Link href={navItem.href}>
-      <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all text-sm ${active ? "bg-[#FF6B35] text-white font-semibold" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+      <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all text-sm ${active ? "bg-[#FA8D29] text-white font-semibold" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
         <Icon className="w-4 h-4 shrink-0" />
         <span className="font-medium flex-1">{navItem.label}</span>
         {badge != null && badge > 0 && (
-          <span className={`min-w-[18px] h-[18px] px-1 rounded-full text-xs font-bold flex items-center justify-center ${active ? "bg-white text-[#FF6B35]" : "bg-[#FF6B35] text-white"}`}>
+          <span className={`min-w-[18px] h-[18px] px-1 rounded-full text-xs font-bold flex items-center justify-center ${active ? "bg-white text-[#FA8D29]" : "bg-[#FA8D29] text-white"}`}>
             {badge > 99 ? "99+" : badge}
           </span>
         )}
@@ -144,10 +144,10 @@ export function AdminSidebar() {
   const unreadCount = unreadData?.count ?? 0;
 
   return (
-    <aside className="w-56 min-h-screen flex-shrink-0 flex flex-col" style={{ background: "#1E2A3A" }}>
+    <aside className="w-56 min-h-screen flex-shrink-0 flex flex-col" style={{ background: "#333E48" }}>
       <div className="p-5 border-b border-white/10">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FF6B35" }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FA8D29" }}>
             <PawPrint className="w-4 h-4 text-white" />
           </div>
           <span className="text-white font-bold text-base">tabanni</span>
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
               <YAxis tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
-                labelStyle={{ color: "#1E2A3A", fontWeight: 600 }}
+                labelStyle={{ color: "#333E48", fontWeight: 600 }}
               />
               <Line
                 type="monotone"

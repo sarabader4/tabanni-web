@@ -38,7 +38,7 @@ function DonationDetailModal({ donation, onClose }: { donation: Donation; onClos
         <div className="flex items-center gap-3 mb-5">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-            style={{ background: "#FF6B35" }}
+            style={{ background: "#FA8D29" }}
           >
             {(donation.donorName ?? "D").charAt(0).toUpperCase()}
           </div>
@@ -263,7 +263,7 @@ export default function AdminDonors() {
                       <div className="flex items-center gap-3">
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-                          style={{ background: "#FF6B35" }}
+                          style={{ background: "#FA8D29" }}
                         >
                           {(d.donorName ?? "D").charAt(0).toUpperCase()}
                         </div>

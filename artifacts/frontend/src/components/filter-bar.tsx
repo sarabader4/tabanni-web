@@ -50,7 +50,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none bg-white border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-[#1E2A3A] font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer hover:border-primary/50 transition-colors"
+        className="appearance-none bg-white border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-[#333E48] font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer hover:border-primary/50 transition-colors"
       >
         <option value="">{label}</option>
         {options.map((opt) => (

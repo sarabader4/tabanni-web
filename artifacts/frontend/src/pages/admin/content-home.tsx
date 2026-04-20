@@ -69,7 +69,7 @@ export default function AdminContentHome() {
                 <button
                   onClick={() => handleSave(field.key)}
                   disabled={saving[field.key]}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6B35] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FA8D29] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors disabled:opacity-50"
                 >
                   <Save className="w-3.5 h-3.5" />
                   {saved[field.key] ? "Saved!" : saving[field.key] ? "Saving..." : "Save"}

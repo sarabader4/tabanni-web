@@ -7,16 +7,16 @@ export default function Shop() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-[#1E2A3A] text-center mb-10">
+        <h1 className="font-display text-3xl md:text-4xl font-bold text-[#333E48] text-center mb-10">
           {t("shop.title")}
         </h1>
 
         <div className="grid md:grid-cols-2 gap-6 mb-16">
-          <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#00B8A0", minHeight: "200px" }}>
+          <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#3D937F", minHeight: "200px" }}>
             <div className="p-8 relative z-10">
               <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.mlabbasShop")}</h2>
               <p className="text-white/80 text-sm mb-8">{t("shop.mlabbasSub")}</p>
-              <button className="flex items-center gap-2 bg-white text-[#1E2A3A] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
+              <button className="flex items-center gap-2 bg-white text-[#333E48] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
                 {t("shop.goToShop")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </button>
             </div>
@@ -28,11 +28,11 @@ export default function Shop() {
             />
           </div>
 
-          <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#FF6B35", minHeight: "200px" }}>
+          <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#FA8D29", minHeight: "200px" }}>
             <div className="p-8 relative z-10">
               <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.petsjoShop")}</h2>
               <p className="text-white/80 text-sm mb-8">{t("shop.petsjoSub")}</p>
-              <button className="flex items-center gap-2 bg-white text-[#1E2A3A] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
+              <button className="flex items-center gap-2 bg-white text-[#333E48] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
                 {t("shop.goToShop")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </button>
             </div>
@@ -45,7 +45,7 @@ export default function Shop() {
           </div>
         </div>
 
-        <h2 className="font-display text-2xl md:text-3xl font-bold text-[#1E2A3A] text-center mb-6">
+        <h2 className="font-display text-2xl md:text-3xl font-bold text-[#333E48] text-center mb-6">
           {t("shop.lendSupport")}
         </h2>
 
@@ -59,7 +59,7 @@ export default function Shop() {
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[#1E2A3A] text-sm leading-relaxed mb-1">
+              <p className="text-[#333E48] text-sm leading-relaxed mb-1">
                 {t("shop.donateDesc")}
               </p>
               <Link href="/donate" className="inline-flex items-center gap-1.5 text-primary font-bold text-sm hover:gap-2.5 transition-all">
@@ -75,10 +75,10 @@ export default function Shop() {
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-6">
             <div className="flex-1 min-w-0">
-              <p className="text-[#1E2A3A] text-sm leading-relaxed mb-1">
+              <p className="text-[#333E48] text-sm leading-relaxed mb-1">
                 {t("shop.fosterDesc")}
               </p>
-              <Link href="/foster" className="inline-flex items-center gap-1.5 text-[#00B8A0] font-bold text-sm hover:gap-2.5 transition-all">
+              <Link href="/foster" className="inline-flex items-center gap-1.5 text-[#3D937F] font-bold text-sm hover:gap-2.5 transition-all">
                 {t("shop.becomeAFoster")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>
             </div>

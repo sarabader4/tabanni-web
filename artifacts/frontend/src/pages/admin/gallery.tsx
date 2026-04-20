@@ -168,7 +168,7 @@ function PostModal({
             <button
               type="submit"
               disabled={isPending}
-              className="px-5 py-2 rounded-xl bg-[#FF6B35] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="px-5 py-2 rounded-xl bg-[#FA8D29] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               {isPending ? "Saving..." : (mode === "add" ? "Add Story" : "Save Changes")}
@@ -210,7 +210,7 @@ export default function AdminGallery() {
       <div className="flex justify-end mb-5">
         <button
           onClick={() => setModal({ mode: "add" })}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6B35] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FA8D29] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors"
         >
           <Plus className="w-4 h-4" /> Add New Story
         </button>

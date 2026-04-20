@@ -37,7 +37,7 @@ const CARD_ELEMENT_OPTIONS = {
   style: {
     base: {
       fontSize: "16px",
-      color: "#1E2A3A",
+      color: "#333E48",
       fontFamily: "inherit",
       "::placeholder": { color: "#94a3b8" },
     },

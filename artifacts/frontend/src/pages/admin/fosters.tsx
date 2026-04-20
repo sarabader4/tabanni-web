@@ -46,7 +46,7 @@ export default function AdminFosters() {
             <button
               key={s}
               onClick={() => setStatus(s)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors capitalize ${status === s ? "bg-[#00B8A0] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors capitalize ${status === s ? "bg-[#3D937F] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
             >
               {s || "All"}
             </button>

@@ -4,10 +4,12 @@ import { PetCard } from "@/components/pet-card";
 import { FilterBar, type FilterBarState } from "@/components/filter-bar";
 import { Search, Loader2, Plus, Home, Heart, Calendar, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useFavourites } from "@/hooks/use-favourites";
 
 export default function Foster() {
   const [search, setSearch] = useState("");
   const { t } = useTranslation();
+  const { isFavourited, isPendingFor, toggleFavourite } = useFavourites();
   const [filters, setFilters] = useState<FilterBarState>({
     type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
   });
@@ -32,7 +34,7 @@ export default function Foster() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
         <div
           className="rounded-2xl p-8 md:p-10 relative overflow-hidden"
-          style={{ backgroundColor: "#00B8A0" }}
+          style={{ backgroundColor: "#3D937F" }}
         >
           <div className="relative z-10 max-w-2xl">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">
@@ -75,12 +77,12 @@ export default function Foster() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("foster.searchPlaceholder")}
-              className="w-full bg-white border border-gray-200 rounded-xl ps-12 pe-4 py-3 text-sm text-[#1E2A3A] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+              className="w-full bg-white border border-gray-200 rounded-xl ps-12 pe-4 py-3 text-sm text-[#333E48] placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
             />
           </div>
           <button
             className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap"
-            style={{ background: "linear-gradient(135deg, #FF6B35, #e05a25)" }}
+            style={{ background: "linear-gradient(135deg, #FA8D29, #e05a25)" }}
             title={t("home.aiPetMatchTooltip")}
           >
             <Sparkles className="w-4 h-4" />
@@ -102,7 +104,7 @@ export default function Foster() {
           </div>
         ) : data?.pets?.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-            <h3 className="font-display font-bold text-xl mb-2 text-[#1E2A3A]">
+            <h3 className="font-display font-bold text-xl mb-2 text-[#333E48]">
               {t("foster.noFosterNeeds")}
             </h3>
             <p className="text-gray-400">{t("foster.noFosterNeedsSub")}</p>
@@ -110,7 +112,14 @@ export default function Foster() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {data?.pets?.map((pet) => (
-              <PetCard key={pet.id} pet={pet} variant="adopt" />
+              <PetCard
+                key={pet.id}
+                pet={pet}
+                variant="adopt"
+                isFavorited={isFavourited(pet.id)}
+                isFavoritePending={isPendingFor(pet.id)}
+                onFavorite={toggleFavourite}
+              />
             ))}
           </div>
         )}
