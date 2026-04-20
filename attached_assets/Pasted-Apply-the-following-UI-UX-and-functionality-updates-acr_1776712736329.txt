@@ -1,0 +1,62 @@
+Apply the following UI/UX and functionality updates across the entire website. Make sure everything is consistent, clean, and does NOT break any existing features.
+
+Branding & Naming:
+Anywhere the organization name appears, ensure it is written exactly as: "tabanni" (all lowercase, with small “t”).
+Color Palette (Apply globally):
+
+Use ONLY these colors across the website:
+
+Orange: #FA8D29
+Grey: #333E48
+Background: #FFFAF7
+Green: #3D937F
+
+Ensure consistency in buttons, text, backgrounds, cards, and sections.
+
+Logo Usage:
+Use the provided logo file.
+Place it properly in:
+Browser tab (favicon)
+Navbar
+Footer
+Ensure correct sizing and alignment.
+Navbar Interaction:
+When hovering or clicking on any navbar item:
+Change the text color to turquoise
+Add an underline in turquoise
+Hero Section:
+Recreate the hero section EXACTLY like the provided image:
+Same layout
+Same text
+Use the attached dog image
+Ensure it is responsive.
+Favorites (Heart Icon):
+When clicking the favorite (heart) icon on pet cards:
+The heart should turn red
+The pet should be added to the user’s favorites list in their profile
+Ensure state is saved and persists correctly.
+Language Switch Issue:
+Fix the issue where this section does NOT translate to Arabic:
+"AI-Powered Matching – Find Your Perfect Companion"
+Ensure full translation works when switching languages.
+"How It Works" Section:
+Style the cards as follows:
+Middle card: turquoise background
+Side cards: grey background
+All text: white
+Ensure spacing, alignment, and visual balance are clean and consistent.
+Footer Fixes:
+Update email to:
+Info@tabanni.org
+Fix alignment:
+The footer content is currently shifted too far right → center it properly between sections
+Social media links:
+Facebook: https://www.facebook.com/tabanni.jordan
+Instagram: https://www.instagram.com/tabanni.jordan
+LinkedIn: https://www.linkedin.com/company/tabanni/
+Ensure icons are clickable and properly styled.
+General Requirements:
+Do NOT break any existing functionality
+Maintain clean, modern UI/UX
+Ensure responsiveness across all screen sizes
+Keep code clean and maintainable

@@ -29,9 +29,9 @@
     "submit": "Submit",
     "phonePlaceholder": "XXXXXXXXX",
     "emailPlaceholder": "ForExample@gmail.com",
-    "copyright": "Copyright © 2025 Tabbani Platform. All rights reserved.",
+    "copyright": "Copyright © 2025 tabanni Platform. All rights reserved.",
     "address": "Amman, Jordan",
-    "email": "tabbani@gmail.com"
+    "email": "Info@tabanni.org"
   },
   "home": {
     "badge": "🐾 Jordan's Premier Pet Platform",
@@ -43,6 +43,11 @@
     "fosterPet": "Foster a Pet",
     "aiPetMatch": "AI Pet Match",
     "aiPetMatchTooltip": "AI-powered pet matching",
+    "aiWidgetBadge": "AI-Powered Matching",
+    "aiWidgetTitle": "Find Your Perfect Companion",
+    "aiWidgetDesc": "Tell us about your lifestyle and what you're looking for — our AI will match you with the perfect pet from our shelter.",
+    "aiWidgetPlaceholder": "e.g. I live in an apartment in Amman, work from home, and want a calm, affectionate cat...",
+    "aiWidgetButton": "Find My Match",
     "findMatch": "Find your perfect match",
     "findMatchSub": "These lovely pets are looking for their forever homes.",
     "seeAllPets": "See all pets",

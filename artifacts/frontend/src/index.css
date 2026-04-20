@@ -47,32 +47,32 @@
 }
 
 :root {
-  /* Cream Background: #FFF8F3 */
-  --background: 25 100% 97%;
-  /* Dark Navy Foreground: #1E2A3A */
-  --foreground: 214 31% 17%;
+  /* Background: #FFFAF7 */
+  --background: 23 100% 98%;
+  /* Dark Grey Foreground: #333E48 */
+  --foreground: 209 17% 24%;
   
   --card: 0 0% 100%;
-  --card-foreground: 214 31% 17%;
+  --card-foreground: 209 17% 24%;
   --card-border: 25 30% 90%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 214 31% 17%;
+  --popover-foreground: 209 17% 24%;
   --popover-border: 25 30% 90%;
 
-  /* Orange Primary: #FF6B35 */
-  --primary: 16 100% 60%;
+  /* Orange Primary: #FA8D29 */
+  --primary: 29 95% 57%;
   --primary-foreground: 0 0% 100%;
 
-  /* Teal Secondary: #00B8A0 */
-  --secondary: 172 100% 36%;
+  /* Green Secondary: #3D937F */
+  --secondary: 166 41% 41%;
   --secondary-foreground: 0 0% 100%;
 
   /* Muted Gray */
-  --muted: 214 15% 94%;
-  --muted-foreground: 214 10% 45%;
+  --muted: 209 15% 94%;
+  --muted-foreground: 209 10% 45%;
 
-  --accent: 172 100% 36%;
+  --accent: 166 41% 41%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
@@ -80,7 +80,7 @@
 
   --border: 25 30% 90%;
   --input: 25 30% 90%;
-  --ring: 16 100% 60%;
+  --ring: 29 95% 57%;
 
   --radius: 0.75rem;
 }
