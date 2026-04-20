@@ -521,7 +521,6 @@ router.get("/admin/pets", async (req, res) => {
         status: petsTable.status,
         purpose: petsTable.purpose,
         imageUrls: petsTable.imageUrls,
-        story: petsTable.story,
         ownerId: petsTable.ownerId,
         ownerName: usersTable.fullName,
         ownerEmail: usersTable.email,

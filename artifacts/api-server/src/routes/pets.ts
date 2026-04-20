@@ -105,6 +105,7 @@ router.get("/pets", async (req, res) => {
 
     const total = countResult[0]?.count ?? 0;
 
+    res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
     res.json({
       pets,
       total,
@@ -189,6 +190,7 @@ router.get("/pets/featured", async (req, res) => {
       .orderBy(desc(petsTable.createdAt))
       .limit(8);
 
+    res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
     res.json(pets);
   } catch (err) {
     req.log.error({ err }, "Error getting featured pets");
@@ -234,6 +236,7 @@ router.get("/pets/:id", async (req, res) => {
       .where(eq(petsTable.id, paramsParsed.data.id));
 
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
     res.json(pet);
   } catch (err) {
     req.log.error({ err }, "Error getting pet");

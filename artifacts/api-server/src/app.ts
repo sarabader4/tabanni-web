@@ -2,12 +2,15 @@ import express, { type Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
+import compression from "compression";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { optionalAuth, requireAdmin } from "./middlewares/requireAuth";
 import { WebhookHandlers } from "./webhookHandlers";
 
 const app: Express = express();
+
+app.use(compression());
 
 app.use(
   pinoHttp({
@@ -64,6 +67,12 @@ app.use(optionalAuth);
 
 // Admin routes require authentication AND admin role
 app.use("/api/admin", requireAdmin);
+
+// Cache-Control: no-store for all admin routes
+app.use("/api/admin", (_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 
 app.use("/api", router);
 

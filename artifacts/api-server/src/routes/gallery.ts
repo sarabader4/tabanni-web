@@ -33,6 +33,7 @@ router.get("/gallery", async (req, res): Promise<void> => {
       .limit(limit)
       .offset(offset);
 
+    res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
     res.json(posts);
   } catch (err) {
     req.log.error({ err }, "Error listing gallery posts");

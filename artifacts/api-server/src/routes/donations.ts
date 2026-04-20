@@ -21,7 +21,22 @@ router.get("/donations", async (req, res) => {
 
     const donationType = type ? DONATION_TYPES.find(t => t === type) : undefined;
 
-    const donations = await db.select().from(donationsTable)
+    const donations = await db.select({
+      id: donationsTable.id,
+      donorName: donationsTable.donorName,
+      donorPhone: donationsTable.donorPhone,
+      userId: donationsTable.userId,
+      amount: donationsTable.amount,
+      type: donationsTable.type,
+      donationTypeLabel: donationsTable.donationTypeLabel,
+      paymentMethod: donationsTable.paymentMethod,
+      frequency: donationsTable.frequency,
+      petId: donationsTable.petId,
+      status: donationsTable.status,
+      stripePaymentIntentId: donationsTable.stripePaymentIntentId,
+      paypalOrderId: donationsTable.paypalOrderId,
+      createdAt: donationsTable.createdAt,
+    }).from(donationsTable)
       .where(donationType ? eq(donationsTable.type, donationType) : undefined)
       .orderBy(desc(donationsTable.createdAt))
       .limit(limitNum)
