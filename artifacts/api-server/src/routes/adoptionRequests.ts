@@ -321,11 +321,32 @@ router.put("/adoption-requests/:id/status", requireAuth, async (req, res): Promi
       updated = result.acceptedRequest;
       autoRejectedRequesterIds = result.autoRejectedRequesterIds;
     } else {
-      const [rejectedRequest] = await db.update(adoptionRequestsTable)
-        .set({ status: newStatus })
-        .where(eq(adoptionRequestsTable.id, requestId))
-        .returning();
-      updated = rejectedRequest;
+      const shouldResetPet =
+        existingRequest.status === "approved" &&
+        existingRequest.petId !== null &&
+        (newStatus === "completed" || newStatus === "rejected");
+
+      if (shouldResetPet) {
+        const result = await db.transaction(async (tx) => {
+          const [resolvedRequest] = await tx.update(adoptionRequestsTable)
+            .set({ status: newStatus })
+            .where(eq(adoptionRequestsTable.id, requestId))
+            .returning();
+
+          await tx.update(petsTable)
+            .set({ status: "available" })
+            .where(and(eq(petsTable.id, existingRequest.petId!), eq(petsTable.status, "adopted")));
+
+          return resolvedRequest;
+        });
+        updated = result;
+      } else {
+        const [rejectedRequest] = await db.update(adoptionRequestsTable)
+          .set({ status: newStatus })
+          .where(eq(adoptionRequestsTable.id, requestId))
+          .returning();
+        updated = rejectedRequest;
+      }
     }
 
     await Promise.all([
@@ -336,10 +357,12 @@ router.put("/adoption-requests/:id/status", requireAuth, async (req, res): Promi
 
     if (existingRequest.requesterId) {
       try {
-        const notifType = newStatus === "approved" ? "adoption_accepted" : "adoption_rejected";
-        const notifTitle = newStatus === "approved" ? "Adoption Request Approved" : "Adoption Request Rejected";
+        const notifType = newStatus === "approved" ? "adoption_accepted" : newStatus === "completed" ? "adoption_completed" : "adoption_rejected";
+        const notifTitle = newStatus === "approved" ? "Adoption Request Approved" : newStatus === "completed" ? "Adoption Completed" : "Adoption Request Rejected";
         const notifMessage = newStatus === "approved"
           ? `Congratulations! Your adoption request for "${existingRequest.petName}" has been approved. Please contact the owner via WhatsApp to complete the adoption process.`
+          : newStatus === "completed"
+          ? `Your adoption of "${existingRequest.petName}" has been marked as completed. Thank you for giving this pet a loving home!`
           : `Unfortunately, your adoption request for "${existingRequest.petName}" has been rejected.`;
 
         let metadata: Record<string, unknown> | null = null;

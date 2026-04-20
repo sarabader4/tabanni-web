@@ -366,7 +366,7 @@ export const UpdateAdoptionRequestStatusParams = zod.object({
 });
 
 export const UpdateAdoptionRequestStatusBody = zod.object({
-  status: zod.enum(["approved", "rejected"]),
+  status: zod.enum(["approved", "rejected", "completed"]),
 });
 
 export const UpdateAdoptionRequestStatusResponse = zod.object({
@@ -448,7 +448,7 @@ export const UpdateFosterRequestStatusParams = zod.object({
 });
 
 export const UpdateFosterRequestStatusBody = zod.object({
-  status: zod.enum(["approved", "rejected"]),
+  status: zod.enum(["approved", "rejected", "completed"]),
 });
 
 export const UpdateFosterRequestStatusResponse = zod.object({

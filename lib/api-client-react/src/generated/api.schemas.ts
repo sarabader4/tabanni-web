@@ -323,6 +323,7 @@ export type UpdateRequestStatusInputStatus =
 export const UpdateRequestStatusInputStatus = {
   approved: "approved",
   rejected: "rejected",
+  completed: "completed",
 } as const;
 
 export interface UpdateRequestStatusInput {

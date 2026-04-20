@@ -321,11 +321,32 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
       updated = result.acceptedRequest;
       autoRejectedRequesterIds = result.autoRejectedRequesterIds;
     } else {
-      const [rejectedRequest] = await db.update(fosterRequestsTable)
-        .set({ status: newStatus })
-        .where(eq(fosterRequestsTable.id, requestId))
-        .returning();
-      updated = rejectedRequest;
+      const shouldResetPet =
+        existingRequest.status === "approved" &&
+        existingRequest.petId !== null &&
+        (newStatus === "completed" || newStatus === "rejected");
+
+      if (shouldResetPet) {
+        const result = await db.transaction(async (tx) => {
+          const [resolvedRequest] = await tx.update(fosterRequestsTable)
+            .set({ status: newStatus })
+            .where(eq(fosterRequestsTable.id, requestId))
+            .returning();
+
+          await tx.update(petsTable)
+            .set({ status: "available" })
+            .where(and(eq(petsTable.id, existingRequest.petId!), eq(petsTable.status, "fostered")));
+
+          return resolvedRequest;
+        });
+        updated = result;
+      } else {
+        const [rejectedRequest] = await db.update(fosterRequestsTable)
+          .set({ status: newStatus })
+          .where(eq(fosterRequestsTable.id, requestId))
+          .returning();
+        updated = rejectedRequest;
+      }
     }
 
     await Promise.all([
@@ -336,10 +357,12 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
 
     if (existingRequest.requesterId) {
       try {
-        const notifType = newStatus === "approved" ? "foster_accepted" : "foster_rejected";
-        const notifTitle = newStatus === "approved" ? "Foster Request Approved" : "Foster Request Rejected";
+        const notifType = newStatus === "approved" ? "foster_accepted" : newStatus === "completed" ? "foster_completed" : "foster_rejected";
+        const notifTitle = newStatus === "approved" ? "Foster Request Approved" : newStatus === "completed" ? "Foster Completed" : "Foster Request Rejected";
         const notifMessage = newStatus === "approved"
           ? `Congratulations! Your foster request for "${existingRequest.petName}" has been approved. Please contact the owner via WhatsApp to complete the fostering process.`
+          : newStatus === "completed"
+          ? `Your foster of "${existingRequest.petName}" has been marked as completed. Thank you for providing this pet with a loving temporary home!`
           : `Unfortunately, your foster request for "${existingRequest.petName}" has been rejected.`;
 
         let metadata: Record<string, unknown> | null = null;

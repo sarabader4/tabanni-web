@@ -1809,7 +1809,7 @@ components:
       properties:
         status:
           type: string
-          enum: [approved, rejected]
+          enum: [approved, rejected, completed]
       required:
         - status
 
