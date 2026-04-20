@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400..900&family=Cairo:wght@400..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400..900&family=Cairo:wght@400..800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -98,7 +98,7 @@
 
   :root[dir="rtl"] body,
   [dir="rtl"] body {
-    font-family: 'Cairo', 'DM Sans', sans-serif;
+    font-family: 'IBM Plex Sans Arabic', 'Cairo', 'DM Sans', sans-serif;
   }
 
   [dir="rtl"] .font-display,
@@ -106,7 +106,7 @@
   [dir="rtl"] h2,
   [dir="rtl"] h3,
   [dir="rtl"] h4 {
-    font-family: 'Cairo', 'Outfit', sans-serif;
+    font-family: 'IBM Plex Sans Arabic', 'Cairo', 'Outfit', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {

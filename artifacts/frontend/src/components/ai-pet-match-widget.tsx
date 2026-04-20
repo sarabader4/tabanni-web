@@ -164,14 +164,14 @@ export default function AIPetMatchWidget({ mode = "search", currentPet }: AIPetM
           </div>
 
           <form onSubmit={handleFind} className="max-w-2xl mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1 relative">
+            <div className="flex flex-col sm:flex-row gap-5 sm:items-stretch">
+              <div className="flex-1 flex flex-col">
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="e.g. I live in an apartment in Amman, work from home, and want a calm, affectionate cat..."
                   rows={3}
-                  className="w-full rounded-2xl px-5 py-4 text-sm text-[#333E48] placeholder-gray-400 outline-none resize-none focus:ring-2 focus:ring-orange-400/50"
+                  className="flex-1 w-full rounded-2xl px-5 py-4 text-sm text-[#333E48] placeholder-gray-400 outline-none resize-none focus:ring-2 focus:ring-orange-400/50"
                   style={{ background: "#FFFAF7" }}
                   disabled={loading}
                 />
@@ -180,7 +180,7 @@ export default function AIPetMatchWidget({ mode = "search", currentPet }: AIPetM
                 type="submit"
                 disabled={loading || !description.trim()}
                 data-testid="ai-match-btn"
-                className="sm:w-auto w-full px-6 py-4 rounded-2xl text-white font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed sm:self-end"
+                className="sm:w-44 w-full px-6 rounded-2xl text-white font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: "#FA8D29" }}
               >
                 {loading ? (
