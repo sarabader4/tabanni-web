@@ -81,7 +81,8 @@
     "loginToFav": "Please log in to save favourites.",
     "addedToFav": "Added to favourites!",
     "removedFromFav": "Removed from favourites.",
-    "title": "Browse Pets"
+    "title": "Browse Pets",
+    "petsCount": "{{count}} pets"
   },
   "foster": {
     "heroTitle": "Become a Foster Hero",
@@ -118,6 +119,7 @@
     "anyCity": "Any City",
     "resetFilters": "Reset Filters",
     "breed": "Breed",
+    "selectTypeFirst": "— Select type first —",
     "month": "Month",
     "ageUnder1": "< 1 Year",
     "age1to3": "1–3 Years",

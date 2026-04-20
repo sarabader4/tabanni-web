@@ -196,7 +196,7 @@ export function FilterSidebar({
         <SidebarSelect
           label={t("filters.breed")}
           value={filters.breed}
-          placeholder={filters.type ? t("filters.breed") : "— Select type first —"}
+          placeholder={filters.type ? t("filters.breed") : t("filters.selectTypeFirst")}
           options={breedOptions}
           onChange={(v) => update("breed", v)}
         />

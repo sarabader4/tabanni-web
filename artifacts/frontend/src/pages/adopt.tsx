@@ -180,7 +180,7 @@ export default function Adopt() {
               )}
             </button>
             {data?.total !== undefined && (
-              <span className="text-sm text-gray-400">{data.total} pets</span>
+              <span className="text-sm text-gray-400">{t("adopt.petsCount", { count: data.total })}</span>
             )}
           </div>
 
