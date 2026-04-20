@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   getCountries,
   getCountryCallingCode,
@@ -9,7 +10,7 @@ import {
 
 export type { CountryCode };
 
-const REGION_NAMES = new Intl.DisplayNames(["en"], { type: "region" });
+const EN_REGION_NAMES = new Intl.DisplayNames(["en"], { type: "region" });
 
 export interface CountryOption {
   code: CountryCode;
@@ -28,7 +29,7 @@ export function getFlagEmoji(countryCode: string): string {
 
 export const ALL_COUNTRIES: CountryOption[] = getCountries()
   .map((code) => {
-    const name = REGION_NAMES.of(code) ?? code;
+    const name = EN_REGION_NAMES.of(code) ?? code;
     const dialCode = `+${getCountryCallingCode(code)}`;
     return { code, name, dialCode, flag: getFlagEmoji(code) };
   })
@@ -72,6 +73,9 @@ export function CountryPhoneDropdown({
   const LABEL_ID = `phone-label-${instanceId}`;
   const ERROR_ID = `phone-error-${instanceId}`;
 
+  const { i18n, t } = useTranslation();
+  const lang = i18n.language;
+
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -80,16 +84,36 @@ export function CountryPhoneDropdown({
   const listRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
+  const localizedCountries = useMemo(() => {
+    try {
+      const regionNames = new Intl.DisplayNames([lang, "en"], { type: "region" });
+      return getCountries()
+        .map((code) => {
+          const localizedName = regionNames.of(code) ?? EN_REGION_NAMES.of(code) ?? code;
+          const dialCode = `+${getCountryCallingCode(code)}`;
+          return { code, name: localizedName, dialCode, flag: getFlagEmoji(code) };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name, lang));
+    } catch {
+      return ALL_COUNTRIES;
+    }
+  }, [lang]);
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    if (!q) return ALL_COUNTRIES;
-    return ALL_COUNTRIES.filter(
+    if (!q) return localizedCountries;
+    return localizedCountries.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.dialCode.includes(q) ||
         c.code.toLowerCase().includes(q)
     );
-  }, [search]);
+  }, [search, localizedCountries]);
+
+  const displayCountry = useMemo(() => {
+    const found = localizedCountries.find((c) => c.code === selectedCountry.code);
+    return found ?? selectedCountry;
+  }, [localizedCountries, selectedCountry]);
 
   useEffect(() => {
     if (open) {
@@ -152,6 +176,9 @@ export function CountryPhoneDropdown({
 
   const hasError = touched && !!error;
 
+  const searchPlaceholder = t("common.search") || "Search";
+  const phonePlaceholder = t("register.placeholderPhone") || "+962 79 XXXXXXX";
+
   return (
     <div className="space-y-1">
       <label id={LABEL_ID} className="text-xs font-semibold text-gray-500">
@@ -170,7 +197,7 @@ export function CountryPhoneDropdown({
             aria-haspopup="listbox"
             aria-expanded={open}
             aria-controls={open ? LISTBOX_ID : undefined}
-            aria-label={`Country code: ${selectedCountry.name} ${selectedCountry.dialCode}`}
+            aria-label={`Country code: ${displayCountry.name} ${displayCountry.dialCode}`}
             onClick={() => !disabled && setOpen((v) => !v)}
             onKeyDown={(e) => {
               if (
@@ -185,17 +212,17 @@ export function CountryPhoneDropdown({
                 setOpen(false);
               }
             }}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-[#333E48] border-r border-gray-200 rounded-l-xl transition-colors h-full ${
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-[#333E48] border-e border-gray-200 rounded-s-xl transition-colors h-full ${
               disabled
                 ? "cursor-default opacity-60 bg-gray-50"
                 : "hover:bg-gray-50 cursor-pointer"
             }`}
           >
             <span className="text-base leading-none" aria-hidden="true">
-              {selectedCountry.flag}
+              {displayCountry.flag}
             </span>
             <span className="text-xs text-gray-500">
-              {selectedCountry.dialCode}
+              {displayCountry.dialCode}
             </span>
             {!disabled && (
               <ChevronDown
@@ -208,7 +235,7 @@ export function CountryPhoneDropdown({
           </button>
 
           {open && (
-            <div className="absolute top-full left-0 mt-1 w-72 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+            <div className="absolute top-full start-0 mt-1 w-72 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
               <div className="p-2 border-b border-gray-100">
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
                   <Search
@@ -225,11 +252,11 @@ export function CountryPhoneDropdown({
                         ? `country-option-${instanceId}-${filtered[focusedIndex].code}`
                         : undefined
                     }
-                    aria-label="Search country"
+                    aria-label={searchPlaceholder}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
-                    placeholder="Search country..."
+                    placeholder={`${searchPlaceholder}...`}
                     className="flex-1 bg-transparent text-sm outline-none text-[#333E48] placeholder-gray-400"
                   />
                   {search && (
@@ -237,7 +264,7 @@ export function CountryPhoneDropdown({
                       type="button"
                       onClick={() => setSearch("")}
                       className="text-gray-400 hover:text-gray-600"
-                      aria-label="Clear search"
+                      aria-label={t("common.clearSearch") || "Clear search"}
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -253,7 +280,7 @@ export function CountryPhoneDropdown({
               >
                 {filtered.length === 0 ? (
                   <p className="text-sm text-gray-400 text-center py-4">
-                    No results
+                    {t("common.noResults")}
                   </p>
                 ) : (
                   filtered.map((c, idx) => (
@@ -304,10 +331,10 @@ export function CountryPhoneDropdown({
             const formatted = formatter.input(raw.replace(/\D/g, ""));
             onPhoneChange(formatted);
           }}
-          className={`flex-1 px-3 py-2.5 text-sm text-[#333E48] outline-none rounded-r-xl focus:ring-2 focus:ring-inset ${
+          className={`flex-1 px-3 py-2.5 text-sm text-[#333E48] outline-none rounded-e-xl focus:ring-2 focus:ring-inset ${
             hasError ? "focus:ring-red-300" : "focus:ring-primary/20"
           } ${disabled ? "bg-gray-50 text-gray-500" : "bg-white"}`}
-          placeholder={disabled ? "" : "Enter phone number"}
+          placeholder={disabled ? "" : phonePlaceholder}
         />
       </div>
       {hasError && (

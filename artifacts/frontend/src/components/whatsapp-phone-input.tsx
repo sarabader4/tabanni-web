@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { useTranslation } from "react-i18next";
 import {
   CountryPhoneDropdown,
   DEFAULT_COUNTRY,
@@ -51,6 +52,7 @@ export default function WhatsAppPhoneInput({
   error,
   touched,
 }: WhatsAppPhoneInputProps) {
+  const { t } = useTranslation();
   const parsed = parseInitialPhone(initialPhone);
 
   const [selectedCountry, setSelectedCountry] = useState<CountryOption>(
@@ -76,13 +78,13 @@ export default function WhatsAppPhoneInput({
   const empty = touched && phoneDigits.length === 0;
 
   const internalError =
-    (empty
-      ? error || "Phone number is required"
+    empty
+      ? error || t("lostFound.whatsappRequired")
       : tooShort
-      ? "Invalid phone number (too short)"
+      ? t("lostFound.phoneTooShort")
       : tooLong
-      ? "Phone number is too long"
-      : undefined);
+      ? t("lostFound.phoneTooLong")
+      : undefined;
 
   return (
     <div>
@@ -95,12 +97,12 @@ export default function WhatsAppPhoneInput({
         onPhoneChange={setPhoneValue}
         error={internalError}
         touched={touched}
-        label="WhatsApp Number"
+        label={t("lostFound.whatsappLabel")}
         instanceId="whatsapp"
       />
       <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
         <span className="text-green-500">●</span>
-        Please enter a phone number registered on WhatsApp.
+        {t("lostFound.whatsappHint")}
       </p>
     </div>
   );

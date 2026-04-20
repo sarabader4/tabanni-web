@@ -7,6 +7,7 @@ import { Link, useLocation } from "wouter";
 import {
   useGetMyProfile, useUpdateMyProfile, useGetMyPets, useGetMyApplications, useGetMyFavourites, useListLostFoundReports, useResolveLostFoundReport, useCreatePet, useDeletePet, useUpdatePet, useAiGenerateDescription, type Pet,
 } from "@workspace/api-client-react";
+import { LostFoundReportDialog } from "@/components/lost-found-report-dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
@@ -2438,8 +2439,8 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
                     onChange={e => setForm(f => ({ ...f, type: e.target.value as Pet["type"] }))}
                     className={inputCls("type")}
                   >
-                    {["dog", "cat", "rabbit", "bird", "other"].map(tp => (
-                      <option key={tp} value={tp} className="capitalize">{tp.charAt(0).toUpperCase() + tp.slice(1)}</option>
+                    {(["dog", "cat", "rabbit", "bird", "other"] as const).map(tp => (
+                      <option key={tp} value={tp}>{t(`filters.${tp}`)}</option>
                     ))}
                   </select>
                 </div>
@@ -2451,7 +2452,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
                     onChange={e => setForm(f => ({ ...f, breed: e.target.value }))}
                     onBlur={() => setTouched(prev => ({ ...prev, breed: true }))}
                     className={inputCls("breed")}
-                    placeholder="e.g. Labrador"
+                    placeholder={t("lostFound.breed")}
                   />
                   {touched.breed && errors.breed && <p className="text-xs text-red-500 mt-0.5">{errors.breed}</p>}
                 </div>
@@ -3297,7 +3298,7 @@ const NO_TOUCHED: TouchedState = {
 };
 
 export default function Profile() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const { logout, user } = useAuth();
   const [, setLocation] = useLocation();
@@ -3329,14 +3330,14 @@ export default function Profile() {
       });
       if (res.ok) {
         await queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
-        toast({ title: enabled ? "Email notifications enabled" : "Email notifications disabled", description: enabled ? "You will receive email updates about your requests." : "You will no longer receive email updates." });
+        toast({ title: enabled ? t("profile.emailNotifEnabled") : t("profile.emailNotifDisabled"), description: enabled ? t("profile.emailNotifEnabledDesc") : t("profile.emailNotifDisabledDesc") });
       } else {
         setEmailToggleOptimistic(!enabled);
-        toast({ title: "Failed to update preference", description: "Please try again.", variant: "destructive" });
+        toast({ title: t("profile.failedUpdatePref"), description: t("common.retry"), variant: "destructive" });
       }
     } catch {
       setEmailToggleOptimistic(!enabled);
-      toast({ title: "Network error", description: "Could not save your preference. Please try again.", variant: "destructive" });
+      toast({ title: t("profile.networkError"), description: t("profile.couldNotSavePref"), variant: "destructive" });
     } finally {
       setEmailTogglePending(false);
     }
@@ -3361,6 +3362,7 @@ export default function Profile() {
   const [selectedPetRequest, setSelectedPetRequest] = useState<{ request: MyRequestItem; type: "adoption" | "foster" } | null>(null);
 
   const [showAddPetModal, setShowAddPetModal] = useState(false);
+  const [showLFReportModal, setShowLFReportModal] = useState(false);
   const [petToEdit, setPetToEdit] = useState<Pet | null>(null);
   const [petToDelete, setPetToDelete] = useState<Pet | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -3894,20 +3896,20 @@ export default function Profile() {
                                   {badge.label}
                                 </span>
                                 {isRejected && (
-                                  <p className="text-xs text-red-600 mt-2">Your submission did not meet our guidelines.</p>
+                                  <p className="text-xs text-red-600 mt-2">{t("profile.submissionRejectedNote")}</p>
                                 )}
                                 <div className="flex gap-2 mt-3">
                                   <button
                                     onClick={() => setPetToEdit(pet)}
                                     className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition-colors"
                                   >
-                                    <Edit2 className="w-3 h-3" /> Edit Pet Info
+                                    <Edit2 className="w-3 h-3" /> {t("profile.editPet")}
                                   </button>
                                   <button
                                     onClick={() => setPetToDelete(pet)}
                                     className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition-colors"
                                   >
-                                    <Trash2 className="w-3 h-3" /> Delete Pet
+                                    <Trash2 className="w-3 h-3" /> {t("profile.deletePetTitle")}
                                   </button>
                                 </div>
                               </div>
@@ -4182,8 +4184,8 @@ export default function Profile() {
 
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-semibold text-sm text-[#333E48]">Email Notifications</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Receive email updates about your adoption and foster requests</p>
+                    <p className="font-semibold text-sm text-[#333E48]">{t("profile.emailNotifications")}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{t("profile.emailNotificationsDesc")}</p>
                   </div>
                   <button
                     disabled={emailTogglePending}
@@ -4266,7 +4268,7 @@ export default function Profile() {
                                 className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] text-white text-xs font-bold hover:bg-[#1ebe5a] transition-colors"
                               >
                                 <ExternalLink className="w-3 h-3" />
-                                Contact via WhatsApp
+                                {t("profile.contactViaWhatsapp")}
                               </button>
                             )}
                             <p className="text-xs text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
@@ -4290,12 +4292,20 @@ export default function Profile() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="font-display font-bold text-lg text-[#333E48]">{t("profile.myLostFound")}</h2>
-                      <p className="text-sm text-gray-500 mt-0.5">Your submitted reports and their current status.</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{t("profile.reportsStatus")}</p>
                     </div>
-                    <Link href="/lost-found" className="text-sm font-bold text-primary hover:underline">
-                      + New Report
-                    </Link>
+                    <button
+                      onClick={() => setShowLFReportModal(true)}
+                      className="text-sm font-bold text-primary hover:underline"
+                    >
+                      + {t("profile.newReport")}
+                    </button>
                   </div>
+                  <LostFoundReportDialog
+                    open={showLFReportModal}
+                    onOpenChange={setShowLFReportModal}
+                    onSuccess={refetchLF}
+                  />
 
 
                   {(() => {
@@ -4304,21 +4314,25 @@ export default function Profile() {
                       <div className="text-center py-16 text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
                         <MapPin className="w-12 h-12 mx-auto mb-3 opacity-30" />
                         <p className="text-lg font-semibold text-[#333E48]">{t("profile.noReports")}</p>
-                        <p className="text-sm mt-1">Submit a report if you've lost or found a pet.</p>
-                        <Link href="/lost-found" className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
-                          {t("lostFound.title")}
-                        </Link>
+                        <p className="text-sm mt-1">{t("profile.noReportsDesc")}</p>
+                        <button
+                          onClick={() => setShowLFReportModal(true)}
+                          className="mt-4 inline-block px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm"
+                        >
+                          {t("profile.newReport")}
+                        </button>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {visibleReports.map((report) => {
                           const statusMap: Record<string, { label: string; className: string }> = {
-                            pending: { label: "Pending", className: "bg-yellow-100 text-yellow-700" },
-                            approved: { label: "Approved", className: "bg-green-100 text-green-700" },
-                            rejected: { label: "Rejected", className: "bg-red-100 text-red-500" },
-                            resolved: { label: "Resolved", className: "bg-gray-100 text-gray-500" },
+                            pending: { label: t("common.pending"), className: "bg-yellow-100 text-yellow-700" },
+                            approved: { label: t("common.approved"), className: "bg-green-100 text-green-700" },
+                            rejected: { label: t("common.rejected"), className: "bg-red-100 text-red-500" },
+                            resolved: { label: t("profile.statusResolved"), className: "bg-gray-100 text-gray-500" },
                           };
                           const badge = statusMap[report.status] ?? { label: report.status, className: "bg-gray-100 text-gray-500" };
+                          const localizedType = { Dog: t("filters.dog"), Cat: t("filters.cat"), Rabbit: t("filters.rabbit"), Bird: t("filters.bird"), Other: t("filters.other") }[report.type] ?? report.type;
                           return (
                             <div key={report.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
                               <div className="relative">
@@ -4327,35 +4341,35 @@ export default function Profile() {
                                   alt={report.name}
                                   className="w-full h-32 object-cover"
                                 />
-                                <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-xs font-bold ${report.reportType === "lost" ? "bg-red-500" : "bg-[#3D937F]"}`}>
+                                <span className={`absolute top-2 start-2 px-2 py-0.5 rounded-full text-white text-xs font-bold ${report.reportType === "lost" ? "bg-red-500" : "bg-[#3D937F]"}`}>
                                   {report.reportType === "lost" ? t("lostFound.lost") : t("lostFound.found")}
                                 </span>
-                                <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold ${badge.className}`}>
+                                <span className={`absolute top-2 end-2 px-2 py-0.5 rounded-full text-xs font-bold ${badge.className}`}>
                                   {badge.label}
                                 </span>
                               </div>
                               <div className="p-3">
                                 <p className="font-bold text-sm text-[#333E48]">{report.name}</p>
-                                <p className="text-xs text-gray-400 capitalize">{report.type} · {[report.area, report.city].filter(Boolean).join(", ")}</p>
+                                <p className="text-xs text-gray-400">{localizedType} · {[report.area, report.city].filter(Boolean).join(", ")}</p>
                                 <p className="text-xs text-gray-300 mt-1">
-                                  {report.createdAt ? new Date(report.createdAt).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" }) : ""}
+                                  {report.createdAt ? new Date(report.createdAt).toLocaleDateString(i18n.language, { day: "numeric", month: "short", year: "numeric" }) : ""}
                                 </p>
                                 {report.status === "approved" && (
                                   <div className="mt-2">
                                     <button
                                       onClick={async () => {
-                                        if (!confirm(`Mark as resolved?`)) return;
+                                        if (!confirm(t("profile.resolveConfirm"))) return;
                                         try {
                                           await resolveLFMutation.mutateAsync({ id: report.id });
-                                          toast({ title: "Report resolved" });
+                                          toast({ title: t("profile.reportResolved") });
                                           refetchLF();
                                         } catch {
-                                          toast({ title: "Failed to resolve", variant: "destructive" });
+                                          toast({ title: t("profile.failedResolve"), variant: "destructive" });
                                         }
                                       }}
                                       className="w-full py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
                                     >
-                                      {report.reportType === "lost" ? "Found My Pet" : "Found Owner"}
+                                      {report.reportType === "lost" ? t("profile.foundMyPet") : t("profile.foundOwner")}
                                     </button>
                                   </div>
                                 )}
