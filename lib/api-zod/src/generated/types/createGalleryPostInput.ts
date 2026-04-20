@@ -8,8 +8,6 @@
 
 export interface CreateGalleryPostInput {
   title: string;
-  headline?: string;
-  ownerName?: string;
   content: string;
   imageUrl?: string;
   authorId?: number;

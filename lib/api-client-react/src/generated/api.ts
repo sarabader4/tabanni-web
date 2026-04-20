@@ -66,6 +66,7 @@ import type {
   RegisterBody,
   SuccessResponse,
   ToggleFavouriteInput,
+  UpdateGalleryPostInput,
   UpdatePetInput,
   UpdateRequestStatusInput,
   UpdateUserInput,
@@ -1994,6 +1995,93 @@ export function useGetGalleryPost<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Update a gallery post (admin only)
+ */
+export const getUpdateGalleryPostUrl = (id: number) => {
+  return `/api/gallery/${id}`;
+};
+
+export const updateGalleryPost = async (
+  id: number,
+  updateGalleryPostInput: UpdateGalleryPostInput,
+  options?: RequestInit,
+): Promise<GalleryPost> => {
+  return customFetch<GalleryPost>(getUpdateGalleryPostUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateGalleryPostInput),
+  });
+};
+
+export const getUpdateGalleryPostMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateGalleryPost>>,
+    TError,
+    { id: number; data: BodyType<UpdateGalleryPostInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateGalleryPost>>,
+  TError,
+  { id: number; data: BodyType<UpdateGalleryPostInput> },
+  TContext
+> => {
+  const mutationKey = ["updateGalleryPost"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateGalleryPost>>,
+    { id: number; data: BodyType<UpdateGalleryPostInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateGalleryPost(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateGalleryPostMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateGalleryPost>>
+>;
+export type UpdateGalleryPostMutationBody = BodyType<UpdateGalleryPostInput>;
+export type UpdateGalleryPostMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a gallery post (admin only)
+ */
+export const useUpdateGalleryPost = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateGalleryPost>>,
+    TError,
+    { id: number; data: BodyType<UpdateGalleryPostInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateGalleryPost>>,
+  TError,
+  { id: number; data: BodyType<UpdateGalleryPostInput> },
+  TContext
+> => {
+  return useMutation(getUpdateGalleryPostMutationOptions(options));
+};
 
 /**
  * @summary List lost and found reports

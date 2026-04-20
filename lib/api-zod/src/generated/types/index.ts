@@ -83,6 +83,7 @@ export * from "./petType";
 export * from "./registerBody";
 export * from "./successResponse";
 export * from "./toggleFavouriteInput";
+export * from "./updateGalleryPostInput";
 export * from "./updatePetInput";
 export * from "./updateRequestStatusInput";
 export * from "./updateRequestStatusInputStatus";

@@ -15,6 +15,12 @@ export interface FosterRequest {
   status: FosterRequestStatus;
   petName?: string | null;
   petImageUrl?: string | null;
+  petType?: string | null;
+  petBreed?: string | null;
+  petGender?: string | null;
+  petAgeMonths?: number | null;
+  petCity?: string | null;
+  petStory?: string | null;
   requesterName?: string | null;
   requesterCity?: string | null;
   createdAt: string;

@@ -147,6 +147,8 @@ export interface Pet {
   ownerId?: number | null;
   ownerName?: string | null;
   ownerPhone?: string | null;
+  whatsappUrl?: string | null;
+  paymentProof?: string | null;
   approved: boolean;
   featured: boolean;
   addedByAdmin: boolean;
@@ -207,6 +209,8 @@ export interface CreatePetInput {
   purpose: CreatePetInputPurpose;
   imageUrls?: string[];
   story?: string;
+  whatsappUrl?: string;
+  paymentProof?: string;
   ownerId?: number;
 }
 
@@ -248,6 +252,8 @@ export const AdoptionRequestStatus = {
   pending: "pending",
   approved: "approved",
   rejected: "rejected",
+  in_progress: "in_progress",
+  completed: "completed",
 } as const;
 
 export interface AdoptionRequest {
@@ -258,6 +264,12 @@ export interface AdoptionRequest {
   status: AdoptionRequestStatus;
   petName?: string | null;
   petImageUrl?: string | null;
+  petType?: string | null;
+  petBreed?: string | null;
+  petGender?: string | null;
+  petAgeMonths?: number | null;
+  petCity?: string | null;
+  petStory?: string | null;
   requesterName?: string | null;
   requesterCity?: string | null;
   createdAt: string;
@@ -276,6 +288,8 @@ export const FosterRequestStatus = {
   pending: "pending",
   approved: "approved",
   rejected: "rejected",
+  in_progress: "in_progress",
+  completed: "completed",
 } as const;
 
 export interface FosterRequest {
@@ -286,6 +300,12 @@ export interface FosterRequest {
   status: FosterRequestStatus;
   petName?: string | null;
   petImageUrl?: string | null;
+  petType?: string | null;
+  petBreed?: string | null;
+  petGender?: string | null;
+  petAgeMonths?: number | null;
+  petCity?: string | null;
+  petStory?: string | null;
   requesterName?: string | null;
   requesterCity?: string | null;
   createdAt: string;
@@ -382,6 +402,8 @@ export interface CreateDonationInput {
 export interface GalleryPost {
   id: number;
   title: string;
+  headline?: string | null;
+  ownerName?: string | null;
   content: string;
   imageUrl?: string | null;
   authorId?: number | null;
@@ -394,6 +416,14 @@ export interface CreateGalleryPostInput {
   content: string;
   imageUrl?: string;
   authorId?: number;
+}
+
+export interface UpdateGalleryPostInput {
+  title?: string;
+  headline?: string;
+  ownerName?: string;
+  content?: string;
+  imageUrl?: string | null;
 }
 
 export type LostFoundReportReportType =
@@ -626,6 +656,10 @@ export type ListLostFoundReportsParams = {
   gender?: string;
   size?: string;
   breed?: string;
+  search?: string;
+  month?: number;
+  minAge?: number;
+  maxAge?: number;
   page?: number;
   limit?: number;
   reporterId?: number;

@@ -540,6 +540,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GalleryPost"
+    put:
+      operationId: updateGalleryPost
+      tags: [gallery]
+      summary: Update a gallery post (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGalleryPostInput"
+      responses:
+        "200":
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryPost"
 
   /lost-found:
     get:
@@ -571,6 +594,22 @@ paths:
           in: query
           schema:
             type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: month
+          in: query
+          schema:
+            type: number
+        - name: minAge
+          in: query
+          schema:
+            type: number
+        - name: maxAge
+          in: query
+          schema:
+            type: number
         - name: page
           in: query
           schema:
@@ -1481,6 +1520,12 @@ components:
         ownerPhone:
           type: string
           nullable: true
+        whatsappUrl:
+          type: string
+          nullable: true
+        paymentProof:
+          type: string
+          nullable: true
         approved:
           type: boolean
         featured:
@@ -1545,6 +1590,10 @@ components:
           items:
             type: string
         story:
+          type: string
+        whatsappUrl:
+          type: string
+        paymentProof:
           type: string
         ownerId:
           type: number
@@ -1637,11 +1686,29 @@ components:
           nullable: true
         status:
           type: string
-          enum: [pending, approved, rejected]
+          enum: [pending, approved, rejected, in_progress, completed]
         petName:
           type: string
           nullable: true
         petImageUrl:
+          type: string
+          nullable: true
+        petType:
+          type: string
+          nullable: true
+        petBreed:
+          type: string
+          nullable: true
+        petGender:
+          type: string
+          nullable: true
+        petAgeMonths:
+          type: number
+          nullable: true
+        petCity:
+          type: string
+          nullable: true
+        petStory:
           type: string
           nullable: true
         requesterName:
@@ -1685,11 +1752,29 @@ components:
           nullable: true
         status:
           type: string
-          enum: [pending, approved, rejected]
+          enum: [pending, approved, rejected, in_progress, completed]
         petName:
           type: string
           nullable: true
         petImageUrl:
+          type: string
+          nullable: true
+        petType:
+          type: string
+          nullable: true
+        petBreed:
+          type: string
+          nullable: true
+        petGender:
+          type: string
+          nullable: true
+        petAgeMonths:
+          type: number
+          nullable: true
+        petCity:
+          type: string
+          nullable: true
+        petStory:
           type: string
           nullable: true
         requesterName:
@@ -1812,6 +1897,12 @@ components:
           type: number
         title:
           type: string
+        headline:
+          type: string
+          nullable: true
+        ownerName:
+          type: string
+          nullable: true
         content:
           type: string
         imageUrl:
@@ -1845,6 +1936,21 @@ components:
       required:
         - title
         - content
+
+    UpdateGalleryPostInput:
+      type: object
+      properties:
+        title:
+          type: string
+        headline:
+          type: string
+        ownerName:
+          type: string
+        content:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
 
     LostFoundReport:
       type: object

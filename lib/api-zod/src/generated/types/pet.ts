@@ -32,6 +32,8 @@ export interface Pet {
   ownerId?: number | null;
   ownerName?: string | null;
   ownerPhone?: string | null;
+  whatsappUrl?: string | null;
+  paymentProof?: string | null;
   approved: boolean;
   featured: boolean;
   addedByAdmin: boolean;

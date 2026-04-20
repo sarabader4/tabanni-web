@@ -748,6 +748,7 @@ function ReadinessProfileSection() {
 }
 
 function PetDetailModal({ request, requestType, onClose }: { request: MyRequestItem; requestType: "adoption" | "foster"; onClose: () => void }) {
+  const { t } = useTranslation();
   const ageLabel = request.petAgeMonths != null
     ? request.petAgeMonths < 12
       ? `${request.petAgeMonths} month${request.petAgeMonths !== 1 ? "s" : ""}`
@@ -2349,7 +2350,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
       gender: form.gender as "male" | "female",
       ageMonths,
       weightKg: form.weightKg || undefined,
-      size: "medium",
+      size: "medium" as const,
       city: "Jordan",
       purpose: form.purpose,
       sterilized: form.sterilized,
@@ -2434,7 +2435,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetType")} *</label>
                   <select
                     value={form.type}
-                    onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                    onChange={e => setForm(f => ({ ...f, type: e.target.value as Pet["type"] }))}
                     className={inputCls("type")}
                   >
                     {["dog", "cat", "rabbit", "bird", "other"].map(tp => (
@@ -2482,7 +2483,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t("profile.addPetGender")} *</label>
                   <select
                     value={form.gender}
-                    onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}
+                    onChange={e => setForm(f => ({ ...f, gender: e.target.value as Pet["gender"] }))}
                     className={inputCls("gender")}
                   >
                     <option value="male">{t("profile.male")}</option>

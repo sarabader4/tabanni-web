@@ -26,5 +26,7 @@ export interface CreatePetInput {
   purpose: CreatePetInputPurpose;
   imageUrls?: string[];
   story?: string;
+  whatsappUrl?: string;
+  paymentProof?: string;
   ownerId?: number;
 }
