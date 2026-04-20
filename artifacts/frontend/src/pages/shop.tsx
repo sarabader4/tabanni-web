@@ -23,8 +23,7 @@ export default function Shop() {
             <img
               src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&q=80"
               alt="Dog"
-              className="absolute end-0 bottom-0 w-40 h-40 object-cover object-top opacity-80"
-              style={{ borderTopLeftRadius: "1rem" }}
+              className="absolute end-0 bottom-0 w-40 h-40 object-cover object-top opacity-80 ltr:rounded-tl-2xl rtl:rounded-tr-2xl"
             />
           </div>
 
@@ -39,8 +38,7 @@ export default function Shop() {
             <img
               src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80"
               alt="Pets"
-              className="absolute end-0 bottom-0 w-44 h-36 object-cover opacity-80"
-              style={{ borderTopLeftRadius: "1rem" }}
+              className="absolute end-0 bottom-0 w-44 h-36 object-cover opacity-80 ltr:rounded-tl-2xl rtl:rounded-tr-2xl"
             />
           </div>
         </div>

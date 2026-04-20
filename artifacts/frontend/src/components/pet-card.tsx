@@ -57,16 +57,16 @@ export function PetCard({ pet, onFavorite, isFavorited, isFavoritePending, varia
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
 
-        {/* Verified by Tabanni badge — left side */}
+        {/* Verified by Tabanni badge — start side */}
         {pet.addedByAdmin && (
-          <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-[#3D937F] text-white text-xs font-bold shadow-sm backdrop-blur-sm">
+          <div className="absolute top-3 start-3 flex items-center gap-1 px-2 py-1 rounded-full bg-[#3D937F] text-white text-xs font-bold shadow-sm backdrop-blur-sm">
             <ShieldCheck className="w-3.5 h-3.5" />
             Verified by Tabanni
           </div>
         )}
 
-        {/* Fav + Share — right side */}
-        <div className="absolute top-3 right-3 flex flex-col gap-1.5">
+        {/* Fav + Share — end side */}
+        <div className="absolute top-3 end-3 flex flex-col gap-1.5">
           <button
             onClick={(e) => {
               e.preventDefault();
