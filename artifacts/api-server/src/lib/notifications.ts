@@ -12,6 +12,7 @@ export async function createNotification(
   message: string,
   petId?: number | null,
   metadata?: Record<string, unknown> | null,
+  skipEmail?: boolean,
 ): Promise<void> {
   try {
     await db.insert(notificationsTable).values({
@@ -24,7 +25,7 @@ export async function createNotification(
     });
 
     const [user] = await db.select({ email: usersTable.email, emailNotificationsEnabled: usersTable.emailNotificationsEnabled }).from(usersTable).where(eq(usersTable.id, userId));
-    if (user?.email && user.emailNotificationsEnabled !== false) {
+    if (!skipEmail && user?.email && user.emailNotificationsEnabled !== false) {
       const isApprovalType = type === "adoption_accepted" || type === "foster_accepted";
       const whatsappLink = isApprovalType && metadata?.whatsappLink ? String(metadata.whatsappLink) : undefined;
       const requestTypeName = type === "adoption_accepted" ? "adoption" : type === "foster_accepted" ? "foster" : undefined;

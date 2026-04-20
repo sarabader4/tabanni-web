@@ -846,7 +846,7 @@ router.post("/admin/notifications/broadcast", async (req, res) => {
     let count = 0;
     for (const id of userIds) {
       try {
-        await createNotification(id, "general", title, message);
+        await createNotification(id, "general", title, message, null, null, true);
         count++;
       } catch {
       }
