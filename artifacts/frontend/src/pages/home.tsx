@@ -67,6 +67,7 @@ export default function Home() {
                 src={`${import.meta.env.BASE_URL}images/hero-pets.png`} 
                 alt="Happy pets" 
                 className="w-full h-full object-cover"
+                fetchPriority="high"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
             </motion.div>
