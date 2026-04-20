@@ -1,0 +1,48 @@
+Improve and fully optimize the Arabic (RTL) experience across the website. When the user switches the language from English to Arabic, implement the following enhancements:
+
+1. Global Arabic Support (RTL)
+Apply full Right-to-Left (RTL) layout across all pages.
+Ensure proper alignment, spacing, and typography for Arabic text.
+Translate all static and dynamic content accurately into Arabic.
+Maintain consistent UI/UX design across the platform.
+2. User Profile Section
+Fix the phone number input UI:
+Align properly for RTL layout.
+Enhance spacing and usability.
+Improve overall visual consistency.
+Country Code Dropdown (Important)
+When language is switched to Arabic:
+Display country names in Arabic.
+Set default to الأردن (+962).
+Apply RTL layout:
+Right-align text.
+Adjust dropdown arrow/icon position.
+Keep phone number format international (e.g., +962).
+Ensure clear Arabic font and readability.
+When switching back to English:
+Revert to English names and LTR layout.
+Ensure smooth switching between languages without UI issues.
+3. My Pet Section
+In the Add Pet form:
+Fix the pet type field (dropdown/selector) to display correctly in Arabic.
+Enhance Edit Pet Info and Delete Pet buttons:
+Improve design, alignment, and responsiveness in RTL.
+Use clear Arabic labels.
+Make buttons more user-friendly and visually consistent.
+4. Notifications Section
+Fix UI for Email Notification toggle/button in Arabic:
+Correct RTL alignment.
+Proper Arabic labeling.
+Improve overall consistency with Arabic UI.
+5. Reports Feature
+When clicking “New Report”:
+Open the report form directly (no extra steps).
+Ensure the form is fully translated and optimized for Arabic UI.
+6. Lost & Found Section (User Profile)
+Ensure full Arabic translation of all elements.
+Fix layout issues and apply proper RTL alignment.
+Enhance clarity and overall user experience.
+7. General UI/UX Enhancements
+Ensure all buttons, labels, placeholders, and forms are translated.
+Fix any alignment or layout issues in Arabic mode.
+Maintain a smooth, consistent, and responsive experience across all pages.
