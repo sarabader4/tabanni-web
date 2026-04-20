@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -6,36 +7,52 @@ import { Layout } from "@/components/layout";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import OnboardingModal from "@/components/onboarding-modal";
 import CityGateModal from "@/components/city-gate-modal";
-import Home from "@/pages/home";
-import Adopt from "@/pages/adopt";
-import Foster from "@/pages/foster";
-import PetDetail from "@/pages/pet-detail";
-import LostFound from "@/pages/lost-found";
-import LostFoundDetail from "@/pages/lost-found-detail";
-import Donate from "@/pages/donate";
-import Gallery from "@/pages/gallery";
-import GalleryDetail from "@/pages/gallery-detail";
-import About from "@/pages/about";
-import Shop from "@/pages/shop";
-import Profile from "@/pages/profile";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
-import AdminDashboard from "@/pages/admin/index";
-import AdminPets from "@/pages/admin/pets";
-import AdminUsers from "@/pages/admin/users";
-import AdminAdoptions from "@/pages/admin/adoptions";
-import AdminFosters from "@/pages/admin/fosters";
-import AdminAnalytics from "@/pages/admin/analytics";
-import AdminDonors from "@/pages/admin/donors";
-import AdminVolunteers from "@/pages/admin/volunteers";
-import AdminLostFound from "@/pages/admin/lost-found";
-import AdminContactMessages from "@/pages/admin/contact-messages";
-import AdminNotifications from "@/pages/admin/notifications";
-import AdminGallery from "@/pages/admin/gallery";
-import NotFound from "@/pages/not-found";
-import AIChatWidget from "@/components/ai-chat-widget";
 
-const queryClient = new QueryClient();
+const Home = lazy(() => import("@/pages/home"));
+const Login = lazy(() => import("@/pages/login"));
+const Register = lazy(() => import("@/pages/register"));
+const Adopt = lazy(() => import("@/pages/adopt"));
+const Foster = lazy(() => import("@/pages/foster"));
+const PetDetail = lazy(() => import("@/pages/pet-detail"));
+const LostFound = lazy(() => import("@/pages/lost-found"));
+const LostFoundDetail = lazy(() => import("@/pages/lost-found-detail"));
+const Donate = lazy(() => import("@/pages/donate"));
+const Gallery = lazy(() => import("@/pages/gallery"));
+const GalleryDetail = lazy(() => import("@/pages/gallery-detail"));
+const About = lazy(() => import("@/pages/about"));
+const Shop = lazy(() => import("@/pages/shop"));
+const Profile = lazy(() => import("@/pages/profile"));
+const AdminDashboard = lazy(() => import("@/pages/admin/index"));
+const AdminPets = lazy(() => import("@/pages/admin/pets"));
+const AdminUsers = lazy(() => import("@/pages/admin/users"));
+const AdminAdoptions = lazy(() => import("@/pages/admin/adoptions"));
+const AdminFosters = lazy(() => import("@/pages/admin/fosters"));
+const AdminAnalytics = lazy(() => import("@/pages/admin/analytics"));
+const AdminDonors = lazy(() => import("@/pages/admin/donors"));
+const AdminVolunteers = lazy(() => import("@/pages/admin/volunteers"));
+const AdminLostFound = lazy(() => import("@/pages/admin/lost-found"));
+const AdminContactMessages = lazy(() => import("@/pages/admin/contact-messages"));
+const AdminNotifications = lazy(() => import("@/pages/admin/notifications"));
+const AdminGallery = lazy(() => import("@/pages/admin/gallery"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+const AIChatWidget = lazy(() => import("@/components/ai-chat-widget"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+function PageLoader() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center">
+      <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+    </div>
+  );
+}
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -70,67 +87,70 @@ function AppRoutes() {
     <OnboardingGate />
     <CityGate />
     <Switch>
-      {/* Auth pages — no layout wrapper */}
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
+      <Route path="/login">
+        <Suspense fallback={<PageLoader />}><Login /></Suspense>
+      </Route>
+      <Route path="/register">
+        <Suspense fallback={<PageLoader />}><Register /></Suspense>
+      </Route>
 
-      {/* Admin routes */}
       <Route path="/admin">
-        {() => <AdminGuard><AdminDashboard /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/pets">
-        {() => <AdminGuard><AdminPets /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminPets /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/users">
-        {() => <AdminGuard><AdminUsers /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminUsers /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/adoptions">
-        {() => <AdminGuard><AdminAdoptions /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminAdoptions /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/fosters">
-        {() => <AdminGuard><AdminFosters /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminFosters /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/analytics">
-        {() => <AdminGuard><AdminAnalytics /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminAnalytics /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/donors">
-        {() => <AdminGuard><AdminDonors /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminDonors /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/volunteers">
-        {() => <AdminGuard><AdminVolunteers /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminVolunteers /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/lost-found">
-        {() => <AdminGuard><AdminLostFound /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminLostFound /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/contact-messages">
-        {() => <AdminGuard><AdminContactMessages /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminContactMessages /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/notifications">
-        {() => <AdminGuard><AdminNotifications /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminNotifications /></Suspense></AdminGuard>}
       </Route>
       <Route path="/admin/gallery">
-        {() => <AdminGuard><AdminGallery /></AdminGuard>}
+        {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminGallery /></Suspense></AdminGuard>}
       </Route>
 
-      {/* All other routes use the Layout with navbar */}
       <Route>
         <Layout>
-          <Switch>
-            <Route path="/" component={Home} />
-            <Route path="/adopt" component={Adopt} />
-            <Route path="/foster" component={Foster} />
-            <Route path="/pets/:id" component={PetDetail} />
-            <Route path="/lost-found/:id" component={LostFoundDetail} />
-            <Route path="/lost-found" component={LostFound} />
-            <Route path="/donate" component={Donate} />
-            <Route path="/gallery/:id" component={GalleryDetail} />
-            <Route path="/gallery" component={Gallery} />
-            <Route path="/about" component={About} />
-            <Route path="/shop" component={Shop} />
-            <Route path="/profile" component={Profile} />
-            <Route component={NotFound} />
-          </Switch>
-          <AIChatWidget />
+          <Suspense fallback={<PageLoader />}>
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/adopt" component={Adopt} />
+              <Route path="/foster" component={Foster} />
+              <Route path="/pets/:id" component={PetDetail} />
+              <Route path="/lost-found/:id" component={LostFoundDetail} />
+              <Route path="/lost-found" component={LostFound} />
+              <Route path="/donate" component={Donate} />
+              <Route path="/gallery/:id" component={GalleryDetail} />
+              <Route path="/gallery" component={Gallery} />
+              <Route path="/about" component={About} />
+              <Route path="/shop" component={Shop} />
+              <Route path="/profile" component={Profile} />
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
+          <Suspense fallback={null}><AIChatWidget /></Suspense>
         </Layout>
       </Route>
     </Switch>

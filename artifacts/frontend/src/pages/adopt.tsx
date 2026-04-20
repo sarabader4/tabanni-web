@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useDeferredValue } from "react";
 import { useLocation } from "wouter";
 import { useListPets } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
@@ -12,6 +12,7 @@ type PurposeFilter = "adopt" | "foster" | "both";
 
 export default function Adopt() {
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [purpose, setPurpose] = useState<PurposeFilter>("adopt");
   const [page, setPage] = useState(1);
   const pageSize = 20;
@@ -33,6 +34,7 @@ export default function Adopt() {
       title: wasAdded ? t("adopt.addedToFav") : t("adopt.removedFromFav"),
     });
   };
+
   const [filters, setFilters] = useState<FilterBarState>({
     type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
   });
@@ -50,8 +52,9 @@ export default function Adopt() {
 
   const ageRange = parseAgeRange(filters.minAge);
 
-  const { data: rawData, isLoading, isError } = useListPets({
+  const { data, isLoading, isError } = useListPets({
     purpose: purpose === "both" ? undefined : purpose,
+    search: deferredSearch || undefined,
     type: filters.type || undefined,
     gender: filters.gender || undefined,
     size: filters.size || undefined,
@@ -60,23 +63,9 @@ export default function Adopt() {
     sterilized: sterilizedParam,
     minAge: ageRange.minAge,
     maxAge: ageRange.maxAge,
-    limit: 1000,
+    page,
+    limit: pageSize,
   });
-
-  const data = (() => {
-    if (!rawData) return rawData;
-    if (!search.trim()) return { ...rawData, pets: rawData.pets?.slice((page - 1) * pageSize, page * pageSize), total: rawData.pets?.length ?? 0 };
-    const tokens = search.trim().toLowerCase().split(/\s+/);
-    const filtered = (rawData.pets ?? []).filter((pet) => {
-      const haystack = [
-        pet.name, pet.type, pet.gender, pet.size, pet.city, pet.breed,
-        pet.ageMonths != null ? String(pet.ageMonths) : "",
-        pet.sterilized != null ? (pet.sterilized ? "yes sterilized" : "no not sterilized") : "",
-      ].join(" ").toLowerCase();
-      return tokens.every((token) => haystack.includes(token));
-    });
-    return { ...rawData, pets: filtered.slice((page - 1) * pageSize, page * pageSize), total: filtered.length };
-  })();
 
   const totalPages = Math.ceil((data?.total ?? 0) / pageSize) || 1;
 

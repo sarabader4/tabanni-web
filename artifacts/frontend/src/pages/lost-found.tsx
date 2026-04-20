@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useDeferredValue } from "react";
 import { Link } from "wouter";
 import {
   useListLostFoundReports,
@@ -60,6 +60,7 @@ export default function LostFound() {
   const { user } = useAuth();
   const [tab, setTab] = useState<"lost" | "found">("lost");
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [filters, setFilters] = useState<FilterBarState>({
     type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
   });
@@ -72,15 +73,16 @@ export default function LostFound() {
   const { toast } = useToast();
   const pageSize = 20;
 
-  const isClientFiltering = !!(search || filters.month || filters.minAge);
+  const isClientFiltering = !!(filters.month || filters.minAge);
   const { data, isLoading, isError, refetch } = useListLostFoundReports({
     reportType: tab,
+    search: deferredSearch || undefined,
     type: filters.type || undefined,
     city: filters.city || undefined,
     gender: filters.gender || undefined,
     size: filters.size || undefined,
     breed: filters.breed || undefined,
-    limit: isClientFiltering ? 1000 : pageSize,
+    limit: isClientFiltering ? 200 : pageSize,
     page: isClientFiltering ? 1 : page,
   });
 
@@ -175,12 +177,6 @@ export default function LostFound() {
   ];
 
   const reports = allReports.filter((r) => {
-    const matchesSearch = !search || (
-      r.name?.toLowerCase().includes(search.toLowerCase()) ||
-      r.type?.toLowerCase().includes(search.toLowerCase()) ||
-      r.breed?.toLowerCase().includes(search.toLowerCase()) ||
-      r.city?.toLowerCase().includes(search.toLowerCase())
-    );
     const matchesMonth = !filters.month || (() => {
       const monthIdx = MONTH_NAMES.indexOf(filters.month.toLowerCase());
       if (monthIdx === -1) return true;
@@ -200,7 +196,7 @@ export default function LostFound() {
     })();
     const matchesMinAge = parsedAge.min === null || age === null || age >= parsedAge.min;
     const matchesMaxAge = parsedAge.max === null || age === null || age <= parsedAge.max;
-    return matchesSearch && matchesMonth && matchesMinAge && matchesMaxAge;
+    return matchesMonth && matchesMinAge && matchesMaxAge;
   });
 
   const total = data?.total ?? 0;
@@ -295,6 +291,8 @@ export default function LostFound() {
                       <img
                         src={report.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"}
                         alt={report.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                       />
                       <div className={`absolute top-3 left-3 px-2 py-0.5 rounded-full text-white text-xs font-bold ${

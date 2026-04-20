@@ -52,6 +52,8 @@ export function PetCard({ pet, onFavorite, isFavorited, isFavoritePending, varia
         <img
           src={imageUrl}
           alt={pet.name}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
 

@@ -13,6 +13,7 @@ export type ListLostFoundReportsParams = {
   gender?: string;
   size?: string;
   breed?: string;
+  search?: string;
   page?: number;
   limit?: number;
   reporterId?: number;
