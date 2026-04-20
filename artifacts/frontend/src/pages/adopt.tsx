@@ -74,12 +74,6 @@ export default function Adopt() {
 
   const totalPages = Math.ceil((data?.total ?? 0) / pageSize) || 1;
 
-  const purposeOptions: { key: PurposeFilter; labelKey: string }[] = [
-    { key: "adopt", labelKey: "adopt.adopt" },
-    { key: "foster", labelKey: "adopt.foster" },
-    { key: "both", labelKey: "adopt.adoptFoster" },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Search bar */}
@@ -113,25 +107,15 @@ export default function Adopt() {
         </div>
       </div>
 
-      {/* Filter Bar + Purpose Chips */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 space-y-3">
-        {/* Purpose filter chips */}
-        <div className="flex gap-2 flex-wrap">
-          {purposeOptions.map((opt) => (
-            <button
-              key={opt.key}
-              onClick={() => { setPurpose(opt.key); setPage(1); }}
-              className={`px-4 py-1.5 rounded-full text-sm font-bold border transition-all ${
-                purpose === opt.key
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-gray-500 border-gray-200 hover:border-primary/50"
-              }`}
-            >
-              {t(opt.labelKey)}
-            </button>
-          ))}
-        </div>
-        <FilterBar filters={filters} onChange={(f) => { setFilters(f); setPage(1); }} showSterilized />
+      {/* Filter Bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+        <FilterBar
+          filters={filters}
+          onChange={(f) => { setFilters(f); setPage(1); }}
+          showSterilized
+          purpose={purpose}
+          onPurposeChange={(v) => { setPurpose(v as PurposeFilter); setPage(1); }}
+        />
       </div>
 
       {/* Pet Grid */}

@@ -18,6 +18,8 @@ interface FilterBarProps {
   onChange: (filters: FilterBarState) => void;
   showMonth?: boolean;
   showSterilized?: boolean;
+  purpose?: string;
+  onPurposeChange?: (v: string) => void;
 }
 
 const petTypes = ["Dog", "Cat", "Other"];
@@ -64,7 +66,7 @@ function FilterSelect({
   );
 }
 
-export function FilterBar({ filters, onChange, showMonth = false, showSterilized = false }: FilterBarProps) {
+export function FilterBar({ filters, onChange, showMonth = false, showSterilized = false, purpose, onPurposeChange }: FilterBarProps) {
   const { t } = useTranslation();
   const update = (key: keyof FilterBarState, value: string) => {
     onChange({ ...filters, [key]: value });
@@ -106,7 +108,22 @@ export function FilterBar({ filters, onChange, showMonth = false, showSterilized
   ];
 
   return (
-    <div className="flex flex-wrap gap-2 items-center">
+    <div className="flex flex-col gap-2">
+      {onPurposeChange && (
+        <div className="relative w-full">
+          <select
+            value={purpose ?? "adopt"}
+            onChange={(e) => onPurposeChange(e.target.value)}
+            className="w-full appearance-none bg-white border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-[#333E48] font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer hover:border-primary/50 transition-colors"
+          >
+            <option value="adopt">{t("adopt.adopt")}</option>
+            <option value="foster">{t("adopt.foster")}</option>
+            <option value="both">{t("adopt.adoptFoster")}</option>
+          </select>
+          <ChevronDown className="absolute end-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        </div>
+      )}
+      <div className="flex flex-wrap gap-2 items-center">
       <FilterSelect
         label={t("filters.petType")}
         value={filters.type}
@@ -159,6 +176,7 @@ export function FilterBar({ filters, onChange, showMonth = false, showSterilized
           onChange={(v) => update("month", v)}
         />
       )}
+      </div>
     </div>
   );
 }
