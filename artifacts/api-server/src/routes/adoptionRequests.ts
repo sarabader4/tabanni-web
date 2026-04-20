@@ -9,6 +9,7 @@ import {
   UpdateAdoptionRequestStatusParams,
 } from "@workspace/api-zod";
 import { createNotification, createAdminNotification } from "../lib/notifications";
+import { cache, CACHE_PREFIX } from "../lib/cache";
 
 const router: IRouter = Router();
 
@@ -319,6 +320,12 @@ router.put("/adoption-requests/:id/status", requireAuth, async (req, res): Promi
 
       updated = result.acceptedRequest;
       autoRejectedRequesterIds = result.autoRejectedRequesterIds;
+
+      await Promise.all([
+        cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST),
+        cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL),
+        cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED),
+      ]);
     } else {
       const [rejectedRequest] = await db.update(adoptionRequestsTable)
         .set({ status: newStatus })
