@@ -13,7 +13,7 @@ type PurposeFilter = "adopt" | "foster" | "both";
 export default function Adopt() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [purpose, setPurpose] = useState<PurposeFilter>("adopt");
+  const [purpose, setPurpose] = useState<PurposeFilter>("both");
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const [, navigate] = useLocation();
@@ -138,7 +138,7 @@ export default function Adopt() {
             <button
               onClick={() => {
                 setSearch("");
-                setPurpose("adopt");
+                setPurpose("both");
                 setPage(1);
                 setFilters({ type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "" });
               }}
