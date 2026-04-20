@@ -22,6 +22,13 @@ router.get("/admin/stats", async (req, res) => {
       };
     });
 
+    const monthsWithKey = months.map(m => ({
+      ...m,
+      key: `${m.start.getFullYear()}-${String(m.start.getMonth() + 1).padStart(2, "0")}`,
+    }));
+    const rangeStart = monthsWithKey[0].start;
+    const rangeEnd = monthsWithKey[monthsWithKey.length - 1].end;
+
     const [
       totalPetsResult,
       pendingApprovalResult,
@@ -33,6 +40,8 @@ router.get("/admin/stats", async (req, res) => {
       totalUsersResult,
       petsByType,
       topCities,
+      adoptionsByMonthRaw,
+      donationsByMonthRaw,
     ] = await Promise.all([
       db.select({ count: sql<number>`count(*)::int` }).from(petsTable),
       db.select({ count: sql<number>`count(*)::int` }).from(petsTable).where(eq(petsTable.approved, false)),
@@ -52,39 +61,42 @@ router.get("/admin/stats", async (req, res) => {
         .groupBy(petsTable.city)
         .orderBy(desc(sql`count(*)`))
         .limit(5),
+      db.select({
+        monthKey: sql<string>`to_char(date_trunc('month', ${adoptionRequestsTable.createdAt}), 'YYYY-MM')`,
+        count: sql<number>`count(*)::int`,
+      })
+        .from(adoptionRequestsTable)
+        .where(and(
+          eq(adoptionRequestsTable.status, "approved"),
+          gte(adoptionRequestsTable.createdAt, rangeStart),
+          lt(adoptionRequestsTable.createdAt, rangeEnd),
+        ))
+        .groupBy(sql`date_trunc('month', ${adoptionRequestsTable.createdAt})`),
+      db.select({
+        monthKey: sql<string>`to_char(date_trunc('month', ${donationsTable.createdAt}), 'YYYY-MM')`,
+        total: sql<string>`coalesce(sum(amount::numeric), 0)::text`,
+      })
+        .from(donationsTable)
+        .where(and(
+          eq(donationsTable.type, "monetary"),
+          gte(donationsTable.createdAt, rangeStart),
+          lt(donationsTable.createdAt, rangeEnd),
+        ))
+        .groupBy(sql`date_trunc('month', ${donationsTable.createdAt})`),
     ]);
 
-    const adoptionsByMonth = await Promise.all(
-      months.map(async (m) => ({
-        month: m.name,
-        count: (
-          await db.select({ count: sql<number>`count(*)::int` })
-            .from(adoptionRequestsTable)
-            .where(and(
-              eq(adoptionRequestsTable.status, "approved"),
-              gte(adoptionRequestsTable.createdAt, m.start),
-              lt(adoptionRequestsTable.createdAt, m.end),
-            ))
-        )[0]?.count ?? 0,
-      }))
-    );
+    const adoptionsMonthMap = new Map(adoptionsByMonthRaw.map(r => [r.monthKey, r.count]));
+    const donationsMonthMap = new Map(donationsByMonthRaw.map(r => [r.monthKey, r.total]));
 
-    const donationsByMonth = await Promise.all(
-      months.map(async (m) => ({
-        month: m.name,
-        total: parseFloat(
-          (
-            await db.select({ total: sql<string>`coalesce(sum(amount::numeric), 0)::text` })
-              .from(donationsTable)
-              .where(and(
-                eq(donationsTable.type, "monetary"),
-                gte(donationsTable.createdAt, m.start),
-                lt(donationsTable.createdAt, m.end),
-              ))
-          )[0]?.total ?? "0"
-        ),
-      }))
-    );
+    const adoptionsByMonth = monthsWithKey.map(m => ({
+      month: m.name,
+      count: adoptionsMonthMap.get(m.key) ?? 0,
+    }));
+
+    const donationsByMonth = monthsWithKey.map(m => ({
+      month: m.name,
+      total: parseFloat(donationsMonthMap.get(m.key) ?? "0"),
+    }));
 
     res.json({
       totalPets: totalPetsResult[0]?.count ?? 0,
@@ -358,37 +370,36 @@ router.get("/admin/analytics", async (req, res) => {
       };
     });
 
-    const [adoptionsByMonth, donationsByMonth, petsByType, topCities] = await Promise.all([
-      Promise.all(
-        months.map(async (m) => ({
-          month: m.name,
-          count: (
-            await db.select({ count: sql<number>`count(*)::int` })
-              .from(adoptionRequestsTable)
-              .where(and(
-                eq(adoptionRequestsTable.status, "approved"),
-                gte(adoptionRequestsTable.createdAt, m.start),
-                lt(adoptionRequestsTable.createdAt, m.end),
-              ))
-          )[0]?.count ?? 0,
-        }))
-      ),
-      Promise.all(
-        months.map(async (m) => ({
-          month: m.name,
-          total: parseFloat(
-            (
-              await db.select({ total: sql<string>`coalesce(sum(amount::numeric), 0)::text` })
-                .from(donationsTable)
-                .where(and(
-                  eq(donationsTable.type, "monetary"),
-                  gte(donationsTable.createdAt, m.start),
-                  lt(donationsTable.createdAt, m.end),
-                ))
-            )[0]?.total ?? "0"
-          ),
-        }))
-      ),
+    const monthsWithKey = months.map(m => ({
+      ...m,
+      key: `${m.start.getFullYear()}-${String(m.start.getMonth() + 1).padStart(2, "0")}`,
+    }));
+    const rangeStart = monthsWithKey[0].start;
+    const rangeEnd = monthsWithKey[monthsWithKey.length - 1].end;
+
+    const [adoptionsByMonthRaw, donationsByMonthRaw, petsByType, topCities] = await Promise.all([
+      db.select({
+        monthKey: sql<string>`to_char(date_trunc('month', ${adoptionRequestsTable.createdAt}), 'YYYY-MM')`,
+        count: sql<number>`count(*)::int`,
+      })
+        .from(adoptionRequestsTable)
+        .where(and(
+          eq(adoptionRequestsTable.status, "approved"),
+          gte(adoptionRequestsTable.createdAt, rangeStart),
+          lt(adoptionRequestsTable.createdAt, rangeEnd),
+        ))
+        .groupBy(sql`date_trunc('month', ${adoptionRequestsTable.createdAt})`),
+      db.select({
+        monthKey: sql<string>`to_char(date_trunc('month', ${donationsTable.createdAt}), 'YYYY-MM')`,
+        total: sql<string>`coalesce(sum(amount::numeric), 0)::text`,
+      })
+        .from(donationsTable)
+        .where(and(
+          eq(donationsTable.type, "monetary"),
+          gte(donationsTable.createdAt, rangeStart),
+          lt(donationsTable.createdAt, rangeEnd),
+        ))
+        .groupBy(sql`date_trunc('month', ${donationsTable.createdAt})`),
       db.select({ type: petsTable.type, count: sql<number>`count(*)::int` })
         .from(petsTable)
         .groupBy(petsTable.type),
@@ -399,6 +410,19 @@ router.get("/admin/analytics", async (req, res) => {
         .orderBy(desc(sql`count(*)`))
         .limit(5),
     ]);
+
+    const adoptionsMonthMap = new Map(adoptionsByMonthRaw.map(r => [r.monthKey, r.count]));
+    const donationsMonthMap = new Map(donationsByMonthRaw.map(r => [r.monthKey, r.total]));
+
+    const adoptionsByMonth = monthsWithKey.map(m => ({
+      month: m.name,
+      count: adoptionsMonthMap.get(m.key) ?? 0,
+    }));
+
+    const donationsByMonth = monthsWithKey.map(m => ({
+      month: m.name,
+      total: parseFloat(donationsMonthMap.get(m.key) ?? "0"),
+    }));
 
     res.json({ adoptionsByMonth, donationsByMonth, petsByType, topCities });
   } catch (err) {
