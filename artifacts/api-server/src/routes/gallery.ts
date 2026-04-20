@@ -16,7 +16,7 @@ router.get("/gallery", async (req, res): Promise<void> => {
     }
 
     const cacheKey = CACHE_PREFIX.GALLERY_LIST + JSON.stringify(queryParsed.data);
-    const cached = cache.get<unknown[]>(cacheKey);
+    const cached = await cache.get<unknown[]>(cacheKey);
     if (cached) {
       res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
       res.json(cached);
@@ -43,7 +43,7 @@ router.get("/gallery", async (req, res): Promise<void> => {
       .limit(limit)
       .offset(offset);
 
-    cache.set(cacheKey, posts, CACHE_TTL.GALLERY);
+    await cache.set(cacheKey, posts, CACHE_TTL.GALLERY);
 
     res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
     res.json(posts);
@@ -69,7 +69,7 @@ router.post("/gallery", requireAdmin, async (req, res): Promise<void> => {
       imageUrl,
       authorId: req.userId,
     }).returning();
-    cache.invalidatePrefix(CACHE_PREFIX.GALLERY_LIST);
+    await cache.invalidatePrefix(CACHE_PREFIX.GALLERY_LIST);
     res.status(201).json(post);
   } catch (err) {
     req.log.error({ err }, "Error creating gallery post");
@@ -140,7 +140,7 @@ router.put("/gallery/:id", requireAdmin, async (req, res): Promise<void> => {
     }
     const [post] = await db.update(galleryPostsTable).set(updates).where(eq(galleryPostsTable.id, id)).returning();
     if (!post) { res.status(404).json({ error: "not_found", message: "Post not found" }); return; }
-    cache.invalidatePrefix(CACHE_PREFIX.GALLERY_LIST);
+    await cache.invalidatePrefix(CACHE_PREFIX.GALLERY_LIST);
     res.json(post);
   } catch (err) {
     req.log.error({ err }, "Error updating gallery post");
@@ -157,7 +157,7 @@ router.delete("/gallery/:id", requireAdmin, async (req, res): Promise<void> => {
     }
     const id = paramsParsed.data.id;
     await db.delete(galleryPostsTable).where(eq(galleryPostsTable.id, id));
-    cache.invalidatePrefix(CACHE_PREFIX.GALLERY_LIST);
+    await cache.invalidatePrefix(CACHE_PREFIX.GALLERY_LIST);
     res.json({ success: true, message: "Post deleted" });
   } catch (err) {
     req.log.error({ err }, "Error deleting gallery post");

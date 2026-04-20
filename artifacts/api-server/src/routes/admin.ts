@@ -216,9 +216,9 @@ router.put("/admin/pets/:id/settings", async (req, res) => {
     }
     const [pet] = await db.update(petsTable).set(updates).where(eq(petsTable.id, id)).returning();
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
-    cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + id);
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
+    await cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + id);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
     res.json(pet);
   } catch (err) {
     req.log.error({ err }, "Error updating pet settings");
@@ -261,9 +261,9 @@ router.put("/admin/pets/:id/approve", async (req, res) => {
       { petId: pet.id },
     ).catch(() => {});
 
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
-    cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + id);
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
+    await cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + id);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
 
     res.json(pet);
   } catch (err) {
@@ -304,9 +304,9 @@ router.put("/admin/pets/:id/reject", async (req, res) => {
       { petId: pet.id },
     ).catch(() => {});
 
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
-    cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + id);
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
+    await cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + id);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
 
     res.json(pet);
   } catch (err) {
@@ -329,9 +329,9 @@ router.put("/admin/pets/:id/featured", async (req, res) => {
       .set({ featured: !current.featured })
       .where(eq(petsTable.id, id))
       .returning();
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
-    cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + id);
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
+    await cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + id);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
     res.json(pet);
   } catch (err) {
     req.log.error({ err }, "Error toggling pet featured");

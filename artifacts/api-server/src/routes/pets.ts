@@ -31,7 +31,7 @@ router.get("/pets", async (req, res) => {
     }
 
     const cacheKey = CACHE_PREFIX.PETS_LIST + JSON.stringify(parsed.data);
-    const cached = cache.get<{ pets: unknown[]; total: number; page: number; totalPages: number }>(cacheKey);
+    const cached = await cache.get<{ pets: unknown[]; total: number; page: number; totalPages: number }>(cacheKey);
     if (cached) {
       res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
       return res.json(cached);
@@ -114,7 +114,7 @@ router.get("/pets", async (req, res) => {
     const total = countResult[0]?.count ?? 0;
 
     const responseBody = { pets, total, page: pageNum, totalPages: Math.ceil(total / limitNum) };
-    cache.set(cacheKey, responseBody, CACHE_TTL.LISTING);
+    await cache.set(cacheKey, responseBody, CACHE_TTL.LISTING);
 
     res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
     res.json(responseBody);
@@ -164,7 +164,7 @@ router.post("/pets", requireAuth, async (req, res) => {
 
 router.get("/pets/featured", async (req, res) => {
   try {
-    const cached = cache.get<unknown[]>(CACHE_PREFIX.PETS_FEATURED);
+    const cached = await cache.get<unknown[]>(CACHE_PREFIX.PETS_FEATURED);
     if (cached) {
       res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
       return res.json(cached);
@@ -202,7 +202,7 @@ router.get("/pets/featured", async (req, res) => {
       .orderBy(desc(petsTable.createdAt))
       .limit(8);
 
-    cache.set(CACHE_PREFIX.PETS_FEATURED, pets, CACHE_TTL.LISTING);
+    await cache.set(CACHE_PREFIX.PETS_FEATURED, pets, CACHE_TTL.LISTING);
 
     res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
     res.json(pets);
@@ -220,7 +220,7 @@ router.get("/pets/:id", async (req, res) => {
     }
 
     const cacheKey = CACHE_PREFIX.PET_DETAIL + paramsParsed.data.id;
-    const cachedPet = cache.get<unknown>(cacheKey);
+    const cachedPet = await cache.get<unknown>(cacheKey);
     if (cachedPet) {
       res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
       return res.json(cachedPet);
@@ -257,7 +257,7 @@ router.get("/pets/:id", async (req, res) => {
       .where(eq(petsTable.id, paramsParsed.data.id));
 
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
-    cache.set(cacheKey, pet, CACHE_TTL.DETAIL);
+    await cache.set(cacheKey, pet, CACHE_TTL.DETAIL);
     res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
     res.json(pet);
   } catch (err) {
@@ -279,9 +279,9 @@ router.put("/pets/:id", async (req, res) => {
 
     const [pet] = await db.update(petsTable).set(bodyParsed.data).where(eq(petsTable.id, paramsParsed.data.id)).returning();
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
-    cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + paramsParsed.data.id);
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
+    await cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + paramsParsed.data.id);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
     res.json(pet);
   } catch (err) {
     req.log.error({ err }, "Error updating pet");
@@ -297,9 +297,9 @@ router.delete("/pets/:id", async (req, res) => {
     }
 
     await db.delete(petsTable).where(eq(petsTable.id, paramsParsed.data.id));
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
-    cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + paramsParsed.data.id);
-    cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
+    await cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + paramsParsed.data.id);
+    await cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
     res.json({ success: true, message: "Pet deleted" });
   } catch (err) {
     req.log.error({ err }, "Error deleting pet");
