@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Bell, Menu, X, Instagram, Facebook, Linkedin, ChevronDown, LogOut, User, FileText, Check } from "lucide-react";
 import logoImg from "@assets/logo_1776713054949.PNG";
+import ukFlagImg from "@assets/Screenshot_2026-04-20_225002_1776714609192.png";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -111,7 +112,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
 
-  const isArabic = i18n.language === "ar";
+  const [currentLang, setCurrentLang] = useState<string>(() => i18n.language || localStorage.getItem("lang") || "en");
+
+  useEffect(() => {
+    const handleLangChange = (lng: string) => setCurrentLang(lng);
+    i18n.on("languageChanged", handleLangChange);
+    return () => { i18n.off("languageChanged", handleLangChange); };
+  }, [i18n]);
+
+  const isArabic = currentLang === "ar";
+
+  const toggleLanguage = useCallback(() => {
+    i18n.changeLanguage(isArabic ? "en" : "ar");
+  }, [i18n, isArabic]);
 
   const { unreadCount, notifications, loading, fetchNotifications, markRead, markAllRead } = useNotifications(user?.id);
 
@@ -160,9 +173,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const toggleLanguage = () => {
-    i18n.changeLanguage(isArabic ? "en" : "ar");
-  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -228,22 +238,38 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <button
       onClick={toggleLanguage}
       className={cn(
-        "flex items-center gap-1.5 rounded-full px-3 py-1.5 cursor-pointer transition-colors",
+        "flex items-center gap-1.5 rounded-full px-3 py-1.5 cursor-pointer transition-colors overflow-hidden",
         className
       )}
       aria-label={t("nav.toggleLanguage")}
     >
-      {isArabic ? (
-        <>
-          <span className="text-xs font-bold">AR</span>
-          <span className="text-base leading-none">🇸🇦</span>
-        </>
-      ) : (
-        <>
-          <span className="text-xs font-bold">EN</span>
-          <span className="text-base leading-none">🇬🇧</span>
-        </>
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        {isArabic ? (
+          <motion.span
+            key="ar"
+            className="flex items-center gap-1.5"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+          >
+            <img src="https://hatscripts.github.io/circle-flags/flags/jo.svg" alt="Jordan flag" className="w-5 h-5 rounded-full object-cover" />
+            <span className="text-xs font-bold">AR</span>
+          </motion.span>
+        ) : (
+          <motion.span
+            key="en"
+            className="flex items-center gap-1.5"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+          >
+            <span className="text-xs font-bold">EN</span>
+            <img src={ukFlagImg} alt="UK flag" className="w-5 h-5 rounded-full object-cover" />
+          </motion.span>
+        )}
+      </AnimatePresence>
     </button>
   );
 
@@ -475,19 +501,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </AnimatePresence>
                 </div>
               ) : (
-                /* Unauthenticated: Login + Sign Up */
+                /* Unauthenticated: Login */
                 <div className="flex items-center gap-2">
                   <Link
                     href="/login"
-                    className="px-4 py-2 text-sm font-semibold text-[#333E48] hover:text-primary transition-colors"
-                  >
-                    {t("nav.login")}
-                  </Link>
-                  <Link
-                    href="/register"
                     className="px-4 py-2 bg-[#333E48] text-white text-sm font-bold rounded-full hover:bg-[#333E48]/90 transition-all"
                   >
-                    {t("nav.signUp")}
+                    {t("nav.login")}
                   </Link>
                 </div>
               )}
@@ -620,20 +640,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </button>
                 </div>
               ) : (
-                <div className="mt-2 flex gap-3">
+                <div className="mt-2">
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex-1 py-3 text-center border-2 border-[#333E48] text-[#333E48] font-bold rounded-full"
+                    className="block w-full py-3 text-center bg-[#333E48] text-white font-bold rounded-full hover:bg-[#333E48]/90 transition-all"
                   >
                     {t("nav.login")}
-                  </Link>
-                  <Link
-                    href="/register"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex-1 py-3 text-center bg-[#333E48] text-white font-bold rounded-full"
-                  >
-                    {t("nav.signUp")}
                   </Link>
                 </div>
               )}
