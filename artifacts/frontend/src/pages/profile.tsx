@@ -4182,23 +4182,43 @@ export default function Profile() {
               <div className="space-y-4">
                 <h2 className="font-display font-bold text-lg text-[#333E48]">{t("profile.notifications")}</h2>
 
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-4">
-                  <div>
+                <button
+                  disabled={emailTogglePending}
+                  onClick={() => toggleEmailNotifications(!effectiveEmailEnabled)}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 w-full text-start flex flex-col sm:flex-row sm:items-center gap-3 disabled:opacity-60 transition-opacity cursor-pointer focus:outline-none"
+                  role="switch"
+                  aria-checked={effectiveEmailEnabled}
+                >
+                  <div className="flex-1">
                     <p className="font-semibold text-sm text-[#333E48]">{t("profile.emailNotifications")}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{t("profile.emailNotificationsDesc")}</p>
                   </div>
-                  <button
-                    disabled={emailTogglePending}
-                    onClick={() => toggleEmailNotifications(!effectiveEmailEnabled)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${effectiveEmailEnabled ? "bg-[#3D937F]" : "bg-gray-200"}`}
-                    role="switch"
-                    aria-checked={effectiveEmailEnabled}
+                  <span
+                    className="relative inline-flex shrink-0 cursor-pointer rounded-full border-transparent transition-colors duration-[250ms] ease-in-out focus:outline-none sm:ms-auto"
+                    style={{
+                      width: 52,
+                      height: 28,
+                      borderRadius: 999,
+                      backgroundColor: effectiveEmailEnabled ? "#3D937F" : "#D1D5DB",
+                      boxShadow: effectiveEmailEnabled ? "0 0 0 3px rgba(34,197,94,0.2)" : "none",
+                      transition: "background-color 0.25s ease, box-shadow 0.25s ease",
+                    }}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${effectiveEmailEnabled ? "translate-x-5" : "translate-x-0"}`}
+                      style={{
+                        position: "absolute",
+                        top: 3,
+                        width: 22,
+                        height: 22,
+                        borderRadius: "50%",
+                        backgroundColor: "#fff",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                        transition: "left 0.25s ease",
+                        left: effectiveEmailEnabled ? 27 : 3,
+                      }}
                     />
-                  </button>
-                </div>
+                  </span>
+                </button>
                 {notifLoading ? (
                   <div className="flex items-center justify-center py-16">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />

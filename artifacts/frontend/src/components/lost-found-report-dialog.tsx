@@ -63,8 +63,14 @@ interface LostFoundReportDialogProps {
   onSuccess?: () => void;
 }
 
+const inputCls = "w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white";
+const selectCls = "w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white";
+const labelCls = "block text-xs font-semibold text-gray-500 mb-1.5";
+const errorCls = "text-red-500 text-xs mt-0.5";
+
 export function LostFoundReportDialog({ open, onOpenChange, defaultReportType = "lost", onSuccess }: LostFoundReportDialogProps) {
   const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === "ar";
   const { user } = useAuth();
   const { toast } = useToast();
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -155,7 +161,10 @@ export function LostFoundReportDialog({ open, onOpenChange, defaultReportType = 
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onOpenChange(false); resetForm(); } }}>
-      <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-2xl rounded-2xl max-h-[90vh] overflow-y-auto"
+        dir={isRtl ? "rtl" : "ltr"}
+      >
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">{t("lostFound.submitReport")}</DialogTitle>
           <DialogDescription>{t("lostFound.fillBothSections")}</DialogDescription>
@@ -168,134 +177,160 @@ export function LostFoundReportDialog({ open, onOpenChange, defaultReportType = 
             <p className="text-gray-500 text-sm">{t("lostFound.reportSubmittedDesc")}</p>
             <button
               onClick={() => { onOpenChange(false); resetForm(); }}
-              className="mt-2 px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
+              className="mt-2 px-6 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors"
             >
               {t("lostFound.done")}
             </button>
           </div>
         ) : (
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
-            <div className="space-y-4">
-              <h3 className="font-display font-bold text-base text-[#333E48] border-b border-gray-100 pb-2">{t("lostFound.petInfoSection")}</h3>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 mt-2">
 
-              <div className="flex gap-4">
-                <label className={`flex items-center gap-2 px-4 py-3 rounded-xl flex-1 cursor-pointer border-2 transition-colors ${
-                  reportType === "lost" ? "border-primary bg-primary/5" : "border-gray-200 bg-gray-50"
+            <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-4">
+              <h3 className="font-display font-bold text-base text-[#333E48] border-b border-gray-100 pb-2">
+                {t("lostFound.petInfoSection")}
+              </h3>
+
+              {/* Report type toggle */}
+              <div className="flex gap-3">
+                <label className={`flex items-center gap-2 px-4 py-2.5 rounded-xl flex-1 cursor-pointer border-2 transition-colors text-sm font-medium ${
+                  reportType === "lost" ? "border-primary bg-primary/5 text-primary" : "border-gray-200 bg-gray-50 text-gray-600"
                 }`}>
                   <input type="radio" value="lost" {...form.register("reportType")} className="accent-primary" />
-                  <span className="text-sm font-medium">{t("lostFound.iLostPet")}</span>
+                  {t("lostFound.iLostPet")}
                 </label>
-                <label className={`flex items-center gap-2 px-4 py-3 rounded-xl flex-1 cursor-pointer border-2 transition-colors ${
-                  reportType === "found" ? "border-[#3D937F] bg-[#3D937F]/5" : "border-gray-200 bg-gray-50"
+                <label className={`flex items-center gap-2 px-4 py-2.5 rounded-xl flex-1 cursor-pointer border-2 transition-colors text-sm font-medium ${
+                  reportType === "found" ? "border-[#3D937F] bg-[#3D937F]/5 text-[#3D937F]" : "border-gray-200 bg-gray-50 text-gray-600"
                 }`}>
                   <input type="radio" value="found" {...form.register("reportType")} className="accent-[#3D937F]" />
-                  <span className="text-sm font-medium">{t("lostFound.iFoundPet")}</span>
+                  {t("lostFound.iFoundPet")}
                 </label>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">{t("lostFound.petName")} *</label>
-                  <input {...form.register("name")} placeholder={t("lostFound.placeholderName")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
-                  {form.formState.errors.name && <p className="text-red-500 text-xs">{form.formState.errors.name.message}</p>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Pet Name */}
+                <div>
+                  <label className={labelCls}>{t("lostFound.petName")} *</label>
+                  <input
+                    {...form.register("name")}
+                    placeholder={t("lostFound.placeholderName")}
+                    className={inputCls}
+                  />
+                  {form.formState.errors.name && <p className={errorCls}>{form.formState.errors.name.message}</p>}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">{t("lostFound.gender")} *</label>
-                  <select {...form.register("gender")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30">
+                {/* Gender */}
+                <div>
+                  <label className={labelCls}>{t("lostFound.gender")} *</label>
+                  <select {...form.register("gender")} className={selectCls}>
                     <option value="">{t("lostFound.selectGender")}</option>
                     <option value="male">{t("lostFound.genderMale")}</option>
                     <option value="female">{t("lostFound.genderFemale")}</option>
                     <option value="unknown">{t("lostFound.genderUnknown")}</option>
                   </select>
-                  {form.formState.errors.gender && <p className="text-red-500 text-xs">{form.formState.errors.gender.message}</p>}
+                  {form.formState.errors.gender && <p className={errorCls}>{form.formState.errors.gender.message}</p>}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">{t("lostFound.type")} *</label>
-                  <select {...form.register("type")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30">
+                {/* Type */}
+                <div>
+                  <label className={labelCls}>{t("lostFound.type")} *</label>
+                  <select {...form.register("type")} className={selectCls}>
                     <option value="Dog">{t("filters.dog")}</option>
                     <option value="Cat">{t("filters.cat")}</option>
                     <option value="Rabbit">{t("filters.rabbit")}</option>
                     <option value="Bird">{t("filters.bird")}</option>
                     <option value="Other">{t("filters.other")}</option>
                   </select>
-                  {form.formState.errors.type && <p className="text-red-500 text-xs">{form.formState.errors.type.message}</p>}
+                  {form.formState.errors.type && <p className={errorCls}>{form.formState.errors.type.message}</p>}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">
+                {/* Breed */}
+                <div>
+                  <label className={labelCls}>
                     {reportType === "found" ? t("lostFound.breedOptional") : t("lostFound.breedRequired")}
                   </label>
                   <input
                     {...form.register("breed")}
                     placeholder={t("lostFound.breed")}
-                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    className={inputCls}
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">{t("lostFound.ageMonths")}</label>
+                {/* Age */}
+                <div>
+                  <label className={labelCls}>{t("lostFound.ageMonths")}</label>
                   <input
                     type="number"
                     min={0}
                     {...form.register("ageMonths")}
                     placeholder={t("lostFound.agePlaceholder")}
-                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    className={inputCls}
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">{t("lostFound.size")} *</label>
-                  <select {...form.register("size")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30">
+                {/* Size */}
+                <div>
+                  <label className={labelCls}>{t("lostFound.size")} *</label>
+                  <select {...form.register("size")} className={selectCls}>
                     <option value="">{t("lostFound.selectSize")}</option>
                     <option value="small">{t("filters.small")}</option>
                     <option value="medium">{t("filters.medium")}</option>
                     <option value="large">{t("filters.large")}</option>
                   </select>
-                  {form.formState.errors.size && <p className="text-red-500 text-xs">{form.formState.errors.size.message}</p>}
+                  {form.formState.errors.size && <p className={errorCls}>{form.formState.errors.size.message}</p>}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">{t("lostFound.city")} *</label>
-                  <input {...form.register("city")} placeholder={t("lostFound.cityPlaceholder")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
-                  {form.formState.errors.city && <p className="text-red-500 text-xs">{form.formState.errors.city.message}</p>}
+                {/* City */}
+                <div>
+                  <label className={labelCls}>{t("lostFound.city")} *</label>
+                  <input
+                    {...form.register("city")}
+                    placeholder={t("lostFound.cityPlaceholder")}
+                    className={inputCls}
+                  />
+                  {form.formState.errors.city && <p className={errorCls}>{form.formState.errors.city.message}</p>}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">{t("lostFound.area")} *</label>
-                  <input {...form.register("area")} placeholder={t("lostFound.areaPlaceholder")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
-                  {form.formState.errors.area && <p className="text-red-500 text-xs">{form.formState.errors.area.message}</p>}
+                {/* Area */}
+                <div>
+                  <label className={labelCls}>{t("lostFound.area")} *</label>
+                  <input
+                    {...form.register("area")}
+                    placeholder={t("lostFound.areaPlaceholder")}
+                    className={inputCls}
+                  />
+                  {form.formState.errors.area && <p className={errorCls}>{form.formState.errors.area.message}</p>}
                 </div>
 
-                <div className="col-span-2 space-y-1.5">
-                  <label className="text-sm font-bold">
+                {/* Date */}
+                <div className="sm:col-span-2">
+                  <label className={labelCls}>
                     {reportType === "lost" ? `${t("lostFound.dateLost")} *` : `${t("lostFound.dateFound")} *`}
                   </label>
                   {reportType === "lost" ? (
                     <input
                       type="date"
                       {...form.register("lostDate")}
-                      className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                      className={inputCls}
                     />
                   ) : (
                     <input
                       type="date"
                       {...form.register("foundDate")}
-                      className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                      className={inputCls}
                     />
                   )}
                   {(form.formState.errors.lostDate || form.formState.errors.foundDate) && (
-                    <p className="text-red-500 text-xs">
+                    <p className={errorCls}>
                       {form.formState.errors.lostDate?.message || form.formState.errors.foundDate?.message}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">{t("lostFound.photosUpTo", { max: MAX_IMAGES })}</label>
-                <div className="flex flex-wrap gap-2">
+              {/* Photos */}
+              <div>
+                <label className={labelCls}>{t("lostFound.photosUpTo", { max: MAX_IMAGES })}</label>
+                <div className="flex flex-wrap gap-2 mt-1">
                   {imagePreviews.map((src, idx) => (
                     <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
                       <img src={src} alt="" className="w-full h-full object-cover" />
@@ -312,7 +347,7 @@ export function LostFoundReportDialog({ open, onOpenChange, defaultReportType = 
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-primary hover:text-primary transition-colors"
+                      className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-primary hover:text-primary transition-colors"
                     >
                       <ImagePlus className="w-5 h-5" />
                       <span className="text-xs">{t("lostFound.addPhoto")}</span>
@@ -328,51 +363,67 @@ export function LostFoundReportDialog({ open, onOpenChange, defaultReportType = 
                   onChange={handleImageChange}
                 />
                 {imageFiles.length === 0 && form.formState.isSubmitted && (
-                  <p className="text-red-500 text-xs">{t("lostFound.uploadImageReq")}</p>
+                  <p className={errorCls}>{t("lostFound.uploadImageReq")}</p>
                 )}
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">{t("lostFound.notes")}</label>
+              {/* Notes */}
+              <div>
+                <label className={labelCls}>{t("lostFound.notes")}</label>
                 <textarea
                   {...form.register("description")}
                   placeholder={t("lostFound.notesPlaceholder")}
-                  className="w-full min-h-[80px] bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                  className="w-full min-h-[80px] border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white resize-none"
                 />
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="font-display font-bold text-base text-[#333E48] border-b border-gray-100 pb-2">{t("lostFound.contactSection")}</h3>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">{t("lostFound.reporterName")} *</label>
-                  <input {...form.register("reporterName")} placeholder={t("lostFound.reporterNamePlaceholder")} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
-                  {form.formState.errors.reporterName && <p className="text-red-500 text-xs">{form.formState.errors.reporterName.message}</p>}
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold">{t("lostFound.whatsappContact")} *</label>
-                  <WhatsAppPhoneInput
-                    initialPhone={user?.phone ?? ""}
-                    onChange={url => form.setValue("whatsappUrl", url, { shouldValidate: form.formState.isSubmitted })}
-                    error={form.formState.errors.whatsappUrl?.message}
-                    touched={form.formState.isSubmitted}
-                  />
-                </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-4">
+              <h3 className="font-display font-bold text-base text-[#333E48] border-b border-gray-100 pb-2">
+                {t("lostFound.contactSection")}
+              </h3>
+
+              <div>
+                <label className={labelCls}>{t("lostFound.reporterName")} *</label>
+                <input
+                  {...form.register("reporterName")}
+                  placeholder={t("lostFound.reporterNamePlaceholder")}
+                  className={inputCls}
+                />
+                {form.formState.errors.reporterName && <p className={errorCls}>{form.formState.errors.reporterName.message}</p>}
+              </div>
+
+              <div>
+                <label className={labelCls}>{t("lostFound.whatsappContact")} *</label>
+                <WhatsAppPhoneInput
+                  initialPhone={user?.phone ?? ""}
+                  onChange={url => form.setValue("whatsappUrl", url, { shouldValidate: form.formState.isSubmitted })}
+                  error={form.formState.errors.whatsappUrl?.message}
+                  touched={form.formState.isSubmitted}
+                />
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={createMutation.isPending}
-              className="w-full bg-primary hover:bg-primary/90 text-white py-3.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
-            >
-              {createMutation.isPending ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" /> {t("lostFound.submitting")}
-                </span>
-              ) : t("lostFound.submitReportBtn")}
-            </button>
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => { onOpenChange(false); resetForm(); }}
+                className="flex-1 px-5 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors"
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="flex-1 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50"
+              >
+                {createMutation.isPending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> {t("lostFound.submitting")}
+                  </span>
+                ) : t("lostFound.submitReportBtn")}
+              </button>
+            </div>
           </form>
         )}
       </DialogContent>
