@@ -65,15 +65,15 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="relative flex justify-center"
+              className="relative flex justify-center items-end"
             >
               <div className="relative">
                 <img
                   src={dogImg}
                   alt="Puppy looking for a home"
-                  className="w-full max-w-md lg:max-w-xl object-contain drop-shadow-2xl"
+                  className="w-full object-contain drop-shadow-2xl"
                   fetchPriority="high"
-                  style={{ maxHeight: "620px" }}
+                  style={{ maxWidth: "680px", maxHeight: "none" }}
                 />
                 {/* Meet me bubble */}
                 <div
@@ -188,7 +188,7 @@ export default function Home() {
               style={{ background: i === 1 ? "#3D937F" : "#333E48" }}
             >
               <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <step.icon className="w-8 h-8" style={{ color: "#FA8D29" }} />
+                <step.icon className="w-8 h-8" style={{ color: i === 1 ? "#ffffff" : "#FA8D29" }} />
               </div>
               <h3 className="font-display font-bold text-xl mb-3 text-white">{step.title}</h3>
               <p className="text-white/80 text-sm leading-relaxed">{step.desc}</p>

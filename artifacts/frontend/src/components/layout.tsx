@@ -664,7 +664,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Footer */}
       <footer className="bg-[#333E48] text-white mt-16" style={{ borderRadius: "2rem 2rem 0 0" }}>
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-12 pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1.2fr] gap-10 lg:gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-[1.2fr_auto_1.4fr] gap-6 lg:gap-10">
             {/* Col 1 — Brand */}
             <div className="space-y-5">
               <Link href="/" className="inline-block mb-2">
