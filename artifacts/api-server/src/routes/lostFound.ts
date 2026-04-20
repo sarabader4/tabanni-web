@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, lostFoundReportsTable, usersTable } from "@workspace/db";
-import { eq, and, ilike, desc, sql } from "drizzle-orm";
+import { eq, and, ilike, or, gte, lte, desc, sql } from "drizzle-orm";
 import { ListLostFoundReportsQueryParams, CreateLostFoundReportBody, GetLostFoundReportParams } from "@workspace/api-zod";
 import { createNotification } from "../lib/notifications";
 
@@ -13,7 +13,7 @@ router.get("/lost-found", async (req, res) => {
       return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: queryParsed.error.issues });
     }
 
-    const { reportType, type, city, gender, size, breed, search, page = 1, limit = 16, reporterId } = queryParsed.data;
+    const { reportType, type, city, gender, size, breed, search, month, minAge, maxAge, page = 1, limit = 16, reporterId } = queryParsed.data;
     const pageNum = page;
     const limitNum = limit;
     const offset = (pageNum - 1) * limitNum;
@@ -23,12 +23,25 @@ router.get("/lost-found", async (req, res) => {
 
     const validReportType = reportType ? REPORT_TYPES.find(t => t === reportType) : undefined;
     if (validReportType) conditions.push(eq(lostFoundReportsTable.reportType, validReportType));
-    if (type) conditions.push(eq(lostFoundReportsTable.type, type));
+    if (type) conditions.push(ilike(lostFoundReportsTable.type, `%${type}%`));
     if (city) conditions.push(ilike(lostFoundReportsTable.city, `%${city}%`));
     if (gender) conditions.push(eq(lostFoundReportsTable.gender, gender));
     if (size) conditions.push(eq(lostFoundReportsTable.size, size));
     if (breed) conditions.push(ilike(lostFoundReportsTable.breed, `%${breed}%`));
-    if (search) conditions.push(ilike(lostFoundReportsTable.name, `%${search}%`));
+    if (search) {
+      conditions.push(or(
+        ilike(lostFoundReportsTable.name, `%${search}%`),
+        ilike(lostFoundReportsTable.type, `%${search}%`),
+        ilike(lostFoundReportsTable.breed, `%${search}%`),
+        ilike(lostFoundReportsTable.city, `%${search}%`),
+      ));
+    }
+    if (minAge !== undefined) conditions.push(gte(lostFoundReportsTable.ageMonths, minAge));
+    if (maxAge !== undefined) conditions.push(lte(lostFoundReportsTable.ageMonths, maxAge));
+    if (month !== undefined) {
+      const dateField = validReportType === "lost" ? lostFoundReportsTable.lostDate : lostFoundReportsTable.foundDate;
+      conditions.push(sql`EXTRACT(MONTH FROM CAST(${dateField} AS DATE)) = ${month}`);
+    }
 
     if (reporterId !== undefined) {
       conditions.push(eq(lostFoundReportsTable.reporterId, reporterId));

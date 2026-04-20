@@ -8,9 +8,9 @@ import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import OnboardingModal from "@/components/onboarding-modal";
 import CityGateModal from "@/components/city-gate-modal";
 
-const Home = lazy(() => import("@/pages/home"));
-const Login = lazy(() => import("@/pages/login"));
-const Register = lazy(() => import("@/pages/register"));
+import Home from "@/pages/home";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
 const Adopt = lazy(() => import("@/pages/adopt"));
 const Foster = lazy(() => import("@/pages/foster"));
 const PetDetail = lazy(() => import("@/pages/pet-detail"));
@@ -87,12 +87,8 @@ function AppRoutes() {
     <OnboardingGate />
     <CityGate />
     <Switch>
-      <Route path="/login">
-        <Suspense fallback={<PageLoader />}><Login /></Suspense>
-      </Route>
-      <Route path="/register">
-        <Suspense fallback={<PageLoader />}><Register /></Suspense>
-      </Route>
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
 
       <Route path="/admin">
         {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense></AdminGuard>}

@@ -1,4 +1,4 @@
-import { useState, useRef, useDeferredValue } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import {
   useListLostFoundReports,
@@ -60,7 +60,7 @@ export default function LostFound() {
   const { user } = useAuth();
   const [tab, setTab] = useState<"lost" | "found">("lost");
   const [search, setSearch] = useState("");
-  const deferredSearch = useDeferredValue(search);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filters, setFilters] = useState<FilterBarState>({
     type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
   });
@@ -73,17 +73,47 @@ export default function LostFound() {
   const { toast } = useToast();
   const pageSize = 20;
 
-  const isClientFiltering = !!(filters.month || filters.minAge);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const MONTH_NAMES = [
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december",
+  ];
+
+  function parseMonthFilter(monthStr: string): number | undefined {
+    if (!monthStr) return undefined;
+    const idx = MONTH_NAMES.indexOf(monthStr.toLowerCase());
+    return idx >= 0 ? idx + 1 : undefined;
+  }
+
+  function parseAgeRangeFilter(ageStr: string): { minAge?: number; maxAge?: number } {
+    if (!ageStr) return {};
+    if (ageStr === "< 1 year") return { maxAge: 12 };
+    if (ageStr === "1–3 years") return { minAge: 12, maxAge: 36 };
+    if (ageStr === "3–5 years") return { minAge: 36, maxAge: 60 };
+    if (ageStr === "5+ years") return { minAge: 60 };
+    return {};
+  }
+
+  const monthNum = parseMonthFilter(filters.month);
+  const ageRange = parseAgeRangeFilter(filters.minAge);
+
   const { data, isLoading, isError, refetch } = useListLostFoundReports({
     reportType: tab,
-    search: deferredSearch || undefined,
+    search: debouncedSearch || undefined,
     type: filters.type || undefined,
     city: filters.city || undefined,
     gender: filters.gender || undefined,
     size: filters.size || undefined,
     breed: filters.breed || undefined,
-    limit: isClientFiltering ? 200 : pageSize,
-    page: isClientFiltering ? 1 : page,
+    month: monthNum,
+    minAge: ageRange.minAge,
+    maxAge: ageRange.maxAge,
+    limit: pageSize,
+    page,
   });
 
   const createMutation = useCreateLostFoundReport();
@@ -169,35 +199,7 @@ export default function LostFound() {
     }
   };
 
-  const allReports = data?.reports ?? [];
-
-  const MONTH_NAMES = [
-    "january", "february", "march", "april", "may", "june",
-    "july", "august", "september", "october", "november", "december",
-  ];
-
-  const reports = allReports.filter((r) => {
-    const matchesMonth = !filters.month || (() => {
-      const monthIdx = MONTH_NAMES.indexOf(filters.month.toLowerCase());
-      if (monthIdx === -1) return true;
-      const eventDateStr = r.lostDate || r.foundDate || r.createdAt;
-      const d = new Date(eventDateStr);
-      return d.getMonth() === monthIdx;
-    })();
-    const age = r.ageMonths ?? null;
-    const parsedAge = (() => {
-      const s = filters.minAge;
-      if (!s) return { min: null, max: null };
-      if (s === "< 1 year") return { min: null, max: 12 };
-      if (s === "1–3 years") return { min: 12, max: 36 };
-      if (s === "3–5 years") return { min: 36, max: 60 };
-      if (s === "5+ years") return { min: 60, max: null };
-      return { min: null, max: null };
-    })();
-    const matchesMinAge = parsedAge.min === null || age === null || age >= parsedAge.min;
-    const matchesMaxAge = parsedAge.max === null || age === null || age <= parsedAge.max;
-    return matchesMonth && matchesMinAge && matchesMaxAge;
-  });
+  const reports = data?.reports ?? [];
 
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / pageSize) || 1;
@@ -345,24 +347,22 @@ export default function LostFound() {
           >
             {tab === "lost" ? t("lostFound.reportLostPet") : t("lostFound.reportFoundPet")}
           </button>
-          {!isClientFiltering && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-gray-500" />
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="w-10 h-10 rounded-full bg-primary border border-primary flex items-center justify-center hover:bg-primary/90 transition-colors"
-              >
-                <ChevronRight className="w-5 h-5 text-white" />
-              </button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-500" />
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="w-10 h-10 rounded-full bg-primary border border-primary flex items-center justify-center hover:bg-primary/90 transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
+          </div>
         </div>
       </div>
 

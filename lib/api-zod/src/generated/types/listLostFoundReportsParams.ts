@@ -14,6 +14,9 @@ export type ListLostFoundReportsParams = {
   size?: string;
   breed?: string;
   search?: string;
+  month?: number;
+  minAge?: number;
+  maxAge?: number;
   page?: number;
   limit?: number;
   reporterId?: number;

@@ -37,6 +37,7 @@ export default function Gallery() {
             alt={post.headline || post.title}
             className="w-full object-cover"
             loading="lazy"
+            decoding="async"
             style={{ maxHeight: "280px" }}
           />
         )}

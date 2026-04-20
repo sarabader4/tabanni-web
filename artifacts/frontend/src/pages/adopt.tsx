@@ -1,4 +1,4 @@
-import { useState, useDeferredValue } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useListPets } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
@@ -12,7 +12,7 @@ type PurposeFilter = "adopt" | "foster" | "both";
 
 export default function Adopt() {
   const [search, setSearch] = useState("");
-  const deferredSearch = useDeferredValue(search);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [purpose, setPurpose] = useState<PurposeFilter>("adopt");
   const [page, setPage] = useState(1);
   const pageSize = 20;
@@ -20,6 +20,11 @@ export default function Adopt() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleFavorite = async (petId: number) => {
     if (!isLoggedIn) {
@@ -54,7 +59,7 @@ export default function Adopt() {
 
   const { data, isLoading, isError } = useListPets({
     purpose: purpose === "both" ? undefined : purpose,
-    search: deferredSearch || undefined,
+    search: debouncedSearch || undefined,
     type: filters.type || undefined,
     gender: filters.gender || undefined,
     size: filters.size || undefined,
