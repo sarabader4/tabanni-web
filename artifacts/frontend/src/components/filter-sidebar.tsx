@@ -20,6 +20,8 @@ export interface FilterSidebarProps {
   onChange: (filters: FilterBarState) => void;
   purpose?: string;
   onPurposeChange?: (v: string) => void;
+  reportType?: "lost" | "found";
+  onReportTypeChange?: (v: "lost" | "found") => void;
   onClear?: () => void;
   onClose?: () => void;
 }
@@ -75,6 +77,8 @@ export function FilterSidebar({
   onChange,
   purpose,
   onPurposeChange,
+  reportType,
+  onReportTypeChange,
   onClear,
   onClose,
 }: FilterSidebarProps) {
@@ -109,6 +113,8 @@ export function FilterSidebar({
     { value: "both", label: t("adopt.adoptFoster") },
   ];
 
+  const isLostFound = reportType !== undefined;
+
   const activeCount = [
     purpose !== "both" && purpose ? 1 : 0,
     filters.city ? 1 : 0,
@@ -117,7 +123,7 @@ export function FilterSidebar({
     filters.gender ? 1 : 0,
     filters.minAge ? 1 : 0,
     filters.size ? 1 : 0,
-    filters.sterilized ? 1 : 0,
+    !isLostFound && filters.sterilized ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
 
   return (
@@ -155,6 +161,37 @@ export function FilterSidebar({
 
       {/* Sections */}
       <div className="p-5 space-y-5">
+        {/* Lost / Found toggle */}
+        {isLostFound && onReportTypeChange && (
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+              {t("lostFound.reportType")}
+            </label>
+            <div className="flex rounded-xl overflow-hidden border border-gray-200">
+              <button
+                onClick={() => onReportTypeChange("lost")}
+                className={`flex-1 py-2.5 text-sm font-bold transition-colors ${
+                  reportType === "lost"
+                    ? "bg-primary text-white"
+                    : "bg-white text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                {t("lostFound.lost")}
+              </button>
+              <button
+                onClick={() => onReportTypeChange("found")}
+                className={`flex-1 py-2.5 text-sm font-bold transition-colors border-s border-gray-200 ${
+                  reportType === "found"
+                    ? "bg-[#3D937F] text-white"
+                    : "bg-white text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                {t("lostFound.found")}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Purpose */}
         {onPurposeChange && (
           <div>
@@ -222,12 +259,14 @@ export function FilterSidebar({
           onChange={(v) => update("size", v)}
         />
 
-        <SidebarSelect
-          label={t("petDetail.sterilized")}
-          value={filters.sterilized}
-          options={sterilizedOptions}
-          onChange={(v) => update("sterilized", v)}
-        />
+        {!isLostFound && (
+          <SidebarSelect
+            label={t("petDetail.sterilized")}
+            value={filters.sterilized}
+            options={sterilizedOptions}
+            onChange={(v) => update("sterilized", v)}
+          />
+        )}
       </div>
     </div>
   );

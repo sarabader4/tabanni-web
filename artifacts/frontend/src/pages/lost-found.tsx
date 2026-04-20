@@ -4,8 +4,9 @@ import {
   useListLostFoundReports,
   useCreateLostFoundReport,
 } from "@workspace/api-client-react";
-import { FilterBar, type FilterBarState } from "@/components/filter-bar";
-import { Search, Loader2, ChevronLeft, ChevronRight, X, ImagePlus, CheckCircle2 } from "lucide-react";
+import { FilterSidebar } from "@/components/filter-sidebar";
+import type { FilterBarState } from "@/components/filter-bar";
+import { Search, Loader2, ChevronLeft, ChevronRight, X, ImagePlus, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +18,10 @@ import WhatsAppPhoneInput from "@/components/whatsapp-phone-input";
 import type { TFunction } from "i18next";
 
 const MAX_IMAGES = 5;
+
+const EMPTY_FILTERS: FilterBarState = {
+  type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
+};
 
 function buildReportSchema(t: TFunction) {
   return z.object({
@@ -81,14 +86,13 @@ export default function LostFound() {
   const [tab, setTab] = useState<"lost" | "found">("lost");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filters, setFilters] = useState<FilterBarState>({
-    type: "", gender: "", minAge: "", maxAge: "", size: "", city: "", breed: "", month: "", sterilized: "",
-  });
+  const [filters, setFilters] = useState<FilterBarState>(EMPTY_FILTERS);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [page, setPage] = useState(1);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const pageSize = 20;
@@ -98,16 +102,14 @@ export default function LostFound() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const MONTH_NAMES = [
-    "january", "february", "march", "april", "may", "june",
-    "july", "august", "september", "october", "november", "december",
-  ];
-
-  function parseMonthFilter(monthStr: string): number | undefined {
-    if (!monthStr) return undefined;
-    const idx = MONTH_NAMES.indexOf(monthStr.toLowerCase());
-    return idx >= 0 ? idx + 1 : undefined;
-  }
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [drawerOpen]);
 
   function parseAgeRangeFilter(ageStr: string): { minAge?: number; maxAge?: number } {
     if (!ageStr) return {};
@@ -118,7 +120,6 @@ export default function LostFound() {
     return {};
   }
 
-  const monthNum = parseMonthFilter(filters.month);
   const ageRange = parseAgeRangeFilter(filters.minAge);
 
   const { data, isLoading, isError, refetch } = useListLostFoundReports({
@@ -129,7 +130,6 @@ export default function LostFound() {
     gender: filters.gender || undefined,
     size: filters.size || undefined,
     breed: filters.breed || undefined,
-    month: monthNum,
     minAge: ageRange.minAge,
     maxAge: ageRange.maxAge,
     limit: pageSize,
@@ -232,8 +232,31 @@ export default function LostFound() {
     setIsModalOpen(true);
   };
 
+  const handleClear = () => {
+    setFilters(EMPTY_FILTERS);
+    setSearch("");
+    setPage(1);
+  };
+
+  const handleFilterChange = (f: FilterBarState) => { setFilters(f); setPage(1); };
+
+  const handleTabChange = (newTab: "lost" | "found") => {
+    setTab(newTab);
+    setPage(1);
+  };
+
+  const activeFilterCount = [
+    filters.city ? 1 : 0,
+    filters.type ? 1 : 0,
+    filters.breed ? 1 : 0,
+    filters.gender ? 1 : 0,
+    filters.minAge ? 1 : 0,
+    filters.size ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Top bar: Search + Report a pet button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
         <div className="flex gap-3 items-center">
           <div className="flex-1 relative">
@@ -257,140 +280,173 @@ export default function LostFound() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
-        <FilterBar filters={filters} onChange={(f) => { setFilters(f); setPage(1); }} showMonth />
-      </div>
+      {/* Main two-column layout */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 flex gap-6 items-start">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-5">
-        <div className="inline-flex bg-gray-100 rounded-full p-1 gap-1">
-          <button
-            onClick={() => { setTab("lost"); setPage(1); }}
-            className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
-              tab === "lost" ? "bg-white text-[#333E48] shadow-sm" : "text-gray-500 hover:text-[#333E48]"
-            }`}
-          >
-            {t("lostFound.lostPets")}
-          </button>
-          <button
-            onClick={() => { setTab("found"); setPage(1); }}
-            className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
-              tab === "found" ? "bg-white text-[#333E48] shadow-sm" : "text-gray-500 hover:text-[#333E48]"
-            }`}
-          >
-            {t("lostFound.foundPets")}
-          </button>
-        </div>
-      </div>
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:block w-60 xl:w-64 shrink-0 sticky top-24">
+          <FilterSidebar
+            filters={filters}
+            onChange={handleFilterChange}
+            reportType={tab}
+            onReportTypeChange={handleTabChange}
+            onClear={handleClear}
+          />
+        </aside>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        {isError ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-red-100">
-            <p className="font-bold text-lg text-red-500 mb-2">{t("lostFound.failedLoad")}</p>
-            <p className="text-gray-400 text-sm mb-4">{t("lostFound.failedLoadSub")}</p>
-            <button onClick={() => refetch()} className="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
-              {t("common.retry")}
+        {/* Pet area */}
+        <div className="flex-1 min-w-0">
+
+          {/* Mobile: filters toggle */}
+          <div className="flex items-center justify-between mb-4 lg:hidden">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-[#333E48] shadow-sm hover:border-primary/50 transition-colors"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-primary" />
+              {t("filters.filters")}
+              {activeFilterCount > 0 && (
+                <span className="px-2 py-0.5 bg-primary text-white text-xs font-bold rounded-full leading-none">
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
+            {total > 0 && (
+              <span className="text-sm text-gray-400">{total} {tab === "lost" ? t("lostFound.lostPets") : t("lostFound.foundPets")}</span>
+            )}
           </div>
-        ) : isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : reports.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-            <h3 className="font-display font-bold text-xl mb-2 text-[#333E48]">
-              {t("lostFound.noReportsFound", { type: tab })}
-            </h3>
-            <p className="text-gray-400">{t("lostFound.noReportsSub", { type: tab })}</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {reports.map((report) => {
-              return (
-                <div key={report.id} className="relative">
-                  <Link
-                    href={`/lost-found/${report.id}`}
-                    className="block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group"
-                  >
-                    <div className="relative overflow-hidden" style={{ height: "180px" }}>
-                      <img
-                        src={report.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"}
-                        alt={report.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className={`absolute top-3 start-3 px-2 py-0.5 rounded-full text-white text-xs font-bold ${
-                        report.reportType === "lost" ? "bg-red-500" : "bg-[#3D937F]"
-                      }`}>
-                        {report.reportType === "lost" ? t("lostFound.lost") : t("lostFound.found")}
-                      </div>
-                    </div>
-                    <div className="p-4 flex flex-col flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-display font-bold text-base text-[#333E48]">{report.name}</h3>
-                        <span className="text-xs text-gray-400 font-medium">
-                          {{ Dog: t("filters.dog"), Cat: t("filters.cat"), Rabbit: t("filters.rabbit"), Bird: t("filters.bird"), Other: t("filters.other") }[report.type] ?? report.type}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        <span className="px-2 py-0.5 bg-[#3D937F]/10 text-[#3D937F] rounded-full text-xs font-semibold">
-                          {{ Dog: t("filters.dog"), Cat: t("filters.cat"), Rabbit: t("filters.rabbit"), Bird: t("filters.bird"), Other: t("filters.other") }[report.type] ?? report.type}
-                        </span>
-                        {report.gender && (
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            report.gender === "male" ? "bg-blue-50 text-blue-500" : "bg-pink-50 text-pink-500"
-                          }`}>
-                            {{ male: t("lostFound.genderMale"), female: t("lostFound.genderFemale"), unknown: t("lostFound.genderUnknown") }[report.gender] ?? report.gender}
-                          </span>
-                        )}
-                        {(report.lostDate || report.foundDate) && (
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">
-                            {new Date(report.lostDate || report.foundDate || new Date()).toLocaleDateString(i18n.language, { day: "numeric", month: "short" })}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-auto">
-                        <span className={`block w-full text-center py-2.5 rounded-xl font-bold text-sm transition-colors text-white ${
-                          report.reportType === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#3D937F] hover:bg-[#3D937F]/90"
+
+          {/* Results grid */}
+          {isError ? (
+            <div className="text-center py-20 bg-white rounded-2xl border border-red-100">
+              <p className="font-bold text-lg text-red-500 mb-2">{t("lostFound.failedLoad")}</p>
+              <p className="text-gray-400 text-sm mb-4">{t("lostFound.failedLoadSub")}</p>
+              <button onClick={() => refetch()} className="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm">
+                {t("common.retry")}
+              </button>
+            </div>
+          ) : isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : reports.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
+              <h3 className="font-display font-bold text-xl mb-2 text-[#333E48]">
+                {t("lostFound.noReportsFound", { type: tab })}
+              </h3>
+              <p className="text-gray-400">{t("lostFound.noReportsSub", { type: tab })}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {reports.map((report) => {
+                return (
+                  <div key={report.id} className="relative">
+                    <Link
+                      href={`/lost-found/${report.id}`}
+                      className="block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group"
+                    >
+                      <div className="relative overflow-hidden" style={{ height: "180px" }}>
+                        <img
+                          src={report.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"}
+                          alt={report.name}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className={`absolute top-3 start-3 px-2 py-0.5 rounded-full text-white text-xs font-bold ${
+                          report.reportType === "lost" ? "bg-red-500" : "bg-[#3D937F]"
                         }`}>
-                          {report.reportType === "lost" ? t("lostFound.helpMe") : t("lostFound.helpThisPet")}
-                        </span>
+                          {report.reportType === "lost" ? t("lostFound.lost") : t("lostFound.found")}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                      <div className="p-4 flex flex-col flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-display font-bold text-base text-[#333E48]">{report.name}</h3>
+                          <span className="text-xs text-gray-400 font-medium">
+                            {{ Dog: t("filters.dog"), Cat: t("filters.cat"), Rabbit: t("filters.rabbit"), Bird: t("filters.bird"), Other: t("filters.other") }[report.type] ?? report.type}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          <span className="px-2 py-0.5 bg-[#3D937F]/10 text-[#3D937F] rounded-full text-xs font-semibold">
+                            {{ Dog: t("filters.dog"), Cat: t("filters.cat"), Rabbit: t("filters.rabbit"), Bird: t("filters.bird"), Other: t("filters.other") }[report.type] ?? report.type}
+                          </span>
+                          {report.gender && (
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                              report.gender === "male" ? "bg-blue-50 text-blue-500" : "bg-pink-50 text-pink-500"
+                            }`}>
+                              {{ male: t("lostFound.genderMale"), female: t("lostFound.genderFemale"), unknown: t("lostFound.genderUnknown") }[report.gender] ?? report.gender}
+                            </span>
+                          )}
+                          {(report.lostDate || report.foundDate) && (
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">
+                              {new Date(report.lostDate || report.foundDate || new Date()).toLocaleDateString(i18n.language, { day: "numeric", month: "short" })}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-auto">
+                          <span className={`block w-full text-center py-2.5 rounded-xl font-bold text-sm transition-colors text-white ${
+                            report.reportType === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#3D937F] hover:bg-[#3D937F]/90"
+                          }`}>
+                            {report.reportType === "lost" ? t("lostFound.helpMe") : t("lostFound.helpThisPet")}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
-        <div className="flex justify-between items-center mt-8">
-          <button
-            onClick={openModal}
-            className={`px-6 py-3 rounded-full font-bold text-sm shadow-md transition-colors text-white ${
-              tab === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#3D937F] hover:bg-[#3D937F]/90"
-            }`}
-          >
-            {tab === "lost" ? t("lostFound.reportLostPet") : t("lostFound.reportFoundPet")}
-          </button>
-          <div className="flex gap-2">
+          {/* Bottom row: report button + pagination */}
+          <div className="flex justify-between items-center mt-8">
             <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
+              onClick={openModal}
+              className={`px-6 py-3 rounded-full font-bold text-sm shadow-md transition-colors text-white ${
+                tab === "lost" ? "bg-primary hover:bg-primary/90" : "bg-[#3D937F] hover:bg-[#3D937F]/90"
+              }`}
             >
-              <ChevronLeft className="w-5 h-5 text-gray-500 rtl:rotate-180" />
+              {tab === "lost" ? t("lostFound.reportLostPet") : t("lostFound.reportFoundPet")}
             </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="w-10 h-10 rounded-full bg-primary border border-primary flex items-center justify-center hover:bg-primary/90 transition-colors"
-            >
-              <ChevronRight className="w-5 h-5 text-white rtl:rotate-180" />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-500 rtl:rotate-180" />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="w-10 h-10 rounded-full bg-primary border border-primary flex items-center justify-center hover:bg-primary/90 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 text-white rtl:rotate-180" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Mobile Drawer */}
+      {drawerOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <div className="fixed inset-y-0 start-0 z-50 w-80 max-w-[90vw] bg-background shadow-2xl overflow-y-auto">
+            <FilterSidebar
+              filters={filters}
+              onChange={handleFilterChange}
+              reportType={tab}
+              onReportTypeChange={handleTabChange}
+              onClear={handleClear}
+              onClose={() => setDrawerOpen(false)}
+            />
+          </div>
+        </>
+      )}
 
       <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) { setIsModalOpen(false); resetForm(); } }}>
         <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[90vh] overflow-y-auto">
