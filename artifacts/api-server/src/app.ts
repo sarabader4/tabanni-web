@@ -62,17 +62,17 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
 
+// Default all responses to no-store; specific public GET routes override this explicitly
+app.use((_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
 // Populate req.userId from JWT cookie for all routes (non-blocking)
 app.use(optionalAuth);
 
 // Admin routes require authentication AND admin role
 app.use("/api/admin", requireAdmin);
-
-// Cache-Control: no-store for all admin routes
-app.use("/api/admin", (_req, res, next) => {
-  res.set("Cache-Control", "no-store");
-  next();
-});
 
 app.use("/api", router);
 

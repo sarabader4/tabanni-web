@@ -29,6 +29,7 @@ router.get("/donations", async (req, res) => {
       amount: donationsTable.amount,
       type: donationsTable.type,
       donationTypeLabel: donationsTable.donationTypeLabel,
+      description: donationsTable.description,
       paymentMethod: donationsTable.paymentMethod,
       frequency: donationsTable.frequency,
       petId: donationsTable.petId,

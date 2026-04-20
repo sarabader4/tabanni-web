@@ -6,6 +6,8 @@ CREATE INDEX IF NOT EXISTS "pets_listing_idx" ON "pets" ("approved", "status", "
 CREATE INDEX IF NOT EXISTS "pets_purpose_idx" ON "pets" ("purpose");
 CREATE INDEX IF NOT EXISTS "pets_type_idx" ON "pets" ("type");
 
--- Index for lost_found_reports filtering by report_type and status
+-- Indexes for lost_found_reports filtering by report_type and status
 CREATE INDEX IF NOT EXISTS "lost_found_report_type_idx" ON "lost_found_reports" ("report_type");
 CREATE INDEX IF NOT EXISTS "lost_found_status_idx" ON "lost_found_reports" ("status");
+-- Composite index for the common query pattern: filter by report_type AND status together
+CREATE INDEX IF NOT EXISTS "lost_found_type_status_idx" ON "lost_found_reports" ("report_type", "status");
