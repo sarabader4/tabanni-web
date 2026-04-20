@@ -1,6 +1,6 @@
 import { useParams, Link, useLocation } from "wouter";
 import { useGetPet, useCreateAdoptionRequest, useCreateFosterRequest } from "@workspace/api-client-react";
-import { ArrowLeft, Loader2, Heart, Share2, CheckCircle2, Phone, User, Lightbulb, X } from "lucide-react";
+import { ArrowLeft, Loader2, Heart, Share2, CheckCircle2, Phone, User, Lightbulb, X, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AIPetMatchWidget from "@/components/ai-pet-match-widget";
@@ -215,9 +215,17 @@ export default function PetDetail() {
 
           {/* Name + Favorite + Share */}
           <div className="flex justify-between items-start mb-6">
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground">
-              {pet.name}
-            </h1>
+            <div>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground">
+                {pet.name}
+              </h1>
+              {(pet.approved || pet.addedByAdmin) && (
+                <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-[#00B8A0] text-white text-xs font-bold shadow-sm">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Verified by Tabanni
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleShare}

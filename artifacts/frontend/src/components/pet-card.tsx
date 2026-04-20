@@ -55,11 +55,11 @@ export function PetCard({ pet, onFavorite, isFavorited, isFavoritePending, varia
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
 
-        {/* Tabanni verified badge — left side */}
-        {pet.addedByAdmin && (
-          <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-primary/90 text-white text-xs font-bold shadow-sm backdrop-blur-sm">
+        {/* Verified by Tabanni badge — left side */}
+        {(pet.approved || pet.addedByAdmin) && (
+          <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-[#00B8A0] text-white text-xs font-bold shadow-sm backdrop-blur-sm">
             <ShieldCheck className="w-3.5 h-3.5" />
-            Tabanni
+            Verified by Tabanni
           </div>
         )}
 
