@@ -320,12 +320,6 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
 
       updated = result.acceptedRequest;
       autoRejectedRequesterIds = result.autoRejectedRequesterIds;
-
-      await Promise.all([
-        cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST),
-        cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL),
-        cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED),
-      ]);
     } else {
       const [rejectedRequest] = await db.update(fosterRequestsTable)
         .set({ status: newStatus })
@@ -333,6 +327,12 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
         .returning();
       updated = rejectedRequest;
     }
+
+    await Promise.all([
+      cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST),
+      cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL),
+      cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED),
+    ]);
 
     if (existingRequest.requesterId) {
       try {
