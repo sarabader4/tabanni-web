@@ -19,7 +19,7 @@ export default function Home() {
     <div className="flex flex-col gap-24 pb-10 overflow-hidden">
       {/* Hero Section */}
       <section className="relative overflow-hidden flex items-center min-h-[calc(100vh-5rem)] py-8 lg:py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             {/* Left: Text */}
             <motion.div
