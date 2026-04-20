@@ -71,9 +71,9 @@ export default function Home() {
                 <img
                   src={dogImg}
                   alt="Puppy looking for a home"
-                  className="w-full max-w-sm lg:max-w-md object-contain drop-shadow-2xl"
+                  className="w-full max-w-md lg:max-w-xl object-contain drop-shadow-2xl"
                   fetchPriority="high"
-                  style={{ maxHeight: "520px" }}
+                  style={{ maxHeight: "620px" }}
                 />
                 {/* Meet me bubble */}
                 <div
@@ -102,6 +102,27 @@ export default function Home() {
                 </div>
               </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section — directly below hero */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
+        <div className="rounded-3xl overflow-hidden" style={{ background: "#333E48" }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 divide-x divide-white/10">
+            {[
+              { label: t("home.petsAvailable"), value: stats?.totalPets ?? "200+", color: "#FA8D29" },
+              { label: t("home.happyHomes"), value: stats?.adoptionsCount ?? "150+", color: "#3D937F" },
+              { label: t("home.fosterFamilies"), value: "80+", color: "#FA8D29" },
+              { label: t("home.activeMembers"), value: stats?.totalUsers ?? "500+", color: "#3D937F" },
+            ].map((stat, i) => (
+              <div key={i} className="text-center px-6 py-8">
+                <div className="text-4xl md:text-5xl font-display font-black mb-1.5" style={{ color: stat.color }}>
+                  {stat.value}
+                </div>
+                <div className="text-white/60 text-sm font-medium">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -146,25 +167,6 @@ export default function Home() {
         <AIPetMatchWidget />
       </section>
 
-      {/* Stats Section */}
-      <section className="bg-foreground py-20 mt-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            {[
-              { label: t("home.petsAvailable"), value: stats?.totalPets || "200+" },
-              { label: t("home.happyHomes"), value: stats?.adoptionsCount || "150+" },
-              { label: t("home.fosterFamilies"), value: "80+" },
-              { label: t("home.activeMembers"), value: stats?.totalUsers || "500+" }
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-4xl md:text-5xl font-display font-bold text-white mb-2">{stat.value}</div>
-                <div className="text-white/60 font-medium text-sm md:text-base">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* How it Works */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
@@ -185,8 +187,8 @@ export default function Home() {
               className="p-8 rounded-3xl text-center hover:-translate-y-2 transition-transform duration-300"
               style={{ background: i === 1 ? "#3D937F" : "#333E48" }}
             >
-              <div className="w-16 h-16 bg-white/15 text-white rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <step.icon className="w-8 h-8" />
+              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <step.icon className="w-8 h-8" style={{ color: "#FA8D29" }} />
               </div>
               <h3 className="font-display font-bold text-xl mb-3 text-white">{step.title}</h3>
               <p className="text-white/80 text-sm leading-relaxed">{step.desc}</p>

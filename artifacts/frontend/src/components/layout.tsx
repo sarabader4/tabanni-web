@@ -667,7 +667,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1.2fr] gap-10 lg:gap-16">
             {/* Col 1 — Brand */}
             <div className="space-y-5">
-              <Link href="/">
+              <Link href="/" className="inline-block mb-2">
                 <img src={logoImg} alt="tabanni" className="h-10 w-auto brightness-0 invert" />
               </Link>
               <div className="text-white/70 text-sm space-y-1">

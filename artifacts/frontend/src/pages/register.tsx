@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { PawPrint, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import halfLogo from "@assets/half_logo_1776716170746.PNG";
 import { useTranslation } from "react-i18next";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import {
@@ -97,11 +98,12 @@ export default function Register() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="bg-[#FA8D29] text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform">
-              <PawPrint className="w-6 h-6" />
-            </div>
-            <span className="font-bold text-2xl text-[#333E48] tracking-tight">tabbani</span>
+          <Link href="/" className="inline-block group">
+            <img
+              src={halfLogo}
+              alt="tabanni"
+              className="h-20 w-auto mx-auto group-hover:scale-105 transition-transform"
+            />
           </Link>
           <p className="mt-3 text-[#333E48]/60 text-sm">{t("register.subtitle")}</p>
         </div>

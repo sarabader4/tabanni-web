@@ -145,7 +145,7 @@ export default function AIPetMatchWidget({ mode = "search", currentPet }: AIPetM
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="rounded-3xl overflow-hidden" style={{ background: "linear-gradient(135deg, #333E48 0%, #2d3f55 100%)" }}>
+      <div className="rounded-3xl overflow-hidden" style={{ background: "#333E48" }}>
         <div className="p-8 md:p-12">
           <div className="max-w-2xl mx-auto text-center mb-8">
             <div
