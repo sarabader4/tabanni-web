@@ -46,7 +46,7 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/about#who-we-are"
+                  href="/about"
                   className="flex items-center gap-3 pl-6 pr-2 py-2 bg-primary text-white rounded-full font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:-translate-y-0.5 transition-all"
                 >
                   {t("home.aboutUs", { defaultValue: "About Us" })}
