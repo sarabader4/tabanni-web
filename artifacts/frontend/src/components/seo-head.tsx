@@ -7,7 +7,7 @@ interface SEOHeadProps {
   image?: string;
 }
 
-const SITE_NAME = "Tabanni";
+const SITE_NAME = "tabanni";
 const SITE_URL = "https://tabanni.jo";
 const DEFAULT_IMAGE = `${SITE_URL}/images/half_logo.PNG`;
 

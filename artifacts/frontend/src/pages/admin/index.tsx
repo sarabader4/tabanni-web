@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import logoImg from "@assets/logo_1776713054949.PNG";
 import {
   useGetAdminStats,
   useListDonations,
@@ -146,11 +147,8 @@ export function AdminSidebar() {
   return (
     <aside className="w-56 min-h-screen flex-shrink-0 flex flex-col" style={{ background: "#333E48" }}>
       <div className="p-5 border-b border-white/10">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FA8D29" }}>
-            <PawPrint className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-white font-bold text-base">tabanni</span>
+        <Link href="/" className="flex items-center">
+          <img src={logoImg} alt="tabanni" className="h-10 w-auto brightness-0 invert" />
         </Link>
       </div>
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">

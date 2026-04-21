@@ -7,7 +7,7 @@ import { type FilterBarState } from "@/components/filter-bar";
 import { FilterSidebar } from "@/components/filter-sidebar";
 import {
   Search, Loader2, Plus, PlusCircle,
-  ChevronLeft, ChevronRight, SlidersHorizontal,
+  ChevronLeft, ChevronRight, SlidersHorizontal, Sparkles,
 } from "lucide-react";
 import { useFavourites } from "@/hooks/use-favourites";
 import { useToast } from "@/hooks/use-toast";
@@ -123,8 +123,32 @@ export default function Adopt() {
         description="Browse hundreds of pets available for adoption across Jordan. Find dogs, cats, and more. Each pet is vetted and ready for a loving home."
         path="/adopt"
       />
-      {/* Top bar: Search + AI button */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+      {/* AI Pet Match Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-2">
+        <button
+          onClick={() => navigate("/")}
+          className="group w-full flex items-center justify-between gap-4 rounded-2xl px-6 py-4 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+          style={{ background: "linear-gradient(135deg, #3D937F 0%, #2d7a68 50%, #1f5c4d 100%)" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 group-hover:bg-white/30 transition-colors shrink-0">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-start">
+              <p className="font-bold text-base leading-tight">{t("home.aiPetMatch")}</p>
+              <p className="text-white/75 text-xs mt-0.5">{t("home.aiPetMatchTooltip")}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="hidden sm:inline text-sm font-semibold bg-white/20 px-3 py-1 rounded-full">
+              Try it →
+            </span>
+          </div>
+        </button>
+      </div>
+
+      {/* Top bar: Search + Add Pet button */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-4">
         <div className="flex gap-3 items-center">
           <div className="flex-1 relative">
             <Search className="absolute start-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />

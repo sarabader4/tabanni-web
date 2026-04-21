@@ -2687,6 +2687,10 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
                   <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3">
                     <p className="text-sm font-semibold text-red-600">{t("profile.addPetPaymentNotice")}</p>
                   </div>
+                  <div className="flex items-center gap-2 px-1">
+                    <span className="text-sm text-gray-500">{t("profile.addPetCliqName").split(":")[0]}:</span>
+                    <span className="text-sm font-bold text-white bg-[#3D937F] px-3 py-0.5 rounded-full tracking-wide">Tabanni</span>
+                  </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5">
