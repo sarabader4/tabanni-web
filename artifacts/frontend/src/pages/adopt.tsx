@@ -126,7 +126,12 @@ export default function Adopt() {
       {/* AI Pet Match Banner */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-2">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => {
+            navigate("/");
+            setTimeout(() => {
+              document.getElementById("ai-pet-match")?.scrollIntoView({ behavior: "smooth" });
+            }, 150);
+          }}
           className="group w-full flex items-center justify-between gap-4 rounded-2xl px-6 py-4 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
           style={{ background: "linear-gradient(135deg, #3D937F 0%, #2d7a68 50%, #1f5c4d 100%)" }}
         >
