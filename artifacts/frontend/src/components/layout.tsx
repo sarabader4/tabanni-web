@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Bell, Menu, X, Instagram, Facebook, Linkedin, ChevronDown, LogOut, User, FileText, Check } from "lucide-react";
+import { Bell, Menu, X, Instagram, Facebook, Linkedin, Youtube, ChevronDown, LogOut, User, FileText, Check } from "lucide-react";
 import logoImg from "@assets/logo_1776713054949.PNG";
 import ukFlagImg from "@assets/Screenshot_2026-04-20_225002_1776714609192.png";
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -664,7 +664,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Footer */}
       <footer className="bg-[#333E48] text-white mt-16" style={{ borderRadius: "2rem 2rem 0 0" }}>
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-12 pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-[1.2fr_auto_1.4fr] gap-6 lg:gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-[1.2fr_auto_1.5fr] gap-10 lg:gap-20">
             {/* Col 1 — Brand */}
             <div className="space-y-5">
               <Link href="/" className="inline-block mb-2">
@@ -683,6 +683,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </a>
                 <a href="https://www.linkedin.com/company/tabanni/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
                   <Linkedin className="w-4 h-4" />
+                </a>
+                <a href="https://www.youtube.com/@tabanni.jordan" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
+                  <Youtube className="w-4 h-4" />
                 </a>
               </div>
               <LangToggle className="bg-white/10 hover:bg-white/20" />

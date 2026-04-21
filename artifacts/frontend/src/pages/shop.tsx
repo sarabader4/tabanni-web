@@ -1,9 +1,89 @@
 import { Link } from "wouter";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Heart, Home } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+function DogIllustration() {
+  return (
+    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      <circle cx="60" cy="62" r="32" fill="rgba(255,255,255,0.18)" />
+      <ellipse cx="60" cy="80" rx="22" ry="14" fill="rgba(255,255,255,0.12)" />
+      <ellipse cx="40" cy="52" rx="10" ry="16" fill="white" fillOpacity="0.9" transform="rotate(-15 40 52)" />
+      <ellipse cx="80" cy="52" rx="10" ry="16" fill="white" fillOpacity="0.9" transform="rotate(15 80 52)" />
+      <circle cx="60" cy="60" r="26" fill="white" fillOpacity="0.95" />
+      <circle cx="51" cy="57" r="5" fill="#3D937F" />
+      <circle cx="69" cy="57" r="5" fill="#3D937F" />
+      <circle cx="52.5" cy="55.5" r="2" fill="white" />
+      <circle cx="70.5" cy="55.5" r="2" fill="white" />
+      <ellipse cx="60" cy="67" rx="6" ry="4" fill="#f4a0a0" />
+      <path d="M55 72 Q60 76 65 72" stroke="#333E48" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      <ellipse cx="36" cy="46" rx="7" ry="11" fill="white" fillOpacity="0.85" transform="rotate(-20 36 46)" />
+      <ellipse cx="84" cy="46" rx="7" ry="11" fill="white" fillOpacity="0.85" transform="rotate(20 84 46)" />
+      <ellipse cx="36" cy="47" rx="4" ry="7" fill="#b2e0d8" transform="rotate(-20 36 47)" />
+      <ellipse cx="84" cy="47" rx="4" ry="7" fill="#b2e0d8" transform="rotate(20 84 47)" />
+      <circle cx="76" cy="88" r="5" fill="white" fillOpacity="0.7" />
+      <circle cx="44" cy="88" r="5" fill="white" fillOpacity="0.7" />
+    </svg>
+  );
+}
+
+function CatIllustration() {
+  return (
+    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      <circle cx="60" cy="62" r="32" fill="rgba(255,255,255,0.18)" />
+      <polygon points="42,44 36,26 52,38" fill="white" fillOpacity="0.9" />
+      <polygon points="78,44 84,26 68,38" fill="white" fillOpacity="0.9" />
+      <polygon points="43,44 38,30 51,40" fill="#ffd0a0" />
+      <polygon points="77,44 82,30 69,40" fill="#ffd0a0" />
+      <circle cx="60" cy="62" r="26" fill="white" fillOpacity="0.95" />
+      <ellipse cx="51" cy="58" rx="5" ry="6" fill="#FA8D29" />
+      <ellipse cx="69" cy="58" rx="5" ry="6" fill="#FA8D29" />
+      <ellipse cx="51" cy="59" rx="2" ry="5" fill="#333E48" />
+      <ellipse cx="69" cy="59" rx="2" ry="5" fill="#333E48" />
+      <circle cx="52" cy="56" r="1.5" fill="white" />
+      <circle cx="70" cy="56" r="1.5" fill="white" />
+      <ellipse cx="60" cy="68" rx="5" ry="3.5" fill="#f9a8a8" />
+      <path d="M56 72 Q60 75 64 72" stroke="#333E48" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      <line x1="38" y1="65" x2="56" y2="68" stroke="#333E48" strokeWidth="1" strokeOpacity="0.4" />
+      <line x1="38" y1="69" x2="56" y2="69" stroke="#333E48" strokeWidth="1" strokeOpacity="0.4" />
+      <line x1="82" y1="65" x2="64" y2="68" stroke="#333E48" strokeWidth="1" strokeOpacity="0.4" />
+      <line x1="82" y1="69" x2="64" y2="69" stroke="#333E48" strokeWidth="1" strokeOpacity="0.4" />
+      <path d="M50 88 Q60 96 70 88" stroke="white" strokeWidth="2" strokeOpacity="0.6" fill="none" />
+    </svg>
+  );
+}
+
+function HeartPawIllustration() {
+  return (
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      <circle cx="40" cy="40" r="36" fill="rgba(255,255,255,0.15)" />
+      <path d="M40 58 C40 58 18 44 18 30 C18 22 25 16 32 18 C35 19 38 21 40 24 C42 21 45 19 48 18 C55 16 62 22 62 30 C62 44 40 58 40 58Z" fill="white" fillOpacity="0.95" />
+      <circle cx="30" cy="22" r="4" fill="white" fillOpacity="0.7" />
+      <circle cx="22" cy="28" r="3" fill="white" fillOpacity="0.7" />
+      <circle cx="50" cy="22" r="4" fill="white" fillOpacity="0.7" />
+      <circle cx="58" cy="28" r="3" fill="white" fillOpacity="0.7" />
+      <circle cx="40" cy="40" r="5" fill="#FA8D29" fillOpacity="0.4" />
+    </svg>
+  );
+}
+
+function FosterHouseIllustration() {
+  return (
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      <circle cx="40" cy="40" r="36" fill="rgba(255,255,255,0.15)" />
+      <polygon points="40,14 68,36 12,36" fill="white" fillOpacity="0.9" />
+      <rect x="18" y="36" width="44" height="28" rx="2" fill="white" fillOpacity="0.95" />
+      <rect x="32" y="48" width="16" height="16" rx="2" fill="#3D937F" fillOpacity="0.5" />
+      <rect x="22" y="40" width="10" height="10" rx="1.5" fill="#3D937F" fillOpacity="0.4" />
+      <rect x="48" y="40" width="10" height="10" rx="1.5" fill="#3D937F" fillOpacity="0.4" />
+      <circle cx="39" cy="56" r="1.5" fill="white" />
+      <path d="M52 22 C52 22 56 18 60 22" stroke="white" strokeWidth="2" strokeLinecap="round" fillOpacity="0.6" />
+    </svg>
+  );
+}
 
 export default function Shop() {
   const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
@@ -11,81 +91,80 @@ export default function Shop() {
           {t("shop.title")}
         </h1>
 
+        {/* Shop partner cards */}
         <div className="grid md:grid-cols-2 gap-6 mb-16">
-          <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#3D937F", minHeight: "200px" }}>
-            <div className="p-8 relative z-10">
-              <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.mlabbasShop")}</h2>
-              <p className="text-white/80 text-sm mb-8">{t("shop.mlabbasSub")}</p>
-              <button className="flex items-center gap-2 bg-white text-[#333E48] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
+          {/* Mlabbas card */}
+          <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#3D937F", minHeight: "220px" }}>
+            <div className="p-8 relative z-10 h-full flex flex-col justify-between">
+              <div>
+                <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.mlabbasShop")}</h2>
+                <p className="text-white/80 text-sm mb-6">{t("shop.mlabbasSub")}</p>
+              </div>
+              <button className="self-start flex items-center gap-2 bg-white text-[#3D937F] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
                 {t("shop.goToShop")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </button>
             </div>
-            <img
-              src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&q=80"
-              alt="Dog"
-              className="absolute end-0 bottom-0 w-40 h-40 object-cover object-top opacity-80 ltr:rounded-tl-2xl rtl:rounded-tr-2xl"
-            />
+            <div className="absolute end-0 bottom-0 w-40 h-40 opacity-90">
+              <DogIllustration />
+            </div>
           </div>
 
-          <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#FA8D29", minHeight: "200px" }}>
-            <div className="p-8 relative z-10">
-              <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.petsjoShop")}</h2>
-              <p className="text-white/80 text-sm mb-8">{t("shop.petsjoSub")}</p>
-              <button className="flex items-center gap-2 bg-white text-[#333E48] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
+          {/* Petsjo card */}
+          <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: "#FA8D29", minHeight: "220px" }}>
+            <div className="p-8 relative z-10 h-full flex flex-col justify-between">
+              <div>
+                <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.petsjoShop")}</h2>
+                <p className="text-white/80 text-sm mb-6">{t("shop.petsjoSub")}</p>
+              </div>
+              <button className="self-start flex items-center gap-2 bg-white text-[#FA8D29] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
                 {t("shop.goToShop")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </button>
             </div>
-            <img
-              src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80"
-              alt="Pets"
-              className="absolute end-0 bottom-0 w-44 h-36 object-cover opacity-80 ltr:rounded-tl-2xl rtl:rounded-tr-2xl"
-            />
+            <div className="absolute end-0 bottom-0 w-44 h-44 opacity-90">
+              <CatIllustration />
+            </div>
           </div>
         </div>
 
-        <h2 className="font-display text-2xl md:text-3xl font-bold text-[#333E48] text-center mb-6">
+        {/* Lend Us Your Support */}
+        <h2 className="font-display text-2xl md:text-3xl font-bold text-[#333E48] text-center mb-8">
           {t("shop.lendSupport")}
         </h2>
 
-        <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-6">
-            <div className="w-24 h-20 rounded-xl overflow-hidden flex-shrink-0">
-              <img
-                src="https://images.unsplash.com/photo-1415369629372-26f2fe60c467?w=200&q=80"
-                alt="Cat"
-                className="w-full h-full object-cover"
-              />
+        <div className="grid sm:grid-cols-2 gap-5">
+          {/* Donate card */}
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group">
+            <div className="h-36 flex items-center justify-center rounded-t-3xl" style={{ background: "linear-gradient(135deg, #FA8D29 0%, #f06a10 100%)" }}>
+              <div className="w-20 h-20 drop-shadow-lg">
+                <HeartPawIllustration />
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[#333E48] text-sm leading-relaxed mb-1">
+            <div className="p-6">
+              <h3 className="font-display font-bold text-lg text-[#333E48] mb-2">{t("shop.helpNow")}</h3>
+              <p className="text-[#333E48]/70 text-sm leading-relaxed mb-4">
                 {t("shop.donateDesc")}
               </p>
-              <Link href="/donate" className="inline-flex items-center gap-1.5 text-primary font-bold text-sm hover:gap-2.5 transition-all">
+              <Link href="/donate" className="inline-flex items-center gap-1.5 text-primary font-bold text-sm group-hover:gap-2.5 transition-all">
                 {t("shop.helpNow")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>
             </div>
-            <div className="hidden sm:block opacity-10">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" className="text-gray-400">
-                <path d="M20 7h-4V5c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2z"/>
-              </svg>
-            </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-6">
-            <div className="flex-1 min-w-0">
-              <p className="text-[#333E48] text-sm leading-relaxed mb-1">
+          {/* Foster card */}
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group">
+            <div className="h-36 flex items-center justify-center rounded-t-3xl" style={{ background: "linear-gradient(135deg, #3D937F 0%, #2d7065 100%)" }}>
+              <div className="w-20 h-20 drop-shadow-lg">
+                <FosterHouseIllustration />
+              </div>
+            </div>
+            <div className="p-6">
+              <h3 className="font-display font-bold text-lg text-[#333E48] mb-2">{t("shop.becomeAFoster")}</h3>
+              <p className="text-[#333E48]/70 text-sm leading-relaxed mb-4">
                 {t("shop.fosterDesc")}
               </p>
-              <Link href="/foster" className="inline-flex items-center gap-1.5 text-[#3D937F] font-bold text-sm hover:gap-2.5 transition-all">
+              <Link href="/foster" className="inline-flex items-center gap-1.5 text-[#3D937F] font-bold text-sm group-hover:gap-2.5 transition-all">
                 {t("shop.becomeAFoster")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>
-            </div>
-            <div className="w-24 h-20 rounded-xl overflow-hidden flex-shrink-0">
-              <img
-                src="https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=200&q=80"
-                alt="Dog"
-                className="w-full h-full object-cover"
-              />
             </div>
           </div>
         </div>

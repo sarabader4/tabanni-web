@@ -5,7 +5,7 @@ import { PetCard } from "@/components/pet-card";
 import { type FilterBarState } from "@/components/filter-bar";
 import { FilterSidebar } from "@/components/filter-sidebar";
 import {
-  Search, Loader2, Plus, Sparkles,
+  Search, Loader2, Plus, PlusCircle,
   ChevronLeft, ChevronRight, SlidersHorizontal,
 } from "lucide-react";
 import { useFavourites } from "@/hooks/use-favourites";
@@ -131,19 +131,12 @@ export default function Adopt() {
             />
           </div>
           <button
-            onClick={() => {
-              if (window.location.pathname === "/") {
-                document.getElementById("ai-pet-match")?.scrollIntoView({ behavior: "smooth" });
-              } else {
-                window.location.href = "/#ai-pet-match";
-              }
-            }}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap"
+            onClick={() => navigate("/profile?tab=My%20Pets&addPet=true")}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-colors whitespace-nowrap hover:opacity-90"
             style={{ background: "linear-gradient(135deg, #FA8D29, #e05a25)" }}
-            title={t("home.aiPetMatchTooltip")}
           >
-            <Sparkles className="w-4 h-4" />
-            {t("home.aiPetMatch")}
+            <PlusCircle className="w-4 h-4" />
+            {t("adopt.addYourPet")}
           </button>
         </div>
       </div>

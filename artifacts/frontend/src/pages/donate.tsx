@@ -322,7 +322,7 @@ function GoFundMeSection() {
               <p className="text-xs text-muted-foreground">{t("donate.funded", { pct })}</p>
             </div>
             <a
-              href="https://www.gofundme.com/f/tabbani-pet-adoption-jordan"
+              href="https://www.gofundme.com/f/join-us-in-providing-hope-for-stray-animals"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5 active:translate-y-0 text-center"

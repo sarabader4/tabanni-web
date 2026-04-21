@@ -6,7 +6,7 @@ import {
 } from "@workspace/api-client-react";
 import { FilterSidebar } from "@/components/filter-sidebar";
 import type { FilterBarState } from "@/components/filter-bar";
-import { Search, Loader2, ChevronLeft, ChevronRight, X, ImagePlus, CheckCircle2, SlidersHorizontal } from "lucide-react";
+import { Search, Loader2, ChevronLeft, ChevronRight, X, ImagePlus, CheckCircle2, SlidersHorizontal, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -277,10 +277,11 @@ export default function LostFound() {
           </div>
           <button
             onClick={openModal}
-            className={`px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-colors whitespace-nowrap text-white ${
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-colors whitespace-nowrap text-white ${
               tab === "lost" ? "bg-primary shadow-primary/20 hover:bg-primary/90" : "bg-[#3D937F] shadow-[#3D937F]/20 hover:bg-[#3D937F]/90"
             }`}
           >
+            <AlertCircle className="w-4 h-4" />
             {t("lostFound.reportPet")}
           </button>
         </div>

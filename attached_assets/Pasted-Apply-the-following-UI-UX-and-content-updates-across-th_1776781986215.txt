@@ -1,0 +1,53 @@
+Apply the following UI/UX and content updates across the website. Ensure everything is visually balanced, consistent, and does NOT break any existing functionality.
+
+Footer – Layout Fix (Easy to Access vs Contact Us):
+The "Easy to Access" section is too close to the "Contact Us" section.
+Fix this by doing ONE of the following:
+Add more spacing between the two sections
+OR
+Adjust widths so that "Contact Us" is centered between the sections next to it
+Ensure all footer columns are evenly spaced and visually balanced.
+Footer – Social Media Links:
+Add YouTube link to the social media section:
+https://www.youtube.com/@tabanni.jordan
+Ensure the icon is consistent with other social icons and clickable.
+Donation Section (Rename + Link):
+Replace the word "Donate" everywhere in the website with a better alternative such as:
+"Give"
+"Support"
+"Make a Gift"
+Update all related buttons, titles, and sections accordingly.
+Connect the GoFundMe campaign to:
+https://www.gofundme.com/f/join-us-in-providing-hope-for-stray-animals
+Ensure the button/link redirects correctly.
+Lost & Found Section:
+Enhance the button next to the search bar:
+Add an icon (e.g., exclamation mark or any suitable attractive icon)
+Ensure it looks modern and visually appealing
+Keep alignment and spacing clean.
+Shop Section:
+Remove current images inside the store cards.
+Replace them with:
+Either high-quality cartoon-style illustrations
+OR
+3D-style icons
+Ensure consistency in style and sizing.
+"Lend Us Your Support" Section:
+Apply the same image replacement (cartoon or 3D icons).
+Additionally:
+Redesign the rectangular cards to look more modern and visually appealing
+Improve spacing, border radius, shadows, and overall layout
+Adopt Section (Button Replacement):
+Replace the button next to the search bar:
+Remove: "AI Pet Match"
+Add: "Add Your Pet for Adoption"
+Include a suitable icon (e.g., plus icon or pet-related icon)
+Connect it properly to the backend:
+It should navigate to the pet submission form/page
+Ensure full functionality (form submission, validation, etc.)
+General Requirements:
+Maintain clean, modern UI/UX
+Keep consistency with the design system (colors, spacing, typography)
+Ensure responsiveness across all devices
+Do NOT break any existing functionality
+Keep implementation clean and maintainable
