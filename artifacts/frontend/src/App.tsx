@@ -21,6 +21,7 @@ const Gallery = lazy(() => import("@/pages/gallery"));
 const GalleryDetail = lazy(() => import("@/pages/gallery-detail"));
 const About = lazy(() => import("@/pages/about"));
 const Team = lazy(() => import("@/pages/team"));
+const Programs = lazy(() => import("@/pages/programs"));
 const Shop = lazy(() => import("@/pages/shop"));
 const Profile = lazy(() => import("@/pages/profile"));
 const AdminDashboard = lazy(() => import("@/pages/admin/index"));
@@ -143,6 +144,7 @@ function AppRoutes() {
               <Route path="/gallery" component={Gallery} />
               <Route path="/about" component={About} />
               <Route path="/team" component={Team} />
+              <Route path="/programs" component={Programs} />
               <Route path="/shop" component={Shop} />
               <Route path="/profile" component={Profile} />
               <Route component={NotFound} />

@@ -292,7 +292,28 @@
     "roleBaderAlbeetar": "Operations Manager",
     "roleAhmadShalaldeh": "Field Officer",
     "roleJudeAbdelhadi": "Social Media Manager",
-    "roleSereenAqilan": "Social Media Manager"
+    "roleSereenAqilan": "Social Media Manager",
+    "ctaTitle": "Together for Them",
+    "ctaText": "We're saving lives one paw at a time, and we need your help. Whether through donations, fostering, adopting, or volunteering, every action makes a difference. Join us in creating a more compassionate world for animals.",
+    "ctaButton": "Support Our Mission"
+  },
+  "programs": {
+    "pageTitle": "Our Programs",
+    "intro": "From emergency rescues to long-term advocacy, tabanni runs a wide range of programs designed to protect and improve the lives of animals across Jordan.",
+    "rescueTitle": "Rescue",
+    "rescueDesc": "tabanni rescues animals in need and provides them with immediate care, focusing on cases where the animal's life is in danger. tabanni deploys field officers to rescue animals and takes them to veterinary clinics for necessary medical care. After receiving emergency treatment, the animals join a rehab program and are eventually placed for adoption. Fundraising is an ongoing effort to ensure that financial resources are available for rescues. Our organization also supports individuals who call on us with emergency rescue cases.",
+    "adoptionTitle": "Adoption",
+    "adoptionDesc": "Our adoption program connects animals with loving forever homes across Jordan. Every animal in our care undergoes health screening and behavioral assessment before being matched with the right family. We guide adoptive families through the entire process — from application to homecoming — ensuring a smooth transition for both pet and owner. We believe every animal deserves a second chance at a happy life.",
+    "rightsTitle": "Fight for Animals Rights in Jordan",
+    "rightsDesc": "tabanni actively advocates for stronger animal welfare legislation and enforcement in Jordan. We work with policymakers, legal experts, and community leaders to push for meaningful change. Through awareness campaigns, petitions, and direct engagement with authorities, we shine a light on animal cruelty and push for accountability. Together, we are working toward a legal framework that protects animals and holds abusers responsible.",
+    "strayCareTitle": "Stray Care Program",
+    "strayCareDesc": "Our Stray Care Program provides ongoing support for stray and community animals across Jordan. Through regular feeding stations, mobile veterinary visits, and community education, we improve the quality of life for animals living on the streets. We coordinate with local residents and municipalities to ensure that stray animals receive the compassionate treatment they deserve.",
+    "strayCommunitiesTitle": "tabanni's Stray Dog Communities Program",
+    "strayCommunitiesDesc": "Our Stray Dog Communities Program implements a Trap-Neuter-Return (TNR) approach to manage and stabilize stray dog populations humanely. Dogs are trapped, neutered, vaccinated, and returned to their communities with ongoing monitoring and support. This evidence-based approach reduces overpopulation while maintaining the presence of community dogs that locals rely on and care for.",
+    "rehabTitle": "tabanni's Rehab Program",
+    "rehabDesc": "Animals rescued from the streets or difficult situations often need time, care, and patience before they are ready for adoption. Our Rehab Program provides a safe environment where animals receive medical treatment, nutritional support, behavioral training, and socialization. Our dedicated team of volunteers and foster families work hand-in-hand to help each animal reach their full potential.",
+    "basboosTtitle": "The Basboos Project",
+    "basboosDes": "The Basboos Project is tabanni's dedicated initiative for street cats. Street cats face unique challenges including disease, malnutrition, and hazardous urban environments. Through targeted TNR campaigns, community feeding programs, and adoption drives, The Basboos Project works to create a safer, healthier life for Jordan's feline population. The name 'basboos' — the local term of endearment for cats — reflects the love and respect we have for every cat in our care."
   },
   "login": {
     "welcome": "Welcome back! Sign in to continue.",

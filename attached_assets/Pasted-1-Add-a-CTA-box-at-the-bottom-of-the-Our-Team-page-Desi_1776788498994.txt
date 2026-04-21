@@ -1,0 +1,80 @@
+1. Add a CTA box at the bottom of the "Our Team" page
+
+Design:
+- Same card style used in Who We Are page
+- Large rounded card
+- Soft shadow
+- Centered content
+- Good padding
+- Background slightly highlighted
+
+Content inside the card:
+
+Title:
+Together for Them
+
+Text:
+We're saving lives one paw at a time, and we need your help. Whether through donations, fostering, adopting, or volunteering, every action makes a difference. Join us in creating a more compassionate world for animals.
+
+Button:
+Support Our Mission
+
+Button behavior:
+- Navigate to Volunteer section in User Profile page
+- Smooth scroll to Volunteer section
+- Primary orange button style
+- Centered under text
+
+--------------------------------
+
+2. Create "Programs" section/page with card layout like the attached design
+
+Layout:
+- Vertical stacked cards
+- Alternating image left / image right
+- Rounded cards
+- Same style as Who We Are page
+- Soft shadow
+- Large spacing between cards
+
+Programs Content:
+
+1. Rescue
+Image left
+Text right
+Description:
+tabanni rescues animals in need and provides them with immediate care, focusing on cases where the animal's life is in danger. tabanni deploys field officers to rescue animals and takes them to veterinary clinics for necessary medical care. After receiving emergency treatment, the animals join a rehab program and are eventually placed for adoption. Fundraising is an ongoing effort to ensure that financial resources are available for rescues. Our organization also supports individuals who want to help animals by providing advice, support, and logistical assistance.
+
+2. Adoption
+Image right
+Text left
+(use text from design)
+
+3. Fight for animals rights in Jordan
+Image left
+Text right
+
+4. Stray Care Program
+Image right
+Text left
+
+5. tabanni's Stray Dog Communities Program
+Image left
+Text right
+
+6. tabanni's Rehab Program
+Image right
+Text left
+
+7. The Basboos Project
+Image left
+Text right
+
+Design rules:
+- alternating layout
+- rounded image corners
+- fixed image size
+- vertically centered content
+- responsive mobile stack
+- same typography as Who We Are
+- same colors and spacing

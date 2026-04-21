@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useLocation } from "wouter";
 import { SEOHead } from "@/components/seo-head";
 import teamPhotoImg from "@assets/image_1776785909352.png";
 
@@ -42,6 +43,7 @@ function SectionHeading({ title }: { title: string }) {
 
 export default function Team() {
   const { t } = useTranslation();
+  const [, setLocation] = useLocation();
 
   const boardMembers: TeamMember[] = [
     { name: "Dina Nimry", role: t("team.roleDinaNimry"), initials: "DN", accentColor: "#3D937F" },
@@ -119,7 +121,7 @@ export default function Team() {
       </section>
 
       {/* ── Social Media Section ── */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-20">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 md:p-10">
           <SectionHeading title={t("team.socialTitle")} />
           <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
@@ -127,6 +129,24 @@ export default function Team() {
               <MemberCard key={m.name} member={m} />
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── CTA: Together for Them ── */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-20">
+        <div className="bg-[#FEF7EE] rounded-3xl border border-[#FA8D29]/20 shadow-sm p-10 md:p-14 text-center">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-[#FA8D29] mb-4">
+            {t("team.ctaTitle")}
+          </h2>
+          <p className="text-[15px] text-gray-600 leading-[1.85] max-w-xl mx-auto mb-8">
+            {t("team.ctaText")}
+          </p>
+          <button
+            onClick={() => setLocation("/profile?tab=Volunteer")}
+            className="inline-block bg-[#FA8D29] hover:bg-[#e07a20] active:bg-[#c96d1b] text-white font-semibold text-sm px-8 py-3.5 rounded-full transition-colors duration-200 shadow-sm"
+          >
+            {t("team.ctaButton")}
+          </button>
         </div>
       </section>
     </div>

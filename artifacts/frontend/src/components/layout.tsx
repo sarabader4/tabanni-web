@@ -213,7 +213,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const aboutDropdownItems = [
     { name: t("nav.aboutWhoWeAre"), href: "/about" },
     { name: t("nav.aboutTeam"), href: "/team" },
-    { name: t("nav.aboutPrograms"), href: "/about#programs" },
+    { name: t("nav.aboutPrograms"), href: "/programs" },
     { name: t("nav.aboutNetwork"), href: "/about#network" },
     { name: t("nav.aboutSustainability"), href: "/about#sustainability" },
     { name: t("nav.aboutFaqs"), href: "/about#faqs" },
