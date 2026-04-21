@@ -214,9 +214,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { name: t("nav.aboutWhoWeAre"), href: "/about" },
     { name: t("nav.aboutTeam"), href: "/team" },
     { name: t("nav.aboutPrograms"), href: "/programs" },
-    { name: t("nav.aboutNetwork"), href: "/about#network" },
-    { name: t("nav.aboutSustainability"), href: "/about#sustainability" },
-    { name: t("nav.aboutFaqs"), href: "/about#faqs" },
+    { name: t("nav.aboutNetwork"), href: "/network" },
+    { name: t("nav.aboutSustainability"), href: "/sustainability" },
+    { name: t("nav.aboutFaqs"), href: "/faqs" },
   ];
 
   const footerLinks = [

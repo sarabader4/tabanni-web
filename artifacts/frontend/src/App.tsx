@@ -22,6 +22,9 @@ const GalleryDetail = lazy(() => import("@/pages/gallery-detail"));
 const About = lazy(() => import("@/pages/about"));
 const Team = lazy(() => import("@/pages/team"));
 const Programs = lazy(() => import("@/pages/programs"));
+const Sustainability = lazy(() => import("@/pages/sustainability"));
+const FAQs = lazy(() => import("@/pages/faqs"));
+const Network = lazy(() => import("@/pages/network"));
 const Shop = lazy(() => import("@/pages/shop"));
 const Profile = lazy(() => import("@/pages/profile"));
 const AdminDashboard = lazy(() => import("@/pages/admin/index"));
@@ -145,6 +148,9 @@ function AppRoutes() {
               <Route path="/about" component={About} />
               <Route path="/team" component={Team} />
               <Route path="/programs" component={Programs} />
+              <Route path="/sustainability" component={Sustainability} />
+              <Route path="/faqs" component={FAQs} />
+              <Route path="/network" component={Network} />
               <Route path="/shop" component={Shop} />
               <Route path="/profile" component={Profile} />
               <Route component={NotFound} />

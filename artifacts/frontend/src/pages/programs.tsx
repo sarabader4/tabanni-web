@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { SEOHead } from "@/components/seo-head";
+import rescueDogImg from "@assets/dog_1776713054942.png";
+import straayCommunityImg from "@assets/image_1776713084063.png";
 
 interface Program {
   titleKey: string;
@@ -14,7 +16,7 @@ const PROGRAMS: Program[] = [
   {
     titleKey: "programs.rescueTitle",
     descKey: "programs.rescueDesc",
-    image: `${BASE}images/hero-dog.png`,
+    image: rescueDogImg,
     imageAlt: "Rescue program",
   },
   {
@@ -38,7 +40,7 @@ const PROGRAMS: Program[] = [
   {
     titleKey: "programs.strayCommunitiesTitle",
     descKey: "programs.strayCommunitiesDesc",
-    image: `${BASE}images/hero-dog.png`,
+    image: straayCommunityImg,
     imageAlt: "Stray dog communities",
   },
   {
