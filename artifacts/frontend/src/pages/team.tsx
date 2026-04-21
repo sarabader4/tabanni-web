@@ -134,19 +134,30 @@ export default function Team() {
 
       {/* ── CTA: Together for Them ── */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-20">
-        <div className="bg-[#FEF7EE] rounded-3xl border border-[#FA8D29]/20 shadow-sm p-10 md:p-14 text-center">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-[#FA8D29] mb-4">
-            {t("team.ctaTitle")}
-          </h2>
-          <p className="text-[15px] text-gray-600 leading-[1.85] max-w-xl mx-auto mb-8">
-            {t("team.ctaText")}
-          </p>
-          <button
-            onClick={() => setLocation("/profile?tab=Volunteer")}
-            className="inline-block bg-[#FA8D29] hover:bg-[#e07a20] active:bg-[#c96d1b] text-white font-semibold text-sm px-8 py-3.5 rounded-full transition-colors duration-200 shadow-sm"
-          >
-            {t("team.ctaButton")}
-          </button>
+        <div className="relative overflow-hidden bg-white rounded-3xl shadow-xl border border-gray-100 p-12 md:p-16 text-center">
+          {/* Turquoise top accent strip */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#3D937F] via-[#65c4af] to-[#3D937F]" />
+          {/* Subtle layered background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50/60 to-[#3D937F]/5 pointer-events-none" />
+          {/* Decorative blurred circle */}
+          <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-[#3D937F]/8 blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 -left-10 w-36 h-36 rounded-full bg-[#3D937F]/6 blur-2xl pointer-events-none" />
+
+          {/* Content */}
+          <div className="relative">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-[#3D937F] mb-5">
+              {t("team.ctaTitle")}
+            </h2>
+            <p className="text-[15px] text-gray-500 leading-[1.9] max-w-xl mx-auto mb-10">
+              {t("team.ctaText")}
+            </p>
+            <button
+              onClick={() => setLocation("/profile?tab=Volunteer")}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#3D937F] to-[#5bb3a0] hover:from-[#347f6c] hover:to-[#4ea596] text-white font-semibold text-[15px] px-10 py-4 rounded-full shadow-lg shadow-[#3D937F]/25 hover:shadow-xl hover:shadow-[#3D937F]/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+            >
+              {t("team.ctaButton")}
+            </button>
+          </div>
         </div>
       </section>
     </div>

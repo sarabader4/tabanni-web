@@ -10,7 +10,8 @@ import { useFavourites } from "@/hooks/use-favourites";
 import dogImg from "@assets/dog_1776713054942.png";
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isArabic = i18n.language === "ar";
   const { isFavourited, isPendingFor, toggleFavourite } = useFavourites();
   const { data: featuredPets, isLoading: petsLoading } = useGetFeaturedPets();
   const { data: stats } = useGetAdminStats();
@@ -36,7 +37,10 @@ export default function Home() {
               <div className="inline-block px-4 py-1.5 rounded-full bg-foreground text-white font-bold text-xs mb-6">
                 {t("home.badge")}
               </div>
-              <h1 className="font-display font-black leading-[1.05] mb-5 uppercase" style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}>
+              <h1
+                className={`font-display leading-[1.05] mb-5 ${isArabic ? "font-bold" : "font-black uppercase"}`}
+                style={{ fontSize: isArabic ? "clamp(2.5rem, 6vw, 4.5rem)" : "clamp(3rem, 7vw, 5.5rem)" }}
+              >
                 <span style={{ color: "#3D937F" }}>{t("home.heroTitle1")}</span><br />
                 <span style={{ color: "#FA8D29" }}>{t("home.heroTitle2")}</span><br />
                 <span style={{ color: "#3D937F" }}>{t("home.heroTitle3")}</span>
@@ -49,7 +53,7 @@ export default function Home() {
                   href="/about"
                   className="flex items-center gap-3 pl-6 pr-2 py-2 bg-primary text-white rounded-full font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:-translate-y-0.5 transition-all"
                 >
-                  {t("home.aboutUs", { defaultValue: "About Us" })}
+                  {t("home.aboutUs")}
                   <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/20">
                     <Users className="w-4 h-4" />
                   </span>
