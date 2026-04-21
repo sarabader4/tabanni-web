@@ -281,6 +281,19 @@
     "joinBold4": "VOLUNTEERING",
     "joinText4": "– Help with rescues, events, or social media outreach"
   },
+  "team": {
+    "intro": "tabanni is led by a group of five visionary board members. At its heart, our work is an all-volunteer workforce that has helped us rescue hundreds of animals since we started in 2019. Meet the team that makes our mission come to life every day, making a real difference for animals in Jordan.",
+    "boardTitle": "Board",
+    "operationsTitle": "Operations",
+    "socialTitle": "Social Media",
+    "roleDinaNimry": "President and Co-Founder",
+    "roleDimaAlMasri": "Director of Finance and Fundraising",
+    "roleGidaHamam": "Director of Rescue Management and Placements",
+    "roleBaderAlbeetar": "Operations Manager",
+    "roleAhmadShalaldeh": "Field Officer",
+    "roleJudeAbdelhadi": "Social Media Manager",
+    "roleSereenAqilan": "Social Media Manager"
+  },
   "login": {
     "welcome": "Welcome back! Sign in to continue.",
     "signIn": "Sign In",
