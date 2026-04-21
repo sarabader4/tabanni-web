@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { SEOHead } from "@/components/seo-head";
 import { Link } from "wouter";
 import {
   useListLostFoundReports,
@@ -262,6 +263,11 @@ export default function LostFound() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Lost & Found Pets in Jordan"
+        description="Report a lost or found pet in Jordan. Browse lost and found pet listings, filter by city and type, and help reunite pets with their families."
+        path="/lost-found"
+      />
       {/* Top bar: Search + Report a pet button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
         <div className="flex gap-3 items-center">
@@ -590,7 +596,7 @@ export default function LostFound() {
                   <div className="flex flex-wrap gap-2 mt-1">
                     {imagePreviews.map((src, idx) => (
                       <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
-                        <img src={src} alt="" className="w-full h-full object-cover" />
+                        <img src={src} alt="" loading="lazy" className="w-full h-full object-cover" />
                         <button
                           type="button"
                           onClick={() => removeImage(idx)}

@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { ArrowRight, Heart, Home } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { SEOHead } from "@/components/seo-head";
 
 function DogIllustration() {
   return (
@@ -86,6 +87,11 @@ export default function Shop() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Pet Shop & Support — Discover Tabanni Partners"
+        description="Shop with Mlabbas and PetsJo through Tabanni to support pet welfare in Jordan. Every purchase helps rescue and rehome animals in need."
+        path="/shop"
+      />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
         <h1 className="font-display text-3xl md:text-4xl font-bold text-[#333E48] text-center mb-10">
           {t("shop.title")}
@@ -100,9 +106,14 @@ export default function Shop() {
                 <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.mlabbasShop")}</h2>
                 <p className="text-white/80 text-sm mb-6">{t("shop.mlabbasSub")}</p>
               </div>
-              <button className="self-start flex items-center gap-2 bg-white text-[#3D937F] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
+              <a
+                href="https://tabanni.mlabbas.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="self-start flex items-center gap-2 bg-white text-[#3D937F] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors"
+              >
                 {t("shop.goToShop")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-              </button>
+              </a>
             </div>
             <div className="absolute end-0 bottom-0 w-40 h-40 opacity-90">
               <DogIllustration />
@@ -116,9 +127,14 @@ export default function Shop() {
                 <h2 className="font-display font-bold text-2xl text-white mb-1">{t("shop.petsjoShop")}</h2>
                 <p className="text-white/80 text-sm mb-6">{t("shop.petsjoSub")}</p>
               </div>
-              <button className="self-start flex items-center gap-2 bg-white text-[#FA8D29] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors">
+              <a
+                href="https://www.petsjo.com/tabbani"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="self-start flex items-center gap-2 bg-white text-[#FA8D29] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-white/90 transition-colors"
+              >
                 {t("shop.goToShop")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-              </button>
+              </a>
             </div>
             <div className="absolute end-0 bottom-0 w-44 h-44 opacity-90">
               <CatIllustration />

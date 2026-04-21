@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Users, Heart, Shield, Search, Star } from "lucide-react";
+import { SEOHead } from "@/components/seo-head";
 import { useGetFeaturedPets, useGetAdminStats, useListGalleryPosts } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import AIPetMatchWidget from "@/components/ai-pet-match-widget";
@@ -17,6 +18,11 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-24 pb-10 overflow-hidden">
+      <SEOHead
+        title="Find Your Perfect Pet Companion"
+        description="Tabanni is Jordan's trusted pet adoption and fostering platform. Browse available pets, become a foster family, or support rescue animals across Jordan."
+        path="/"
+      />
       {/* Hero Section */}
       <section className="relative overflow-hidden flex items-center min-h-[calc(100vh-5rem)] py-8 lg:py-10">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,7 +46,7 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/about"
+                  href="/about#who-we-are"
                   className="flex items-center gap-3 pl-6 pr-2 py-2 bg-primary text-white rounded-full font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:-translate-y-0.5 transition-all"
                 >
                   {t("home.aboutUs", { defaultValue: "About Us" })}
@@ -218,6 +224,7 @@ export default function Home() {
                 <img 
                   src={post.imageUrl || "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800&q=80"} 
                   alt={post.title} 
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>

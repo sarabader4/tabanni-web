@@ -162,7 +162,7 @@ export default function LostFoundDetail() {
                         i === photoIndex ? "border-primary" : "border-transparent"
                       }`}
                     >
-                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <img src={url} alt="" loading="lazy" className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>

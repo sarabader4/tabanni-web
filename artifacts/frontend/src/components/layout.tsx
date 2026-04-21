@@ -208,7 +208,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { name: t("nav.donate"), href: "/donate" },
     { name: t("nav.lostFound"), href: "/lost-found" },
     { name: t("nav.shop"), href: "/shop" },
-    { name: t("nav.about"), href: "/about" },
+  ];
+
+  const aboutDropdownItems = [
+    { name: t("nav.aboutWhoWeAre"), href: "/about#who-we-are" },
+    { name: t("nav.aboutTeam"), href: "/about#team" },
+    { name: t("nav.aboutPrograms"), href: "/about#programs" },
+    { name: t("nav.aboutNetwork"), href: "/about#network" },
+    { name: t("nav.aboutSustainability"), href: "/about#sustainability" },
+    { name: t("nav.aboutFaqs"), href: "/about#faqs" },
   ];
 
   const footerLinks = [
@@ -320,6 +328,35 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   {link.name}
                 </Link>
               ))}
+
+              {/* About Us dropdown */}
+              <div className="relative group">
+                <Link
+                  href="/about"
+                  className={cn(
+                    "flex items-center gap-1 text-sm font-semibold transition-all relative pb-1",
+                    location === "/about"
+                      ? "text-secondary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-secondary after:rounded-full"
+                      : "text-foreground/70 hover:text-secondary hover:after:absolute hover:after:bottom-0 hover:after:left-0 hover:after:right-0 hover:after:h-[2px] hover:after:bg-secondary hover:after:rounded-full"
+                  )}
+                >
+                  {t("nav.about")}
+                  <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180" />
+                </Link>
+                <div className="absolute top-full start-0 pt-3 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 min-w-[200px]">
+                  <div className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 overflow-hidden">
+                    {aboutDropdownItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className="flex items-center px-4 py-2.5 text-sm text-[#333E48] hover:bg-gray-50 hover:text-primary transition-colors font-medium"
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </nav>
 
             {/* Actions */}
@@ -547,6 +584,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   {link.name}
                 </Link>
               ))}
+              {/* About Us mobile section */}
+              <div className="border-b border-gray-100 pb-2">
+                <Link
+                  href="/about"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "block text-2xl font-display font-bold py-3",
+                    location === "/about" ? "text-primary" : "text-[#333E48]"
+                  )}
+                >
+                  {t("nav.about")}
+                </Link>
+                <div className="flex flex-col gap-1 ps-4 pb-2">
+                  {aboutDropdownItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-base text-[#333E48]/70 py-1.5 hover:text-primary transition-colors"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
               <Link
                 href="/adopt"
                 onClick={() => setMobileMenuOpen(false)}

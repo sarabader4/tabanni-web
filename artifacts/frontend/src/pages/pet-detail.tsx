@@ -159,7 +159,7 @@ export default function PetDetail() {
                   className="aspect-square rounded-xl overflow-hidden border border-border cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => setLightboxIndex(i + 1)}
                 >
-                  <img src={img} alt={`${pet.name} ${i}`} className="w-full h-full object-cover" />
+                  <img src={img} alt={`${pet.name} photo ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>

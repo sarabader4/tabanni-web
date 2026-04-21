@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useListDonations } from "@workspace/api-client-react";
+import { SEOHead } from "@/components/seo-head";
 import { Heart, Package, ShieldCheck, CheckCircle, Loader2, Smartphone, AlertCircle, CreditCard } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -416,6 +417,11 @@ export default function Donate() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <SEOHead
+        title="Support Our Mission — Help Rescue Animals in Jordan"
+        description="Your support helps rescue, rehabilitate, and rehome stray animals across Jordan. Make a monetary gift, donate supplies, or support our GoFundMe campaign."
+        path="/donate"
+      />
       <div className="text-center max-w-3xl mx-auto mb-16">
         <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
           {t("donate.title")}

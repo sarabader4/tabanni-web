@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { SEOHead } from "@/components/seo-head";
 import { useListPets } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
 import { type FilterBarState } from "@/components/filter-bar";
@@ -117,6 +118,11 @@ export default function Adopt() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Adopt a Pet in Jordan"
+        description="Browse hundreds of pets available for adoption across Jordan. Find dogs, cats, and more. Each pet is vetted and ready for a loving home."
+        path="/adopt"
+      />
       {/* Top bar: Search + AI button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
         <div className="flex gap-3 items-center">
