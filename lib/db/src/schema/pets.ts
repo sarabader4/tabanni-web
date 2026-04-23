@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, boolean, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, boolean, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -35,7 +35,14 @@ export const petsTable = pgTable("pets", {
   addedByAdmin: boolean("added_by_admin").notNull().default(false),
   paymentProof: text("payment_proof"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (table) => [
+  index("pets_approved_status_created_idx").on(table.approved, table.status, table.createdAt),
+  index("pets_purpose_idx").on(table.purpose),
+  index("pets_type_idx").on(table.type),
+  index("pets_city_idx").on(table.city),
+  index("pets_owner_id_idx").on(table.ownerId),
+  index("pets_featured_idx").on(table.featured),
+]);
 
 export const insertPetSchema = createInsertSchema(petsTable).omit({ id: true, createdAt: true });
 export const updatePetSchema = insertPetSchema.partial();

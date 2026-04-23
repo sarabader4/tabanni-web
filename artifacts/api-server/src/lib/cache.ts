@@ -182,9 +182,9 @@ function buildCache(): TtlCache {
 export const cache = buildCache();
 
 export const CACHE_TTL = {
-  LISTING: 30_000,
-  DETAIL: 60_000,
-  GALLERY: 30_000,
+  LISTING: 300_000,
+  DETAIL: 300_000,
+  GALLERY: 120_000,
 } as const;
 
 export const CACHE_PREFIX = {
