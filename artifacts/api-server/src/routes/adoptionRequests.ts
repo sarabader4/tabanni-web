@@ -31,6 +31,7 @@ router.get("/adoption-requests", requireAuth, async (req, res) => {
 
     if (req.userRole !== "admin") {
       conditions.push(eq(adoptionRequestsTable.requesterId, req.userId));
+      conditions.push(ne(adoptionRequestsTable.status, "approved"));
     } else if (requesterId !== undefined) {
       conditions.push(eq(adoptionRequestsTable.requesterId, requesterId));
     }

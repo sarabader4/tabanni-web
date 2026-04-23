@@ -31,6 +31,7 @@ router.get("/foster-requests", requireAuth, async (req, res) => {
 
     if (req.userRole !== "admin") {
       conditions.push(eq(fosterRequestsTable.requesterId, req.userId));
+      conditions.push(ne(fosterRequestsTable.status, "approved"));
     } else if (requesterId !== undefined) {
       conditions.push(eq(fosterRequestsTable.requesterId, requesterId));
     }
