@@ -986,6 +986,7 @@
     "failedResolve": "Failed to resolve",
     "resolveConfirm": "Mark as resolved?",
     "contactViaWhatsapp": "Contact via WhatsApp",
+    "noPhoneContact": "Please contact the owner directly through the platform.",
     "submissionRejectedNote": "Your submission did not meet our guidelines.",
     "lostFoundStatus": "Status",
     "statusResolved": "Resolved"

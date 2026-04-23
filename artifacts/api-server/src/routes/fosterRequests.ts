@@ -94,7 +94,7 @@ router.get("/foster-requests/incoming", requireAuth, async (req, res): Promise<v
       .leftJoin(petsTable, eq(fosterRequestsTable.petId, petsTable.id))
       .leftJoin(usersTable, eq(fosterRequestsTable.requesterId, usersTable.id))
       .leftJoin(userProfilesTable, eq(fosterRequestsTable.requesterId, userProfilesTable.userId))
-      .where(eq(petsTable.ownerId, req.userId))
+      .where(and(eq(petsTable.ownerId, req.userId), eq(fosterRequestsTable.status, "pending")))
       .orderBy(desc(fosterRequestsTable.createdAt));
 
     const result = rows.map(r => ({
@@ -179,8 +179,18 @@ router.post("/foster-requests", requireAuth, async (req, res): Promise<void> => 
 
     const { petId, message } = parsed.data;
 
-    const [pet] = await db.select({ ownerId: petsTable.ownerId, name: petsTable.name })
+    const [pet] = await db.select({ ownerId: petsTable.ownerId, name: petsTable.name, status: petsTable.status })
       .from(petsTable).where(eq(petsTable.id, petId));
+
+    if (!pet) {
+      res.status(404).json({ error: "not_found", message: "Pet not found" });
+      return;
+    }
+
+    if (pet.status === "adopted" || pet.status === "fostered") {
+      res.status(409).json({ error: "pet_not_available", message: "This pet has already been adopted or fostered and is no longer available." });
+      return;
+    }
 
     if (pet?.ownerId === req.userId) {
       res.status(403).json({ error: "own_pet", message: "You cannot submit a request for your own pet" });
@@ -370,7 +380,10 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
           const [owner] = await db.select({ phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, existingRequest.ownerId));
           if (owner?.phone) {
             const cleanPhone = owner.phone.replace(/\D/g, "");
-            metadata = { whatsappLink: `https://wa.me/${cleanPhone}` };
+            const prefilledText = encodeURIComponent(`Hi, I've been approved to foster ${existingRequest.petName ?? "your pet"}. I'd like to coordinate with you.`);
+            metadata = { whatsappLink: `https://wa.me/${cleanPhone}?text=${prefilledText}` };
+          } else {
+            metadata = { noPhone: true };
           }
         }
 

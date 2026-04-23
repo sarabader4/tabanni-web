@@ -22,7 +22,7 @@ interface PetNotification {
   title?: string;
   message: string;
   read: boolean;
-  metadata?: { whatsappLink?: string } | null;
+  metadata?: { whatsappLink?: string; noPhone?: boolean } | null;
   createdAt: string;
 }
 
@@ -4238,6 +4238,7 @@ export default function Profile() {
                     {notifications.map((notif) => {
                       const isApproval = notif.type === "adoption_accepted" || notif.type === "foster_accepted";
                       const whatsappLink = notif.metadata?.whatsappLink;
+                      const noPhone = notif.metadata?.noPhone;
                       const isAccepted = notif.type?.includes("accepted") || notif.type?.startsWith("new_");
 
                       const handleWhatsAppClick = async (e: React.MouseEvent) => {
@@ -4294,6 +4295,11 @@ export default function Profile() {
                                 <ExternalLink className="w-3 h-3" />
                                 {t("profile.contactViaWhatsapp")}
                               </button>
+                            )}
+                            {isApproval && noPhone && !whatsappLink && (
+                              <p className="mt-2 text-xs text-gray-500 italic">
+                                {t("profile.noPhoneContact")}
+                              </p>
                             )}
                             <p className="text-xs text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
                           </div>

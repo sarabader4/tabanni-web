@@ -266,9 +266,7 @@ export default function LostFoundDetail() {
                     href={whatsappLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-white font-bold text-sm transition-colors ${
-                      isLost ? "bg-green-500 hover:bg-green-600" : "bg-primary hover:bg-primary/90"
-                    }`}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-white font-bold text-sm transition-colors bg-green-500 hover:bg-green-600"
                   >
                     <MessageCircle className="w-4 h-4" /> {t("lostFoundDetail.chatWhatsApp")}
                   </a>

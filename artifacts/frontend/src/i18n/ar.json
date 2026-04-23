@@ -986,6 +986,7 @@
     "failedResolve": "فشل حل التقرير",
     "resolveConfirm": "هل تريد تأشير هذا التقرير كمحلول؟",
     "contactViaWhatsapp": "تواصل عبر واتساب",
+    "noPhoneContact": "يرجى التواصل مع المالك مباشرةً عبر المنصة.",
     "submissionRejectedNote": "لم يستوفِ طلبك إرشاداتنا.",
     "lostFoundStatus": "الحالة",
     "statusResolved": "تم الحل"
