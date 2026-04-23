@@ -400,6 +400,37 @@ router.put("/foster-requests/:id/status", requireAuth, async (req, res): Promise
       }
     }
 
+    if (newStatus === "approved" && existingRequest.ownerId && existingRequest.requesterId) {
+      try {
+        const [requester] = await db
+          .select({ phone: usersTable.phone, fullName: usersTable.fullName })
+          .from(usersTable)
+          .where(eq(usersTable.id, existingRequest.requesterId));
+
+        let ownerMetadata: Record<string, unknown> | null = null;
+        if (requester?.phone) {
+          const cleanPhone = requester.phone.replace(/\D/g, "");
+          const prefilledText = encodeURIComponent(
+            `Hi, I've been approved to foster ${existingRequest.petName ?? "your pet"}. I'd like to coordinate the arrangement with you.`
+          );
+          ownerMetadata = { whatsappLink: `https://wa.me/${cleanPhone}?text=${prefilledText}` };
+        } else {
+          ownerMetadata = { noPhone: true };
+        }
+
+        await createNotification(
+          existingRequest.ownerId,
+          "foster_accepted",
+          "Foster Approved — Contact the Fosterer",
+          `The foster request for "${existingRequest.petName}" has been approved. Please contact the fosterer via WhatsApp to arrange the handover.`,
+          existingRequest.petId ?? undefined,
+          ownerMetadata,
+        );
+      } catch (err) {
+        req.log.error({ err }, "Error creating owner foster notification");
+      }
+    }
+
     for (const rejectedRequesterId of autoRejectedRequesterIds) {
       try {
         await createNotification(
