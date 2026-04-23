@@ -1,6 +1,17 @@
 import { Router, type IRouter } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
-import { db, petsTable, usersTable, favouritesTable } from "@workspace/db";
+import {
+  db,
+  petsTable,
+  usersTable,
+  favouritesTable,
+  adoptionRequestsTable,
+  fosterRequestsTable,
+  messagesTable,
+  notificationsTable,
+  donationsTable,
+  lostFoundReportsTable,
+} from "@workspace/db";
 import { eq, and, ilike, sql, desc, gte, lte } from "drizzle-orm";
 import {
   CreatePetBody,
@@ -296,9 +307,19 @@ router.delete("/pets/:id", async (req, res) => {
       return res.status(400).json({ error: "validation_error", message: "Invalid pet id", details: paramsParsed.error.issues });
     }
 
-    await db.delete(petsTable).where(eq(petsTable.id, paramsParsed.data.id));
+    const petId = paramsParsed.data.id;
+
+    await db.delete(adoptionRequestsTable).where(eq(adoptionRequestsTable.petId, petId));
+    await db.delete(fosterRequestsTable).where(eq(fosterRequestsTable.petId, petId));
+    await db.delete(favouritesTable).where(eq(favouritesTable.petId, petId));
+    await db.update(messagesTable).set({ petId: null }).where(eq(messagesTable.petId, petId));
+    await db.update(notificationsTable).set({ petId: null }).where(eq(notificationsTable.petId, petId));
+    await db.update(donationsTable).set({ petId: null }).where(eq(donationsTable.petId, petId));
+    await db.update(lostFoundReportsTable).set({ petId: null }).where(eq(lostFoundReportsTable.petId, petId));
+
+    await db.delete(petsTable).where(eq(petsTable.id, petId));
     await cache.invalidatePrefix(CACHE_PREFIX.PETS_LIST);
-    await cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + paramsParsed.data.id);
+    await cache.invalidatePrefix(CACHE_PREFIX.PET_DETAIL + petId);
     await cache.invalidatePrefix(CACHE_PREFIX.PETS_FEATURED);
     res.json({ success: true, message: "Pet deleted" });
   } catch (err) {

@@ -4,14 +4,6 @@ import { useListAdminUsers } from "@workspace/api-client-react";
 import { Search, Mail, Phone, MapPin, Calendar, Shield, UserX, ChevronDown, ExternalLink, PawPrint } from "lucide-react";
 import { AdminLayout } from "./index";
 
-type TabRole = "all" | "adopter" | "volunteer";
-
-const TABS: { label: string; value: TabRole }[] = [
-  { label: "All Users", value: "all" },
-  { label: "Adopters", value: "adopter" },
-  { label: "Volunteers", value: "volunteer" },
-];
-
 const ROLE_COLORS: Record<string, string> = {
   admin: "bg-purple-100 text-purple-700",
   volunteer: "bg-teal-100 text-teal-700",
@@ -36,23 +28,15 @@ interface EnrichedUser {
 
 export default function AdminUsers() {
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<TabRole>("all");
   const [actionMenuId, setActionMenuId] = useState<number | null>(null);
-
-  const roleFilter = activeTab === "volunteer" ? "volunteer" : undefined;
 
   const { data: rawUsers, refetch } = useListAdminUsers({
     search: search || undefined,
-    role: roleFilter,
+    role: undefined,
     limit: 100,
   });
 
-  const users = ((rawUsers ?? []) as EnrichedUser[]).filter((u) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "volunteer") return u.role === "volunteer";
-    if (activeTab === "adopter") return (u.totalAdoptionRequests ?? 0) > 0 || (u.totalFosterRequests ?? 0) > 0;
-    return true;
-  });
+  const users = (rawUsers ?? []) as EnrichedUser[];
 
   function formatDate(d: string) {
     return new Date(d).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" });
@@ -80,18 +64,6 @@ export default function AdminUsers() {
 
   return (
     <AdminLayout title="Users">
-      <div className="flex items-center gap-2 mb-6">
-        {TABS.map(tab => (
-          <button
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${activeTab === tab.value ? "bg-[#333E48] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"}`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
           <div className="relative max-w-sm flex-1">

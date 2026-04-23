@@ -401,6 +401,7 @@ export default function AdminPets() {
   const [activeTab, setActiveTab] = useState<"all" | "pending">("all");
   const [filterStatus, setFilterStatus] = useState("");
   const [modal, setModal] = useState<{ mode: "add" | "edit"; pet?: AdminPet } | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -650,7 +651,16 @@ export default function AdminPets() {
                         </button>
                       </Link>
                       <button
-                        onClick={() => { if (confirm(`Delete ${pet.name}?`)) deleteMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() }); }}
+                        onClick={() => {
+                          if (confirm(`Delete ${pet.name}?`)) {
+                            deleteMutation.mutate({ id: pet.id }, {
+                              onSuccess: () => {
+                                refetch();
+                                queryClient.invalidateQueries({ queryKey: ["/api/pets"] });
+                              },
+                            });
+                          }
+                        }}
                         title="Delete"
                         className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors"
                       >

@@ -52,14 +52,7 @@ const SIDEBAR_NAV = [
   },
   { label: "Adoption Requests", href: "/admin/adoptions", icon: Heart },
   { label: "Foster Requests", href: "/admin/fosters", icon: FileHeart },
-  {
-    label: "Users",
-    icon: Users,
-    children: [
-      { label: "Adopters", href: "/admin/users?role=adopter" },
-      { label: "Volunteers", href: "/admin/users?role=volunteer" },
-    ],
-  },
+  { label: "Users", href: "/admin/users", icon: Users },
   { label: "Donors", href: "/admin/donors", icon: DollarSign },
   { label: "Volunteers", href: "/admin/volunteers", icon: HandHeart },
   { label: "Pet Stories / Gallery", href: "/admin/gallery", icon: Image },
