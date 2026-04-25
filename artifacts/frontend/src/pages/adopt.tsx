@@ -13,7 +13,7 @@ import { useFavourites } from "@/hooks/use-favourites";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 
-type PurposeFilter = "adopt" | "foster" | "both";
+type PurposeFilter = "" | "adopt" | "foster" | "both";
 
 const EMPTY_FILTERS: FilterBarState = {
   type: "", gender: "", minAge: "", maxAge: "", size: "",
@@ -23,7 +23,6 @@ const EMPTY_FILTERS: FilterBarState = {
 export default function Adopt() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [purpose, setPurpose] = useState<PurposeFilter>("both");
   const [page, setPage] = useState(1);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pageSize = 20;
@@ -31,6 +30,15 @@ export default function Adopt() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
+
+  const initialPurpose = (): PurposeFilter => {
+    const params = new URLSearchParams(window.location.search);
+    const p = params.get("purpose");
+    if (p === "adopt" || p === "foster" || p === "both") return p;
+    return "";
+  };
+
+  const [purpose, setPurpose] = useState<PurposeFilter>(initialPurpose);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -79,7 +87,7 @@ export default function Adopt() {
   const ageRange = parseAgeRange(filters.minAge);
 
   const { data, isLoading, isError } = useListPets({
-    purpose: purpose === "both" ? undefined : purpose,
+    purpose: purpose || undefined,
     search: debouncedSearch || undefined,
     type: filters.type || undefined,
     gender: filters.gender || undefined,
@@ -96,7 +104,7 @@ export default function Adopt() {
   const totalPages = Math.ceil((data?.total ?? 0) / pageSize) || 1;
 
   const activeFilterCount = [
-    purpose !== "both" ? 1 : 0,
+    purpose ? 1 : 0,
     filters.city ? 1 : 0,
     filters.type ? 1 : 0,
     filters.breed ? 1 : 0,
@@ -108,7 +116,7 @@ export default function Adopt() {
 
   const handleClear = () => {
     setFilters(EMPTY_FILTERS);
-    setPurpose("both");
+    setPurpose("");
     setSearch("");
     setPage(1);
   };

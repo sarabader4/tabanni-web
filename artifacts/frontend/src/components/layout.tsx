@@ -518,7 +518,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                           {t("nav.profile")}
                         </Link>
                         <Link
-                          href="/profile?tab=requests"
+                          href="/profile?tab=My%20Requests"
                           onClick={() => setUserDropdownOpen(false)}
                           className="flex items-center gap-2.5 px-4 py-3 text-sm text-[#333E48] hover:bg-gray-50 transition-colors"
                         >

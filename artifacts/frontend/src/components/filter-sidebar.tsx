@@ -108,6 +108,7 @@ export function FilterSidebar({
   ];
 
   const purposeSelectOptions = [
+    { value: "", label: t("filters.all") },
     { value: "adopt", label: t("adopt.adopt") },
     { value: "foster", label: t("adopt.foster") },
     { value: "both", label: t("adopt.adoptFoster") },
@@ -116,7 +117,7 @@ export function FilterSidebar({
   const isLostFound = reportType !== undefined;
 
   const activeCount = [
-    purpose !== "both" && purpose ? 1 : 0,
+    purpose ? 1 : 0,
     filters.city ? 1 : 0,
     filters.type ? 1 : 0,
     filters.breed ? 1 : 0,
@@ -200,7 +201,7 @@ export function FilterSidebar({
             </label>
             <div className="relative">
               <select
-                value={purpose ?? "both"}
+                value={purpose ?? ""}
                 onChange={(e) => onPurposeChange(e.target.value)}
                 className="w-full appearance-none bg-white border border-gray-200 rounded-xl ps-3 pe-8 py-2.5 text-sm text-[#333E48] font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer hover:border-primary/40 transition-colors"
                 aria-label={t("filters.adoptOrFoster")}

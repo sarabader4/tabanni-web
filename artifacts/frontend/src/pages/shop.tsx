@@ -178,7 +178,7 @@ export default function Shop() {
               <p className="text-[#333E48]/70 text-sm leading-relaxed mb-4">
                 {t("shop.fosterDesc")}
               </p>
-              <Link href="/foster" className="inline-flex items-center gap-1.5 text-[#3D937F] font-bold text-sm group-hover:gap-2.5 transition-all">
+              <Link href="/adopt?purpose=foster" className="inline-flex items-center gap-1.5 text-[#3D937F] font-bold text-sm group-hover:gap-2.5 transition-all">
                 {t("shop.becomeAFoster")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>
             </div>
