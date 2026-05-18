@@ -261,7 +261,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18 }}
           >
-            <img src="https://hatscripts.github.io/circle-flags/flags/jo.svg" alt="Jordan flag" className="w-5 h-5 rounded-full object-cover" />
+            <img src="https://hatscripts.github.io/circle-flags/flags/jo.svg" alt="Jordan flag" className="w-5 h-5 rounded-full object-cover" loading="lazy" decoding="async" />
             <span className="text-xs font-bold">AR</span>
           </motion.span>
         ) : (
@@ -274,7 +274,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             transition={{ duration: 0.18 }}
           >
             <span className="text-xs font-bold">EN</span>
-            <img src={ukFlagImg} alt="UK flag" className="w-5 h-5 rounded-full object-cover" />
+            <img src={ukFlagImg} alt="UK flag" className="w-5 h-5 rounded-full object-cover" loading="lazy" decoding="async" />
           </motion.span>
         )}
       </AnimatePresence>

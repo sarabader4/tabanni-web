@@ -9,8 +9,8 @@ import OnboardingModal from "@/components/onboarding-modal";
 import CityGateModal from "@/components/city-gate-modal";
 
 import Home from "@/pages/home";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
+const Login = lazy(() => import("@/pages/login"));
+const Register = lazy(() => import("@/pages/register"));
 const Adopt = lazy(() => import("@/pages/adopt"));
 const Foster = lazy(() => import("@/pages/foster"));
 const PetDetail = lazy(() => import("@/pages/pet-detail"));
@@ -45,8 +45,9 @@ const AIChatWidget = lazy(() => import("@/components/ai-chat-widget"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60_000,
+      staleTime: 120_000,
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
@@ -92,8 +93,12 @@ function AppRoutes() {
     <OnboardingGate />
     <CityGate />
     <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
+      <Route path="/login">
+        {() => <Suspense fallback={<PageLoader />}><Login /></Suspense>}
+      </Route>
+      <Route path="/register">
+        {() => <Suspense fallback={<PageLoader />}><Register /></Suspense>}
+      </Route>
 
       <Route path="/admin">
         {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense></AdminGuard>}

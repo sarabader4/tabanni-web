@@ -1,21 +1,26 @@
+import { lazy, Suspense } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Users, Heart, Shield, Search, Star } from "lucide-react";
 import { SEOHead } from "@/components/seo-head";
 import { useGetFeaturedPets, useGetAdminStats, useListGalleryPosts } from "@workspace/api-client-react";
 import { PetCard } from "@/components/pet-card";
-import AIPetMatchWidget from "@/components/ai-pet-match-widget";
 import { useTranslation } from "react-i18next";
 import { useFavourites } from "@/hooks/use-favourites";
+import { useAuth } from "@/contexts/auth-context";
 import dogImg from "@assets/dog_1776713054942.png";
+
+const AIPetMatchWidget = lazy(() => import("@/components/ai-pet-match-widget"));
 
 export default function Home() {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const { isFavourited, isPendingFor, toggleFavourite } = useFavourites();
   const { data: featuredPets, isLoading: petsLoading } = useGetFeaturedPets();
-  const { data: stats } = useGetAdminStats();
-  const { data: gallery } = useListGalleryPosts({ limit: 3 });
+  const { data: stats } = useGetAdminStats({ query: { enabled: isAdmin, staleTime: 5 * 60_000 } });
+  const { data: gallery } = useListGalleryPosts({ limit: 3 }, { query: { staleTime: 5 * 60_000 } });
 
   return (
     <div className="flex flex-col gap-24 pb-10 overflow-hidden">
@@ -83,6 +88,7 @@ export default function Home() {
                   alt="Puppy looking for a home"
                   className="w-full object-contain drop-shadow-2xl"
                   fetchPriority="high"
+                  decoding="sync"
                   style={{ maxWidth: "680px", maxHeight: "none" }}
                 />
                 {/* Meet me bubble */}
@@ -174,7 +180,9 @@ export default function Home() {
 
       {/* AI Pet Match */}
       <section id="ai-pet-match">
-        <AIPetMatchWidget />
+        <Suspense fallback={null}>
+          <AIPetMatchWidget />
+        </Suspense>
       </section>
 
       {/* How it Works */}
