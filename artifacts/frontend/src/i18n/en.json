@@ -1081,7 +1081,19 @@
     "paymentDeclined": "Payment declined",
     "errorOccurred": "An error occurred",
     "couldNotSaveDonation": "Could not save donation",
-    "failedToConfirm": "Failed to confirm"
+    "failedToConfirm": "Failed to confirm",
+    "heroDesc1": "Your support helps us rescue, rehabilitate, and rehome stray and abandoned animals",
+    "heroDesc1Highlight": "across Jordan.",
+    "heroDesc2": "Every contribution provides medical care, food, and shelter while we find them their forever families.",
+    "secure": "Secure. Transparent. Impactful.",
+    "rescue": "Rescue",
+    "rescueDesc": "We save animals in need",
+    "rehabilitate": "Rehabilitate",
+    "rehabilitateDesc": "We provide medical care and recovery",
+    "rehome": "Rehome",
+    "rehomeDesc": "We find loving forever homes",
+    "repeat": "Repeat",
+    "repeatDesc": "We continue changing lives"
   },
   "notifTypes": {
     "pet_accepted": {
