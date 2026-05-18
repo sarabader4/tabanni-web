@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, favouritesTable, notificationsTable } from "@workspace/db";
+import { db, usersTable, petsTable, adoptionRequestsTable, fosterRequestsTable, favouritesTable, notificationsTable } from "@workspace/db";
 import { eq, desc, and, sql, notInArray } from "drizzle-orm";
 import { UpdateMyProfileBody } from "@workspace/api-zod";
 import bcrypt from "bcryptjs";
@@ -184,18 +184,6 @@ router.get("/users/me/favourites", async (req, res): Promise<void> => {
   }
 });
 
-router.get("/users/me/donations", async (req, res): Promise<void> => {
-  try {
-    if (!requireAuth(req, res)) return;
-    const donations = await db.select().from(donationsTable)
-      .where(eq(donationsTable.userId, req.userId))
-      .orderBy(desc(donationsTable.createdAt));
-    res.json(donations);
-  } catch (err) {
-    req.log.error({ err }, "Error getting user donations");
-    res.status(500).json({ error: "internal_error", message: "Failed to get donations" });
-  }
-});
 
 router.get("/users/me/notifications", async (req, res): Promise<void> => {
   try {

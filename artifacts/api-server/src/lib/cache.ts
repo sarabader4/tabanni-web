@@ -192,4 +192,5 @@ export const CACHE_PREFIX = {
   PETS_FEATURED: "pets:featured",
   PET_DETAIL: "pets:detail:",
   GALLERY_LIST: "gallery:list:",
+  LOST_FOUND_LIST: "lost-found:list:",
 } as const;

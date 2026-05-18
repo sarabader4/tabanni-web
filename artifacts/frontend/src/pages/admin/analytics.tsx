@@ -7,7 +7,6 @@ import {
 
 interface AnalyticsData {
   adoptionsByMonth: { month: string; count: number }[];
-  donationsByMonth: { month: string; total: number }[];
   petsByType: { type: string; count: number }[];
   topCities: { city: string | null; count: number }[];
 }
@@ -37,7 +36,6 @@ export default function AdminAnalytics() {
 
   const petsByType = data?.petsByType ?? [];
   const adoptionsByMonth = data?.adoptionsByMonth ?? [];
-  const donationsByMonth = data?.donationsByMonth ?? [];
   const topCities = (data?.topCities ?? []).map(c => ({ ...c, city: c.city ?? "Unknown" }));
 
   const pieData = petsByType.map(p => ({ name: p.type, value: p.count }));
@@ -94,27 +92,6 @@ export default function AdminAnalytics() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Donations by Month (JOD)">
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={donationsByMonth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
-                  formatter={(v: number) => [`JOD ${v.toFixed(0)}`, "Donations"]}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#6366F1"
-                  strokeWidth={2.5}
-                  dot={{ fill: "#6366F1", r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartCard>
         </div>
       )}
     </AdminLayout>

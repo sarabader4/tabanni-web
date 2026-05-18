@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, donationsTable, notificationsTable, volunteerApplicationsTable, adminNotificationsTable, adminNotificationEmailLogsTable } from "@workspace/db";
+import { db, petsTable, usersTable, adoptionRequestsTable, fosterRequestsTable, notificationsTable, volunteerApplicationsTable, adminNotificationsTable, adminNotificationEmailLogsTable } from "@workspace/db";
 import { eq, and, ilike, desc, sql, gte, lte, lt, inArray } from "drizzle-orm";
 import { ListAdminUsersQueryParams, ApprovePetParams, TogglePetFeaturedParams, UpdateAdminVolunteerStatusBody } from "@workspace/api-zod";
 import { createNotification, createAdminNotification } from "../lib/notifications";
@@ -35,23 +35,17 @@ router.get("/admin/stats", async (req, res) => {
       activeAdoptionsResult,
       activeFostersResult,
       adoptionsCountResult,
-      donationsResult,
       newUsersTodayResult,
       totalUsersResult,
       petsByType,
       topCities,
       adoptionsByMonthRaw,
-      donationsByMonthRaw,
     ] = await Promise.all([
       db.select({ count: sql<number>`count(*)::int` }).from(petsTable),
       db.select({ count: sql<number>`count(*)::int` }).from(petsTable).where(eq(petsTable.approved, false)),
       db.select({ count: sql<number>`count(*)::int` }).from(petsTable).where(eq(petsTable.status, "adopted")),
       db.select({ count: sql<number>`count(*)::int` }).from(petsTable).where(eq(petsTable.status, "fostered")),
       db.select({ count: sql<number>`count(*)::int` }).from(adoptionRequestsTable).where(eq(adoptionRequestsTable.status, "approved")),
-      db.select({ total: sql<string>`coalesce(sum(amount::numeric), 0)::text` }).from(donationsTable).where(and(
-        eq(donationsTable.type, "monetary"),
-        gte(donationsTable.createdAt, new Date(today.getFullYear(), today.getMonth(), 1)),
-      )),
       db.select({ count: sql<number>`count(*)::int` }).from(usersTable).where(gte(usersTable.createdAt, today)),
       db.select({ count: sql<number>`count(*)::int` }).from(usersTable),
       db.select({ type: petsTable.type, count: sql<number>`count(*)::int` }).from(petsTable).groupBy(petsTable.type),
@@ -72,30 +66,13 @@ router.get("/admin/stats", async (req, res) => {
           lt(adoptionRequestsTable.createdAt, rangeEnd),
         ))
         .groupBy(sql`date_trunc('month', ${adoptionRequestsTable.createdAt})`),
-      db.select({
-        monthKey: sql<string>`to_char(date_trunc('month', ${donationsTable.createdAt}), 'YYYY-MM')`,
-        total: sql<string>`coalesce(sum(amount::numeric), 0)::text`,
-      })
-        .from(donationsTable)
-        .where(and(
-          eq(donationsTable.type, "monetary"),
-          gte(donationsTable.createdAt, rangeStart),
-          lt(donationsTable.createdAt, rangeEnd),
-        ))
-        .groupBy(sql`date_trunc('month', ${donationsTable.createdAt})`),
     ]);
 
     const adoptionsMonthMap = new Map(adoptionsByMonthRaw.map(r => [r.monthKey, r.count]));
-    const donationsMonthMap = new Map(donationsByMonthRaw.map(r => [r.monthKey, r.total]));
 
     const adoptionsByMonth = monthsWithKey.map(m => ({
       month: m.name,
       count: adoptionsMonthMap.get(m.key) ?? 0,
-    }));
-
-    const donationsByMonth = monthsWithKey.map(m => ({
-      month: m.name,
-      total: parseFloat(donationsMonthMap.get(m.key) ?? "0"),
     }));
 
     res.json({
@@ -104,11 +81,9 @@ router.get("/admin/stats", async (req, res) => {
       activeAdoptions: activeAdoptionsResult[0]?.count ?? 0,
       activeFosters: activeFostersResult[0]?.count ?? 0,
       adoptionsCount: adoptionsCountResult[0]?.count ?? 0,
-      totalDonationsThisMonth: donationsResult[0]?.total ?? "0",
       newUsersToday: newUsersTodayResult[0]?.count ?? 0,
       totalUsers: totalUsersResult[0]?.count ?? 0,
       adoptionsByMonth,
-      donationsByMonth,
       petsByType,
       topCities,
     });
@@ -417,7 +392,7 @@ router.get("/admin/analytics", async (req, res) => {
     const rangeStart = monthsWithKey[0].start;
     const rangeEnd = monthsWithKey[monthsWithKey.length - 1].end;
 
-    const [adoptionsByMonthRaw, donationsByMonthRaw, petsByType, topCities] = await Promise.all([
+    const [adoptionsByMonthRaw, petsByType, topCities] = await Promise.all([
       db.select({
         monthKey: sql<string>`to_char(date_trunc('month', ${adoptionRequestsTable.createdAt}), 'YYYY-MM')`,
         count: sql<number>`count(*)::int`,
@@ -429,17 +404,6 @@ router.get("/admin/analytics", async (req, res) => {
           lt(adoptionRequestsTable.createdAt, rangeEnd),
         ))
         .groupBy(sql`date_trunc('month', ${adoptionRequestsTable.createdAt})`),
-      db.select({
-        monthKey: sql<string>`to_char(date_trunc('month', ${donationsTable.createdAt}), 'YYYY-MM')`,
-        total: sql<string>`coalesce(sum(amount::numeric), 0)::text`,
-      })
-        .from(donationsTable)
-        .where(and(
-          eq(donationsTable.type, "monetary"),
-          gte(donationsTable.createdAt, rangeStart),
-          lt(donationsTable.createdAt, rangeEnd),
-        ))
-        .groupBy(sql`date_trunc('month', ${donationsTable.createdAt})`),
       db.select({ type: petsTable.type, count: sql<number>`count(*)::int` })
         .from(petsTable)
         .groupBy(petsTable.type),
@@ -452,19 +416,13 @@ router.get("/admin/analytics", async (req, res) => {
     ]);
 
     const adoptionsMonthMap = new Map(adoptionsByMonthRaw.map(r => [r.monthKey, r.count]));
-    const donationsMonthMap = new Map(donationsByMonthRaw.map(r => [r.monthKey, r.total]));
 
     const adoptionsByMonth = monthsWithKey.map(m => ({
       month: m.name,
       count: adoptionsMonthMap.get(m.key) ?? 0,
     }));
 
-    const donationsByMonth = monthsWithKey.map(m => ({
-      month: m.name,
-      total: parseFloat(donationsMonthMap.get(m.key) ?? "0"),
-    }));
-
-    res.json({ adoptionsByMonth, donationsByMonth, petsByType, topCities });
+    res.json({ adoptionsByMonth, petsByType, topCities });
   } catch (err) {
     req.log.error({ err }, "Error getting admin analytics");
     res.status(500).json({ error: "internal_error", message: "Failed to get analytics" });

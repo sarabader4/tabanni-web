@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -30,7 +30,12 @@ export const lostFoundReportsTable = pgTable("lost_found_reports", {
   whatsappUrl: text("whatsapp_url"),
   status: lostFoundStatusEnum("status").notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (table) => [
+  index("lf_status_created_idx").on(table.status, table.createdAt),
+  index("lf_report_type_idx").on(table.reportType),
+  index("lf_city_idx").on(table.city),
+  index("lf_reporter_id_idx").on(table.reporterId),
+]);
 
 export const insertLostFoundReportSchema = createInsertSchema(lostFoundReportsTable).omit({ id: true, createdAt: true });
 export type InsertLostFoundReport = z.infer<typeof insertLostFoundReportSchema>;

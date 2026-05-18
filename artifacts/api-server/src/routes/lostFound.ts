@@ -3,6 +3,7 @@ import { db, lostFoundReportsTable, usersTable } from "@workspace/db";
 import { eq, and, ilike, or, gte, lte, desc, sql } from "drizzle-orm";
 import { ListLostFoundReportsQueryParams, CreateLostFoundReportBody, GetLostFoundReportParams } from "@workspace/api-zod";
 import { createNotification } from "../lib/notifications";
+import { cache, CACHE_PREFIX, CACHE_TTL } from "../lib/cache";
 
 const router: IRouter = Router();
 
@@ -11,6 +12,13 @@ router.get("/lost-found", async (req, res) => {
     const queryParsed = ListLostFoundReportsQueryParams.safeParse(req.query);
     if (!queryParsed.success) {
       return res.status(400).json({ error: "validation_error", message: "Invalid query parameters", details: queryParsed.error.issues });
+    }
+
+    const cacheKey = `${CACHE_PREFIX.LOST_FOUND_LIST}${JSON.stringify(queryParsed.data)}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      res.json(JSON.parse(cached));
+      return;
     }
 
     const { reportType, type, city, gender, size, breed, search, month, minAge, maxAge, page = 1, limit = 16, reporterId } = queryParsed.data;
@@ -61,13 +69,12 @@ router.get("/lost-found", async (req, res) => {
     ]);
 
     const total = countResult[0]?.count ?? 0;
+    const result = { reports, total, page: pageNum, totalPages: Math.ceil(total / limitNum) };
 
-    res.json({
-      reports,
-      total,
-      page: pageNum,
-      totalPages: Math.ceil(total / limitNum),
-    });
+    const ttl = reporterId ? 30_000 : CACHE_TTL.LISTING;
+    await cache.set(cacheKey, JSON.stringify(result), ttl);
+
+    res.json(result);
   } catch (err) {
     req.log.error({ err }, "Error listing lost/found reports");
     res.status(500).json({ error: "internal_error", message: "Failed to list reports" });

@@ -3,7 +3,6 @@ import { Link, useLocation } from "wouter";
 import logoImg from "@assets/logo_1776713054949.PNG";
 import {
   useGetAdminStats,
-  useListDonations,
 } from "@workspace/api-client-react";
 import {
   LayoutDashboard,
@@ -16,7 +15,6 @@ import {
   ChevronDown,
   ChevronRight,
   Menu,
-  DollarSign,
   HandHeart,
   Search,
   Mail,
@@ -53,7 +51,6 @@ const SIDEBAR_NAV = [
   { label: "Adoption Requests", href: "/admin/adoptions", icon: Heart },
   { label: "Foster Requests", href: "/admin/fosters", icon: FileHeart },
   { label: "Users", href: "/admin/users", icon: Users },
-  { label: "Donors", href: "/admin/donors", icon: DollarSign },
   { label: "Volunteers", href: "/admin/volunteers", icon: HandHeart },
   { label: "Pet Stories / Gallery", href: "/admin/gallery", icon: Image },
   { label: "Lost & Found", href: "/admin/lost-found", icon: Search },
@@ -217,10 +214,6 @@ const CHART_DATA = [
 
 export default function AdminDashboard() {
   const { data: stats } = useGetAdminStats();
-  const { data: donationsData } = useListDonations({ limit: 4 });
-  const donations = Array.isArray(donationsData) ? donationsData.slice(0, 4) : [];
-
-  const totalDonations = parseFloat(stats?.totalDonationsThisMonth ?? "0");
 
   return (
     <AdminLayout title="Dashboard">
@@ -232,13 +225,12 @@ export default function AdminDashboard() {
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard label="Adoptions" value={stats?.adoptionsCount ?? 0} />
-        <KpiCard label="Total donations" value={`$${totalDonations.toFixed(0)}`} sub="this month" />
         <KpiCard label="New users (today)" value={stats?.newUsersToday ?? 0} />
-        <KpiCard label="Sentilonrs" value={0} />
+        <KpiCard label="Total users" value={stats?.totalUsers ?? 0} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-5">Adoptions over time</h2>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={CHART_DATA} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
@@ -259,48 +251,6 @@ export default function AdminDashboard() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
-
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-5">Recent donations</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 text-xs font-semibold text-gray-400">Name</th>
-                  <th className="text-left py-2 text-xs font-semibold text-gray-400">Amount</th>
-                  <th className="text-left py-2 text-xs font-semibold text-gray-400">Payment method</th>
-                  <th className="text-left py-2 text-xs font-semibold text-gray-400">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {donations.length > 0 ? donations.map((d) => (
-                  <tr key={d.id} className="border-b border-gray-50">
-                    <td className="py-3 text-gray-900 font-medium">{d.donorName ?? `Donor #${d.id}`}</td>
-                    <td className="py-3 text-gray-700">${parseFloat(d.amount ?? "0").toFixed(0)}</td>
-                    <td className="py-3 text-gray-500 capitalize">{d.paymentMethod ?? "—"}</td>
-                    <td className="py-3 text-gray-400">
-                      {d.createdAt ? new Date(d.createdAt).toLocaleDateString("en", { month: "short", day: "numeric" }) : "—"}
-                    </td>
-                  </tr>
-                )) : (
-                  [
-                    { name: "Angele Yu", amount: "$150", method: "Visa", date: "Apr 20" },
-                    { name: "Neil Sims", amount: "$200", method: "Mastercard", date: "Apr 18" },
-                    { name: "Laura Smith", amount: "$100", method: "PayPal", date: "Apr 15" },
-                    { name: "John Doe", amount: "$300", method: "Visa", date: "Apr 10" },
-                  ].map((row) => (
-                    <tr key={row.name} className="border-b border-gray-50">
-                      <td className="py-3 text-gray-900 font-medium">{row.name}</td>
-                      <td className="py-3 text-gray-700">{row.amount}</td>
-                      <td className="py-3 text-gray-500">{row.method}</td>
-                      <td className="py-3 text-gray-400">{row.date}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
     </AdminLayout>
