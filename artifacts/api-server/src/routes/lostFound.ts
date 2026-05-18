@@ -7,6 +7,14 @@ import { cache, CACHE_PREFIX, CACHE_TTL } from "../lib/cache";
 
 const router: IRouter = Router();
 
+function transformLostFoundImages(reportId: number, rawUrls: unknown, firstOnly = false): string[] {
+  const urls = Array.isArray(rawUrls) ? (rawUrls as string[]) : [];
+  const slice = firstOnly ? urls.slice(0, 1) : urls;
+  return slice.map((url, idx) =>
+    typeof url === "string" && url.startsWith("data:") ? `/api/lost-found/${reportId}/image/${idx}` : url
+  );
+}
+
 router.get("/lost-found", async (req, res) => {
   try {
     const queryParsed = ListLostFoundReportsQueryParams.safeParse(req.query);
@@ -69,7 +77,8 @@ router.get("/lost-found", async (req, res) => {
     ]);
 
     const total = countResult[0]?.count ?? 0;
-    const result = { reports, total, page: pageNum, totalPages: Math.ceil(total / limitNum) };
+    const transformedReports = reports.map(r => ({ ...r, imageUrls: transformLostFoundImages(r.id, r.imageUrls, true) }));
+    const result = { reports: transformedReports, total, page: pageNum, totalPages: Math.ceil(total / limitNum) };
 
     const ttl = reporterId ? 30_000 : CACHE_TTL.LISTING;
     await cache.set(cacheKey, JSON.stringify(result), ttl);
@@ -99,6 +108,40 @@ router.post("/lost-found", async (req, res) => {
   }
 });
 
+router.get("/lost-found/:id/image/:idx", async (req, res) => {
+  try {
+    const reportId = parseInt(req.params.id, 10);
+    const idx = parseInt(req.params.idx, 10);
+    if (isNaN(reportId) || isNaN(idx) || idx < 0) return res.status(400).end();
+
+    const [report] = await db
+      .select({ imageUrls: lostFoundReportsTable.imageUrls })
+      .from(lostFoundReportsTable)
+      .where(eq(lostFoundReportsTable.id, reportId))
+      .limit(1);
+
+    if (!report) return res.status(404).end();
+    const urls = report.imageUrls as string[] | null;
+    const url = urls?.[idx];
+    if (!url) return res.status(404).end();
+
+    if (url.startsWith("data:")) {
+      const commaIdx = url.indexOf(",");
+      if (commaIdx === -1) return res.status(422).end();
+      const mime = (url.slice(0, commaIdx).match(/data:([^;,]+)/) ?? [])[1] ?? "image/jpeg";
+      const buffer = Buffer.from(url.slice(commaIdx + 1), "base64");
+      res.set("Content-Type", mime);
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      res.set("Content-Length", String(buffer.length));
+      return res.end(buffer);
+    }
+    return res.redirect(302, url);
+  } catch (err) {
+    req.log.error({ err }, "Error serving lost-found image");
+    res.status(500).end();
+  }
+});
+
 router.get("/lost-found/:id", async (req, res) => {
   try {
     const paramsParsed = GetLostFoundReportParams.safeParse(req.params);
@@ -109,7 +152,8 @@ router.get("/lost-found/:id", async (req, res) => {
     const [report] = await db.select().from(lostFoundReportsTable)
       .where(eq(lostFoundReportsTable.id, id));
     if (!report) return res.status(404).json({ error: "not_found", message: "Report not found" });
-    res.json(report);
+    const reportTransformed = { ...report, imageUrls: transformLostFoundImages(report.id, report.imageUrls) };
+    res.json(reportTransformed);
   } catch (err) {
     req.log.error({ err }, "Error getting lost/found report");
     res.status(500).json({ error: "internal_error", message: "Failed to get report" });

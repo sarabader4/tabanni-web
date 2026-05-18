@@ -7,6 +7,7 @@ import {
   AlertCircle, CheckCircle2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { resolveImageUrl } from "@/lib/image-utils";
 
 export default function LostFoundDetail() {
   const { t, i18n } = useTranslation();
@@ -48,7 +49,7 @@ export default function LostFoundDetail() {
 
   const isLost = report.reportType === "lost";
   const images: string[] = report.imageUrls?.length
-    ? report.imageUrls
+    ? report.imageUrls.map((url: string) => resolveImageUrl(url, ""))
     : ["https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&auto=format&fit=crop&q=60"];
 
   const currentPhoto = images[photoIndex];

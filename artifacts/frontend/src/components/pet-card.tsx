@@ -3,6 +3,7 @@ import { Heart, Share2, ShieldCheck } from "lucide-react";
 import type { Pet } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { resolveImageUrl } from "@/lib/image-utils";
 
 interface PetCardProps {
   pet: Pet;
@@ -16,9 +17,10 @@ export function PetCard({ pet, onFavorite, isFavorited, isFavoritePending, varia
   const [, navigate] = useLocation();
   const { t } = useTranslation();
 
-  const imageUrl =
-    pet.imageUrls?.[0] ||
-    "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&auto=format&fit=crop&q=60";
+  const imageUrl = resolveImageUrl(
+    pet.imageUrls?.[0],
+    "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&auto=format&fit=crop&q=60"
+  );
 
   const ageLabel =
     pet.ageMonths < 12

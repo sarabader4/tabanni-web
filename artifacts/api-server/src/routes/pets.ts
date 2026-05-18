@@ -34,6 +34,14 @@ const PET_SIZES = ["small", "medium", "large"] as const;
 const PET_STATUSES = ["available", "adopted", "fostered", "pending", "lost", "found"] as const;
 const PET_PURPOSES = ["adopt", "foster", "both", "lost_found"] as const;
 
+function transformImageUrls(petId: number, rawUrls: unknown, firstOnly = false): string[] {
+  const urls = Array.isArray(rawUrls) ? (rawUrls as string[]) : [];
+  const slice = firstOnly ? urls.slice(0, 1) : urls;
+  return slice.map((url, idx) =>
+    typeof url === "string" && url.startsWith("data:") ? `/api/pets/${petId}/image/${idx}` : url
+  );
+}
+
 router.get("/pets", async (req, res) => {
   try {
     const parsed = ListPetsQueryParams.safeParse(req.query);
@@ -124,7 +132,8 @@ router.get("/pets", async (req, res) => {
 
     const total = countResult[0]?.count ?? 0;
 
-    const responseBody = { pets, total, page: pageNum, totalPages: Math.ceil(total / limitNum) };
+    const transformedPets = pets.map(p => ({ ...p, imageUrls: transformImageUrls(p.id, p.imageUrls, true) }));
+    const responseBody = { pets: transformedPets, total, page: pageNum, totalPages: Math.ceil(total / limitNum) };
     await cache.set(cacheKey, responseBody, CACHE_TTL.LISTING);
 
     res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
@@ -213,13 +222,48 @@ router.get("/pets/featured", async (req, res) => {
       .orderBy(desc(petsTable.createdAt))
       .limit(8);
 
-    await cache.set(CACHE_PREFIX.PETS_FEATURED, pets, CACHE_TTL.LISTING);
+    const transformedFeatured = pets.map(p => ({ ...p, imageUrls: transformImageUrls(p.id, p.imageUrls, true) }));
+    await cache.set(CACHE_PREFIX.PETS_FEATURED, transformedFeatured, CACHE_TTL.LISTING);
 
     res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
-    res.json(pets);
+    res.json(transformedFeatured);
   } catch (err) {
     req.log.error({ err }, "Error getting featured pets");
     res.status(500).json({ error: "internal_error", message: "Failed to get featured pets" });
+  }
+});
+
+router.get("/pets/:id/image/:idx", async (req, res) => {
+  try {
+    const petId = parseInt(req.params.id, 10);
+    const idx = parseInt(req.params.idx, 10);
+    if (isNaN(petId) || isNaN(idx) || idx < 0) return res.status(400).end();
+
+    const [pet] = await db
+      .select({ imageUrls: petsTable.imageUrls })
+      .from(petsTable)
+      .where(eq(petsTable.id, petId))
+      .limit(1);
+
+    if (!pet) return res.status(404).end();
+    const urls = pet.imageUrls as string[] | null;
+    const url = urls?.[idx];
+    if (!url) return res.status(404).end();
+
+    if (url.startsWith("data:")) {
+      const commaIdx = url.indexOf(",");
+      if (commaIdx === -1) return res.status(422).end();
+      const mime = (url.slice(0, commaIdx).match(/data:([^;,]+)/) ?? [])[1] ?? "image/jpeg";
+      const buffer = Buffer.from(url.slice(commaIdx + 1), "base64");
+      res.set("Content-Type", mime);
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      res.set("Content-Length", String(buffer.length));
+      return res.end(buffer);
+    }
+    return res.redirect(302, url);
+  } catch (err) {
+    req.log.error({ err }, "Error serving pet image");
+    res.status(500).end();
   }
 });
 
@@ -268,9 +312,10 @@ router.get("/pets/:id", async (req, res) => {
       .where(eq(petsTable.id, paramsParsed.data.id));
 
     if (!pet) return res.status(404).json({ error: "not_found", message: "Pet not found" });
-    await cache.set(cacheKey, pet, CACHE_TTL.DETAIL);
+    const petTransformed = { ...pet, imageUrls: transformImageUrls(pet.id, pet.imageUrls) };
+    await cache.set(cacheKey, petTransformed, CACHE_TTL.DETAIL);
     res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
-    res.json(pet);
+    res.json(petTransformed);
   } catch (err) {
     req.log.error({ err }, "Error getting pet");
     res.status(500).json({ error: "internal_error", message: "Failed to get pet" });

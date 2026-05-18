@@ -8,6 +8,7 @@ import { useFavourites } from "@/hooks/use-favourites";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useCallback } from "react";
+import { resolveImageUrl } from "@/lib/image-utils";
 
 export default function PetDetail() {
   const { id } = useParams();
@@ -146,7 +147,7 @@ export default function PetDetail() {
             onClick={() => { if (pet.imageUrls && pet.imageUrls.length > 0) setLightboxIndex(0); }}
           >
             <img
-              src={pet.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800"}
+              src={resolveImageUrl(pet.imageUrls?.[0], "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800")}
               alt={pet.name}
               className={`w-full h-full object-cover ${pet.imageUrls && pet.imageUrls.length > 0 ? "hover:scale-105 transition-transform duration-300" : ""}`}
             />
@@ -159,7 +160,7 @@ export default function PetDetail() {
                   className="aspect-square rounded-xl overflow-hidden border border-border cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => setLightboxIndex(i + 1)}
                 >
-                  <img src={img} alt={`${pet.name} photo ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
+                  <img src={resolveImageUrl(img, "")} alt={`${pet.name} photo ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>
@@ -380,7 +381,7 @@ export default function PetDetail() {
             <X className="w-6 h-6" />
           </button>
           <img
-            src={pet.imageUrls[lightboxIndex] || ""}
+            src={resolveImageUrl(pet.imageUrls[lightboxIndex], "")}
             alt={`${pet.name} ${lightboxIndex + 1}`}
             className="max-w-[90vw] max-h-[90vh] object-contain rounded-2xl shadow-2xl"
             onClick={e => e.stopPropagation()}

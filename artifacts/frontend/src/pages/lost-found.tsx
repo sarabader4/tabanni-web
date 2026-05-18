@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
+import { resolveImageUrl } from "@/lib/image-utils";
 import { useAuth } from "@/contexts/auth-context";
 import WhatsAppPhoneInput from "@/components/whatsapp-phone-input";
 import type { TFunction } from "i18next";
@@ -360,7 +361,7 @@ export default function LostFound() {
                     >
                       <div className="relative overflow-hidden" style={{ height: "180px" }}>
                         <img
-                          src={report.imageUrls?.[0] || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"}
+                          src={resolveImageUrl(report.imageUrls?.[0], "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600")}
                           alt={report.name}
                           loading="lazy"
                           decoding="async"
