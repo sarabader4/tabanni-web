@@ -1,8 +1,0 @@
-[phases.install]
-cmds = ["pnpm install --no-frozen-lockfile --ignore-scripts"]
-
-[phases.build]
-cmds = ["cd artifacts/api-server && pnpm run build"]
-
-[start]
-cmd = "cd artifacts/api-server && node dist/index.mjs"
