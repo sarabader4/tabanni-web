@@ -3,6 +3,9 @@ import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
 import "./index.css";
 import "./i18n";
+import { setBaseUrl } from "@workspace/api-client-react";
+
+setBaseUrl("");
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>

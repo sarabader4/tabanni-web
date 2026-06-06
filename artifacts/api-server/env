@@ -1,0 +1,4 @@
+DATABASE_URL=postgresql://postgres:postgres123@localhost:5432/tabanni
+PORT=3000
+JWT_SECRET=mysecretkey123
+REDIS_URL=redis://localhost:6379
