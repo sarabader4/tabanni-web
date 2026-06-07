@@ -5,7 +5,7 @@ import "./index.css";
 import "./i18n";
 import { setBaseUrl } from "@workspace/api-client-react";
 
-setBaseUrl("");
+setBaseUrl(import.meta.env.VITE_API_URL || "");
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
