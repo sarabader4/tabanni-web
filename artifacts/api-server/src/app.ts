@@ -8,11 +8,11 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import { optionalAuth, requireAdmin } from "./middlewares/requireAuth";
 import { WebhookHandlers } from "./webhookHandlers";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app: Express = express();
-
 app.use(compression());
-
 app.use(
   pinoHttp({
     logger,
@@ -32,7 +32,6 @@ app.use(
     },
   }),
 );
-
 app.post(
   "/api/payments/stripe/webhook",
   express.raw({ type: "application/json" }),
@@ -52,7 +51,6 @@ app.post(
     }
   }
 );
-
 app.use(
   cors({
     origin: true,
@@ -62,19 +60,20 @@ app.use(
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
-
-// Default all responses to no-store; specific public GET routes override this explicitly
 app.use((_req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
-
-// Populate req.userId from JWT cookie for all routes (non-blocking)
 app.use(optionalAuth);
-
-// Admin routes require authentication AND admin role
 app.use("/api/admin", requireAdmin);
-
 app.use("/api", router);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDist = path.join(__dirname, "../../frontend/dist/public");
+app.use(express.static(frontendDist));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(frontendDist, "index.html"));
+});
 
 export default app;
