@@ -1,0 +1,1 @@
+{"version":3,"file":"aiRecommend200MatchesItem.d.ts","sourceRoot":"","sources":["../../../src/generated/types/aiRecommend200MatchesItem.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,GAAG,EAAE,MAAM,OAAO,CAAC;AAEjC,MAAM,MAAM,yBAAyB,GAAG;IACtC,GAAG,EAAE,GAAG,CAAC;IACT,OAAO,EAAE,MAAM,CAAC;IAChB,WAAW,EAAE,MAAM,CAAC;IACpB;;;OAGG;IACH,KAAK,EAAE,MAAM,CAAC;CACf,CAAC"}
