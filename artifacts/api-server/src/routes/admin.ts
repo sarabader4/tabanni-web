@@ -75,7 +75,7 @@ router.get("/admin/stats", async (req, res) => {
       count: adoptionsMonthMap.get(m.key) ?? 0,
     }));
 
-    res.json({
+const result = {
       totalPets: totalPetsResult[0]?.count ?? 0,
       pendingApproval: pendingApprovalResult[0]?.count ?? 0,
       activeAdoptions: activeAdoptionsResult[0]?.count ?? 0,
@@ -86,7 +86,9 @@ router.get("/admin/stats", async (req, res) => {
       adoptionsByMonth,
       petsByType,
       topCities,
-    });
+    };
+    await cache.set(`${CACHE_PREFIX}admin:stats`, JSON.stringify(result), "EX", 60);
+    res.json(result);
   } catch (err) {
     req.log.error({ err }, "Error getting admin stats");
     res.status(500).json({ error: "internal_error", message: "Failed to get stats" });
