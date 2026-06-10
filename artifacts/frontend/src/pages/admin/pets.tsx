@@ -54,7 +54,7 @@ function useAdminPets(params: { search?: string }) {
   return useQuery<AdminPetsResponse>({
     queryKey: ["/api/admin/pets", params.search],
     queryFn: async () => {
-      const qs = new URLSearchParams({ limit: "200" });
+      const qs = new URLSearchParams({ limit: "20" });
       if (params.search) qs.set("search", params.search);
       const res = await fetch(`${base}/api/admin/pets?${qs}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch admin pets");
