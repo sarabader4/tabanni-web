@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useListAdoptionRequests, useUpdateAdoptionRequestStatus } from "@workspace/api-client-react";
-import { Heart, CheckCircle, XCircle, Clock, Eye, X, MapPin } from "lucide-react";
+import { Heart, CheckCircle, XCircle, Clock, Eye, X, MapPin, User, Phone, Mail } from "lucide-react";
 import { AdminLayout } from "./index";
 
 function MessageModal({ message, petName, onClose }: { message: string; petName: string; onClose: () => void }) {
@@ -19,9 +19,75 @@ function MessageModal({ message, petName, onClose }: { message: string; petName:
   );
 }
 
+function ProfileModal({ req, onClose }: { req: any; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900">Requester Profile</h3>
+          <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-gray-100"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="flex items-center gap-4">
+            {req.requesterAvatar ? (
+              <img src={req.requesterAvatar} alt={req.requesterName} className="w-16 h-16 rounded-full object-cover" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
+                <User className="w-8 h-8 text-orange-400" />
+              </div>
+            )}
+            <div>
+              <p className="font-bold text-gray-900 text-lg">{req.requesterName ?? `User #${req.requesterId}`}</p>
+              <p className="text-sm text-gray-500">ID #{req.requesterId}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            {req.requesterEmail && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <Mail className="w-4 h-4 text-gray-400" />
+                <div>
+                  <p className="text-xs text-gray-500">Email</p>
+                  <p className="text-sm font-medium text-gray-900">{req.requesterEmail}</p>
+                </div>
+              </div>
+            )}
+            {req.requesterPhone && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <Phone className="w-4 h-4 text-gray-400" />
+                <div>
+                  <p className="text-xs text-gray-500">Phone</p>
+                  <p className="text-sm font-medium text-gray-900">{req.requesterPhone}</p>
+                </div>
+              </div>
+            )}
+            {req.requesterCity && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <MapPin className="w-4 h-4 text-gray-400" />
+                <div>
+                  <p className="text-xs text-gray-500">City</p>
+                  <p className="text-sm font-medium text-gray-900">{req.requesterCity}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {req.message && (
+            <div className="p-3 bg-orange-50 rounded-xl">
+              <p className="text-xs text-gray-500 mb-1">Message</p>
+              <p className="text-sm text-gray-700">{req.message}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminAdoptions() {
   const [status, setStatus] = useState("");
   const [viewMessage, setViewMessage] = useState<{ text: string; pet: string } | null>(null);
+  const [viewProfile, setViewProfile] = useState<any | null>(null);
   const { data: requests, refetch } = useListAdoptionRequests({ status: status || undefined });
   const updateStatus = useUpdateAdoptionRequestStatus();
 
@@ -38,7 +104,9 @@ export default function AdminAdoptions() {
       {viewMessage && (
         <MessageModal message={viewMessage.text} petName={viewMessage.pet} onClose={() => setViewMessage(null)} />
       )}
-
+      {viewProfile && (
+        <ProfileModal req={viewProfile} onClose={() => setViewProfile(null)} />
+      )}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="p-4 border-b border-gray-100 flex flex-wrap items-center gap-2">
           <p className="text-sm font-semibold text-gray-700 mr-1">Filter:</p>
@@ -125,24 +193,32 @@ export default function AdminAdoptions() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5">
-                    {req.status === "pending" && (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleStatus(req.id, "approved")}
-                          disabled={updateStatus.isPending}
-                          className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold transition-colors disabled:opacity-50"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleStatus(req.id, "rejected")}
-                          disabled={updateStatus.isPending}
-                          className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-50"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setViewProfile(req)}
+                        className="px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-semibold transition-colors"
+                      >
+                        View Profile
+                      </button>
+                      {req.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() => handleStatus(req.id, "approved")}
+                            disabled={updateStatus.isPending}
+                            className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold transition-colors disabled:opacity-50"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleStatus(req.id, "rejected")}
+                            disabled={updateStatus.isPending}
+                            className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-50"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
