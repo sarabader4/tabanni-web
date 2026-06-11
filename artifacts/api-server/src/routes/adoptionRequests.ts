@@ -38,7 +38,7 @@ router.get("/adoption-requests", requireAuth, async (req, res) => {
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    const requests = await db.select({
+   const requests = await db.select({
       id: adoptionRequestsTable.id,
       petId: adoptionRequestsTable.petId,
       requesterId: adoptionRequestsTable.requesterId,
@@ -52,18 +52,19 @@ router.get("/adoption-requests", requireAuth, async (req, res) => {
       requesterCity: usersTable.city,
       requesterAvatar: usersTable.avatarUrl,
       createdAt: adoptionRequestsTable.createdAt,
+      requesterProfile: userProfilesTable,
     })
       .from(adoptionRequestsTable)
       .leftJoin(petsTable, eq(adoptionRequestsTable.petId, petsTable.id))
       .leftJoin(usersTable, eq(adoptionRequestsTable.requesterId, usersTable.id))
+      .leftJoin(userProfilesTable, eq(adoptionRequestsTable.requesterId, userProfilesTable.userId))
       .where(whereClause)
       .orderBy(desc(adoptionRequestsTable.createdAt));
-
     const mapped = requests.map(r => ({
       ...r,
       petImageUrl: Array.isArray(r.petImageUrl) ? r.petImageUrl[0] : null,
+      requesterProfile: r.requesterProfile ?? null,
     }));
-
     res.json(mapped);
   } catch (err) {
     req.log.error({ err }, "Error listing adoption requests");
