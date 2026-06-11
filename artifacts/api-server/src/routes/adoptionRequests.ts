@@ -47,7 +47,10 @@ router.get("/adoption-requests", requireAuth, async (req, res) => {
       petName: petsTable.name,
       petImageUrl: petsTable.imageUrls,
       requesterName: usersTable.fullName,
+      requesterEmail: usersTable.email,
+      requesterPhone: usersTable.phone,
       requesterCity: usersTable.city,
+      requesterAvatar: usersTable.avatarUrl,
       createdAt: adoptionRequestsTable.createdAt,
     })
       .from(adoptionRequestsTable)
@@ -87,7 +90,10 @@ router.get("/adoption-requests/incoming", requireAuth, async (req, res): Promise
       petName: petsTable.name,
       petImageUrl: petsTable.imageUrls,
       requesterName: usersTable.fullName,
+      requesterEmail: usersTable.email,
+      requesterPhone: usersTable.phone,
       requesterCity: usersTable.city,
+      requesterAvatar: usersTable.avatarUrl,
       createdAt: adoptionRequestsTable.createdAt,
       requesterProfile: userProfilesTable,
     })
@@ -129,7 +135,10 @@ router.get("/adoption-requests/:id", requireAuth, async (req, res): Promise<void
       petImageUrl: petsTable.imageUrls,
       petOwnerId: petsTable.ownerId,
       requesterName: usersTable.fullName,
+      requesterEmail: usersTable.email,
+      requesterPhone: usersTable.phone,
       requesterCity: usersTable.city,
+      requesterAvatar: usersTable.avatarUrl,
       createdAt: adoptionRequestsTable.createdAt,
     })
       .from(adoptionRequestsTable)
