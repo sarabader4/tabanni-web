@@ -18,7 +18,7 @@ router.post("/upload/image", async (req, res) => {
   }
 });
 
-router.post("/admin/migrate-images", async (req, res) => {
+router.post("/migrate-images-internal", async (req, res) => {
   try {
     const results = { pets: 0, users: 0, errors: 0 };
 
