@@ -3,6 +3,15 @@ import { useListAdoptionRequests, useUpdateAdoptionRequestStatus } from "@worksp
 import { Heart, CheckCircle, XCircle, Clock, Eye, X, MapPin, User, Phone, Mail } from "lucide-react";
 import { AdminLayout } from "./index";
 
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="p-3 bg-gray-50 rounded-xl">
+      <p className="text-xs text-gray-500 font-semibold mb-0.5">{label}</p>
+      <p className="text-sm font-medium text-gray-900">{value}</p>
+    </div>
+  );
+}
+
 function MessageModal({ message, petName, onClose }: { message: string; petName: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -20,14 +29,17 @@ function MessageModal({ message, petName, onClose }: { message: string; petName:
 }
 
 function ProfileModal({ req, onClose }: { req: any; onClose: () => void }) {
+  const profile = req.requesterProfile;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white z-10">
           <h3 className="font-bold text-gray-900">Requester Profile</h3>
           <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-gray-100"><X className="w-4 h-4" /></button>
         </div>
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-6">
+
+          {/* Basic Info */}
           <div className="flex items-center gap-4">
             {req.requesterAvatar ? (
               <img src={req.requesterAvatar} alt={req.requesterName} className="w-16 h-16 rounded-full object-cover" />
@@ -42,7 +54,8 @@ function ProfileModal({ req, onClose }: { req: any; onClose: () => void }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          {/* Contact Info */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {req.requesterEmail && (
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                 <Mail className="w-4 h-4 text-gray-400" />
@@ -72,10 +85,58 @@ function ProfileModal({ req, onClose }: { req: any; onClose: () => void }) {
             )}
           </div>
 
+          {/* Message */}
           {req.message && (
             <div className="p-3 bg-orange-50 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">Message</p>
+              <p className="text-xs text-gray-500 mb-1 font-semibold">Message</p>
               <p className="text-sm text-gray-700">{req.message}</p>
+            </div>
+          )}
+
+          {/* Readiness Form */}
+          {profile ? (
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3 text-base border-b pb-2">Readiness Form</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {profile.areaOfResidence && <InfoRow label="Area of Residence" value={profile.areaOfResidence} />}
+                {profile.homeAddress && <InfoRow label="Home Address" value={profile.homeAddress} />}
+                {profile.occupation && <InfoRow label="Occupation" value={profile.occupation} />}
+                {profile.age && <InfoRow label="Age" value={String(profile.age)} />}
+                {profile.mainCaregiver && <InfoRow label="Main Caregiver" value={profile.mainCaregiver} />}
+                {profile.adoptionReason && <InfoRow label="Adoption Reason" value={profile.adoptionReason} />}
+                {profile.financialResponsibility && <InfoRow label="Financial Responsibility" value={profile.financialResponsibility} />}
+                <InfoRow label="Children Count" value={String(profile.childrenCount ?? 0)} />
+                {profile.yardType && <InfoRow label="Yard Type" value={profile.yardType} />}
+                {profile.dayLocation && <InfoRow label="Pet Day Location" value={profile.dayLocation} />}
+                {profile.nightLocation && <InfoRow label="Pet Night Location" value={profile.nightLocation} />}
+                {profile.homeType && <InfoRow label="Home Type" value={profile.homeType} />}
+                {profile.ownershipType && <InfoRow label="Ownership Type" value={profile.ownershipType} />}
+                {profile.allergies && <InfoRow label="Allergies" value={profile.allergies} />}
+                {profile.currentPets && <InfoRow label="Current Pets" value={profile.currentPets} />}
+                {profile.householdObjection && <InfoRow label="Household Objection" value={profile.householdObjection} />}
+                {profile.previousPetExperience && <InfoRow label="Previous Pet Experience" value={profile.previousPetExperience} />}
+                <InfoRow label="Exercise Hours/Day" value={String(profile.exerciseHours ?? 0)} />
+                <InfoRow label="Monthly Cost Estimate" value={`$${profile.monthlyCostEstimation ?? 0}`} />
+                {profile.breedingIntention && <InfoRow label="Breeding Intention" value={profile.breedingIntention} />}
+                <InfoRow label="Spay/Neuter Commitment" value={profile.spayNeuterCommitment ? "Yes" : "No"} />
+                {profile.behaviorTolerance && <InfoRow label="Behavior Tolerance" value={profile.behaviorTolerance} />}
+                {profile.traumaHandlingComfort && <InfoRow label="Trauma Handling" value={profile.traumaHandlingComfort} />}
+                {profile.dailyCarePlan && <InfoRow label="Daily Care Plan" value={profile.dailyCarePlan} />}
+                {profile.travelPlan && <InfoRow label="Travel Plan" value={profile.travelPlan} />}
+                {profile.activities && (profile.activities as string[]).length > 0 && (
+                  <InfoRow label="Activities" value={(profile.activities as string[]).join(", ")} />
+                )}
+                {profile.petPreferences && (profile.petPreferences as string[]).length > 0 && (
+                  <InfoRow label="Pet Preferences" value={(profile.petPreferences as string[]).join(", ")} />
+                )}
+                {profile.trainingExpectations && (profile.trainingExpectations as string[]).length > 0 && (
+                  <InfoRow label="Training Expectations" value={(profile.trainingExpectations as string[]).join(", ")} />
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 bg-gray-50 rounded-xl text-center text-gray-400 text-sm">
+              No Readiness Form submitted yet.
             </div>
           )}
         </div>
