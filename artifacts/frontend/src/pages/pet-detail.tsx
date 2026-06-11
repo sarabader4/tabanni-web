@@ -20,6 +20,7 @@ export default function PetDetail() {
   const { isLoggedIn, isFavourited, isPendingFor, toggleFavourite } = useFavourites();
   const { user } = useAuth();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [cancelConfirm, setCancelConfirm] = useState<"adopt" | "foster" | null>(null);
 
   const petId = Number(id);
 
@@ -45,8 +46,10 @@ export default function PetDetail() {
     enabled: !!user,
   });
 
-  const hasAdoptionRequest = (myRequests ?? []).some((r: any) => r.petId === petId && r.status !== "rejected");
-  const hasFosterRequest = (myFosterRequests ?? []).some((r: any) => r.petId === petId && r.status !== "rejected");
+  const activeAdoptionRequest = (myRequests ?? []).find((r: any) => r.petId === petId && r.status === "pending");
+  const activeFosterRequest = (myFosterRequests ?? []).find((r: any) => r.petId === petId && r.status === "pending");
+  const hasAdoptionRequest = !!activeAdoptionRequest;
+  const hasFosterRequest = !!activeFosterRequest;
 
   const favourited = isFavourited(petId);
   const isPending = isPendingFor(petId);
@@ -82,8 +85,7 @@ export default function PetDetail() {
     if (navigator.share) {
       try {
         await navigator.share({ title: pet?.name, url });
-      } catch {
-      }
+      } catch {}
     } else {
       try {
         await navigator.clipboard.writeText(url);
@@ -126,6 +128,36 @@ export default function PetDetail() {
     }
   };
 
+  const cancelAdopt = async () => {
+    if (!activeAdoptionRequest) return;
+    try {
+      await fetch(`/api/adoption-requests/${activeAdoptionRequest.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      toast({ title: "Request Cancelled", description: "Your adoption request has been cancelled." });
+      refetchRequests();
+    } catch {
+      toast({ title: "Error", description: "Failed to cancel request.", variant: "destructive" });
+    }
+    setCancelConfirm(null);
+  };
+
+  const cancelFoster = async () => {
+    if (!activeFosterRequest) return;
+    try {
+      await fetch(`/api/foster-requests/${activeFosterRequest.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      toast({ title: "Request Cancelled", description: "Your foster request has been cancelled." });
+      refetchFosterRequests();
+    } catch {
+      toast({ title: "Error", description: "Failed to cancel request.", variant: "destructive" });
+    }
+    setCancelConfirm(null);
+  };
+
   const handleAdopt = () => {
     if (!user) { navigate("/login"); toast({ title: t("petDetail.pleaseLoginFirst") }); return; }
     if (!user.isOnboardingCompleted) {
@@ -166,6 +198,31 @@ export default function PetDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {cancelConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="font-bold text-gray-900 text-lg mb-2">Cancel Request?</h3>
+            <p className="text-gray-500 text-sm mb-6">
+              Are you sure you want to cancel your {cancelConfirm} request for {pet.name}?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCancelConfirm(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50"
+              >
+                Keep Request
+              </button>
+              <button
+                onClick={cancelConfirm === "adopt" ? cancelAdopt : cancelFoster}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-semibold text-sm hover:bg-red-600"
+              >
+                Yes, Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Link href="/adopt" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground font-medium mb-8 transition-colors">
         <ArrowLeft className="w-4 h-4 rtl:rotate-180" /> {t("petDetail.backToList")}
       </Link>
@@ -328,28 +385,28 @@ export default function PetDetail() {
               <>
                 {(pet.purpose === "adopt" || pet.purpose === "both") && (
                   <button
-                    onClick={handleAdopt}
-                    disabled={adoptMutation.isPending || hasAdoptionRequest}
+                    onClick={hasAdoptionRequest ? () => setCancelConfirm("adopt") : handleAdopt}
+                    disabled={adoptMutation.isPending}
                     className={`flex-1 py-4 rounded-2xl font-bold shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-80 ${
                       hasAdoptionRequest
-                        ? "bg-green-500 text-white cursor-default"
+                        ? "bg-green-500 hover:bg-red-400 text-white"
                         : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
                     }`}
                   >
-                    {adoptMutation.isPending ? t("petDetail.sending") : hasAdoptionRequest ? "✓ Request Sent" : t("petDetail.requestAdoption")}
+                    {adoptMutation.isPending ? t("petDetail.sending") : hasAdoptionRequest ? "✓ Request Sent — Cancel?" : t("petDetail.requestAdoption")}
                   </button>
                 )}
                 {(pet.purpose === "foster" || pet.purpose === "both") && (
                   <button
-                    onClick={handleFoster}
-                    disabled={fosterMutation.isPending || hasFosterRequest}
+                    onClick={hasFosterRequest ? () => setCancelConfirm("foster") : handleFoster}
+                    disabled={fosterMutation.isPending}
                     className={`flex-1 py-4 rounded-2xl font-bold shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-80 ${
                       hasFosterRequest
-                        ? "bg-green-500 text-white cursor-default"
+                        ? "bg-green-500 hover:bg-red-400 text-white"
                         : "bg-secondary hover:bg-secondary/90 text-white shadow-secondary/20"
                     }`}
                   >
-                    {fosterMutation.isPending ? t("petDetail.sending") : hasFosterRequest ? "✓ Request Sent" : t("petDetail.requestFoster")}
+                    {fosterMutation.isPending ? t("petDetail.sending") : hasFosterRequest ? "✓ Request Sent — Cancel?" : t("petDetail.requestFoster")}
                   </button>
                 )}
               </>
@@ -364,18 +421,17 @@ export default function PetDetail() {
                 <span className="font-medium text-foreground">{ownerName}</span>
               </div>
               {ownerPhone && (
-<div className="flex items-center gap-3">
-  <Phone className="w-5 h-5 text-muted-foreground shrink-0" />
-
-  <a
-    href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="text-secondary hover:underline font-medium"
-  >
-    {ownerPhone}
-  </a>
-</div>
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-muted-foreground shrink-0" />
+                  
+                    href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-secondary hover:underline font-medium"
+                  >
+                    {ownerPhone}
+                  </a>
+                </div>
               )}
             </div>
           </div>
