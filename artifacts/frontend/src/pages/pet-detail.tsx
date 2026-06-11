@@ -364,17 +364,18 @@ export default function PetDetail() {
                 <span className="font-medium text-foreground">{ownerName}</span>
               </div>
               {ownerPhone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-muted-foreground shrink-0" />
-                  
-                    href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-secondary hover:underline font-medium"
-                  >
-                    {ownerPhone}
-                  </a>
-                </div>
+<div className="flex items-center gap-3">
+  <Phone className="w-5 h-5 text-muted-foreground shrink-0" />
+
+  <a
+    href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-secondary hover:underline font-medium"
+  >
+    {ownerPhone}
+  </a>
+</div>
               )}
             </div>
           </div>
