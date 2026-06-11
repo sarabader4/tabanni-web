@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useCallback } from "react";
 import { resolveImageUrl } from "@/lib/image-utils";
+import { useQuery } from "@tanstack/react-query";
 
 export default function PetDetail() {
   const { id } = useParams();
@@ -21,6 +22,32 @@ export default function PetDetail() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const petId = Number(id);
+
+  const { data: myRequests, refetch: refetchRequests } = useQuery({
+    queryKey: ["/api/adoption-requests", petId],
+    queryFn: async () => {
+      if (!user) return [];
+      const res = await fetch(`/api/adoption-requests?petId=${petId}`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user,
+  });
+
+  const { data: myFosterRequests, refetch: refetchFosterRequests } = useQuery({
+    queryKey: ["/api/foster-requests", petId],
+    queryFn: async () => {
+      if (!user) return [];
+      const res = await fetch(`/api/foster-requests?petId=${petId}`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user,
+  });
+
+  const hasAdoptionRequest = (myRequests ?? []).some((r: any) => r.petId === petId && r.status !== "rejected");
+  const hasFosterRequest = (myFosterRequests ?? []).some((r: any) => r.petId === petId && r.status !== "rejected");
+
   const favourited = isFavourited(petId);
   const isPending = isPendingFor(petId);
 
@@ -71,10 +98,12 @@ export default function PetDetail() {
     try {
       await adoptMutation.mutateAsync({ data: { petId: Number(id), message: "I would love to adopt this pet." } });
       toast({ title: t("petDetail.adoptionSent"), description: t("petDetail.ownerContact") });
+      refetchRequests();
     } catch (err: unknown) {
-const body = (err as { data?: { error?: string }; status?: number })?.data;
-if (body?.error === "duplicate_request" || body?.error === "pet_not_available") {
+      const body = (err as { data?: { error?: string }; status?: number })?.data;
+      if (body?.error === "duplicate_request" || body?.error === "pet_not_available") {
         toast({ title: t("petDetail.requestExists"), description: t("petDetail.requestExistsDesc"), variant: "destructive" });
+        refetchRequests();
       } else {
         toast({ title: t("petDetail.error"), description: t("petDetail.failedRequest"), variant: "destructive" });
       }
@@ -85,10 +114,12 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
     try {
       await fosterMutation.mutateAsync({ data: { petId: Number(id), message: "I would love to foster this pet." } });
       toast({ title: t("petDetail.fosterSent"), description: t("petDetail.ownerContact") });
+      refetchFosterRequests();
     } catch (err: unknown) {
-      const body = (err as { response?: { data?: { error?: string } } })?.response?.data;
-      if (body?.error === "duplicate_request") {
+      const body = (err as { data?: { error?: string }; status?: number })?.data;
+      if (body?.error === "duplicate_request" || body?.error === "pet_not_available") {
         toast({ title: t("petDetail.requestExists"), description: t("petDetail.requestExistsDesc"), variant: "destructive" });
+        refetchFosterRequests();
       } else {
         toast({ title: t("petDetail.error"), description: t("petDetail.failedRequest"), variant: "destructive" });
       }
@@ -140,7 +171,6 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
       </Link>
 
       <div className="grid lg:grid-cols-2 gap-12">
-        {/* Left column: Image + Pet Story + General Tips */}
         <div className="space-y-6">
           <div
             className={`aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-border ${pet.imageUrls && pet.imageUrls.length > 0 ? "cursor-pointer" : ""}`}
@@ -166,7 +196,6 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
             </div>
           )}
 
-          {/* Pet Story */}
           <div className="bg-card border border-border p-6 rounded-3xl">
             <h3 className="font-display font-bold text-xl mb-3">{t("petDetail.petStory")}</h3>
             <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
@@ -174,7 +203,6 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
             </p>
           </div>
 
-          {/* General Tips */}
           <div className="bg-card border border-border p-6 rounded-3xl">
             <div className="flex items-center gap-2 mb-4">
               <Lightbulb className="w-5 h-5 text-amber-500" />
@@ -197,9 +225,7 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
           </div>
         </div>
 
-        {/* Right column: Details */}
         <div className="flex flex-col">
-          {/* Type/breed badges */}
           <div className="flex items-center gap-3 mb-4">
             <span className="px-3 py-1 bg-primary/10 text-primary font-bold text-sm rounded-full capitalize">
               {pet.type}
@@ -214,7 +240,6 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
             )}
           </div>
 
-          {/* Name + Favorite + Share */}
           <div className="flex justify-between items-start mb-6">
             <div>
               <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground">
@@ -256,7 +281,6 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
             </div>
           </div>
 
-          {/* Pet info grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             <div className="bg-card border border-border p-4 rounded-2xl flex flex-col gap-1 text-center">
               <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">{t("petDetail.gender")}</span>
@@ -276,7 +300,6 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
             </div>
           </div>
 
-          {/* Health & Care */}
           <div className="bg-card border border-border p-6 rounded-3xl mb-6 space-y-4">
             <h3 className="font-display font-bold text-xl">{t("petDetail.healthCare")}</h3>
             <div className="flex flex-col gap-3">
@@ -306,26 +329,33 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
                 {(pet.purpose === "adopt" || pet.purpose === "both") && (
                   <button
                     onClick={handleAdopt}
-                    disabled={adoptMutation.isPending}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                    disabled={adoptMutation.isPending || hasAdoptionRequest}
+                    className={`flex-1 py-4 rounded-2xl font-bold shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-80 ${
+                      hasAdoptionRequest
+                        ? "bg-green-500 text-white cursor-default"
+                        : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
+                    }`}
                   >
-                    {adoptMutation.isPending ? t("petDetail.sending") : t("petDetail.requestAdoption")}
+                    {adoptMutation.isPending ? t("petDetail.sending") : hasAdoptionRequest ? "✓ Request Sent" : t("petDetail.requestAdoption")}
                   </button>
                 )}
                 {(pet.purpose === "foster" || pet.purpose === "both") && (
                   <button
                     onClick={handleFoster}
-                    disabled={fosterMutation.isPending}
-                    className="flex-1 bg-secondary hover:bg-secondary/90 text-white py-4 rounded-2xl font-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                    disabled={fosterMutation.isPending || hasFosterRequest}
+                    className={`flex-1 py-4 rounded-2xl font-bold shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-80 ${
+                      hasFosterRequest
+                        ? "bg-green-500 text-white cursor-default"
+                        : "bg-secondary hover:bg-secondary/90 text-white shadow-secondary/20"
+                    }`}
                   >
-                    {fosterMutation.isPending ? t("petDetail.sending") : t("petDetail.requestFoster")}
+                    {fosterMutation.isPending ? t("petDetail.sending") : hasFosterRequest ? "✓ Request Sent" : t("petDetail.requestFoster")}
                   </button>
                 )}
               </>
             )}
           </div>
 
-          {/* Owner Info */}
           <div className="bg-card border border-border p-6 rounded-3xl">
             <h3 className="font-display font-bold text-xl mb-4">{t("petDetail.ownerInfo")}</h3>
             <div className="flex flex-col gap-3">
@@ -336,7 +366,7 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
               {ownerPhone && (
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-muted-foreground shrink-0" />
-                  <a
+                  
                     href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -351,7 +381,6 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
         </div>
       </div>
 
-      {/* AI Similar Pets */}
       <div className="mt-12">
         <AIPetMatchWidget
           mode="similar"
@@ -367,7 +396,6 @@ if (body?.error === "duplicate_request" || body?.error === "pet_not_available") 
         />
       </div>
 
-      {/* Image Lightbox */}
       {lightboxIndex !== null && pet.imageUrls && pet.imageUrls.length > 0 && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
