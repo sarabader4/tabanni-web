@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
- "scripts": {
+  "scripts": {
     "dev": "cross-env NODE_ENV=development pnpm run build && pnpm run start",
     "build": "node ./build.mjs",
     "build:full": "cd ../frontend && pnpm run build && cd ../api-server && node ./build.mjs",
@@ -16,6 +16,7 @@
     "@workspace/db": "workspace:*",
     "@workspace/integrations-openai-ai-server": "workspace:*",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2",

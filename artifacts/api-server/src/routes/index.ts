@@ -15,6 +15,7 @@ import authRouter from "./auth";
 import onboardingRouter from "./onboarding";
 import volunteerApplicationsRouter from "./volunteerApplications";
 import contactRouter from "./contact";
+import uploadRouter from "./upload";
 
 const router: IRouter = Router();
 
@@ -34,5 +35,6 @@ router.use(paymentsRouter);
 router.use(onboardingRouter);
 router.use(volunteerApplicationsRouter);
 router.use(contactRouter);
+router.use(uploadRouter);
 
 export default router;
