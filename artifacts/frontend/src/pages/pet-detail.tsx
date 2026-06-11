@@ -72,8 +72,8 @@ export default function PetDetail() {
       await adoptMutation.mutateAsync({ data: { petId: Number(id), message: "I would love to adopt this pet." } });
       toast({ title: t("petDetail.adoptionSent"), description: t("petDetail.ownerContact") });
     } catch (err: unknown) {
-      const body = (err as { response?: { data?: { error?: string } } })?.response?.data;
-      if (body?.error === "duplicate_request") {
+const body = (err as { data?: { error?: string }; status?: number })?.data;
+if (body?.error === "duplicate_request" || body?.error === "pet_not_available") {
         toast({ title: t("petDetail.requestExists"), description: t("petDetail.requestExistsDesc"), variant: "destructive" });
       } else {
         toast({ title: t("petDetail.error"), description: t("petDetail.failedRequest"), variant: "destructive" });
