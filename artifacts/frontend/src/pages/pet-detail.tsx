@@ -416,21 +416,23 @@ export default function PetDetail() {
           <div className="bg-card border border-border p-6 rounded-3xl">
             <h3 className="font-display font-bold text-xl mb-4">{t("petDetail.ownerInfo")}</h3>
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                <User className="w-5 h-5 text-muted-foreground shrink-0" />
-                <span className="font-medium text-foreground">{ownerName}</span>
-<div className="flex items-center gap-3">
-  <Phone className="w-5 h-5 text-muted-foreground shrink-0" />
-
-  <a
-    href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="text-secondary hover:underline font-medium"
-  >
-    {ownerPhone}
-  </a>
+ <div className="flex items-center gap-3">
+  <User className="w-5 h-5 text-muted-foreground shrink-0" />
+  <span className="font-medium text-foreground">{ownerName}</span>
 </div>
+
+{ownerPhone && (
+  <div className="flex items-center gap-3">
+    <Phone className="w-5 h-5 text-muted-foreground shrink-0" />
+    <a
+      href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-secondary hover:underline font-medium"
+    >
+      {ownerPhone}
+    </a>
+  </div>
               )}
             </div>
           </div>
