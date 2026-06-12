@@ -3393,7 +3393,11 @@ export default function Profile() {
       setActiveTab(tab);
       if (adoptionFosterTabs.includes(tab)) setAdoptionFosterOpen(true);
     }
-    if (openForm === "true") setShowReadinessForm(true);
+    if (openForm === "true") {
+      setShowReadinessForm(true);
+      const newUrl = window.location.pathname + (tab ? `?tab=${tab}` : "");
+      window.history.replaceState({}, "", newUrl);
+    }
     if (addPet === "true") setShowAddPetModal(true);
   }, []);
 
