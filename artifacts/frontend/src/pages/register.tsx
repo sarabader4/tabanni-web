@@ -11,23 +11,52 @@ import {
   type CountryOption,
 } from "@/components/country-phone-dropdown";
 
+const COUNTRY_CITIES: Record<string, string[]> = {
+  Jordan: ["Amman", "Zarqa", "Irbid", "Aqaba", "Salt", "Madaba", "Jerash", "Ajloun", "Karak", "Tafilah", "Ma'an", "Mafraq"],
+  "Saudi Arabia": ["Riyadh", "Jeddah", "Mecca", "Medina", "Dammam", "Khobar", "Tabuk", "Abha", "Taif"],
+  "United Arab Emirates": ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain"],
+  Kuwait: ["Kuwait City", "Hawalli", "Salmiya", "Farwaniya", "Ahmadi"],
+  Qatar: ["Doha", "Al Wakrah", "Al Khor", "Al Rayyan"],
+  Bahrain: ["Manama", "Muharraq", "Riffa", "Hamad Town"],
+  Oman: ["Muscat", "Salalah", "Sohar", "Nizwa", "Sur"],
+  Egypt: ["Cairo", "Alexandria", "Giza", "Luxor", "Aswan", "Sharm El Sheikh", "Hurghada"],
+  Lebanon: ["Beirut", "Tripoli", "Sidon", "Tyre", "Jounieh"],
+  Palestine: ["Ramallah", "Nablus", "Hebron", "Jenin", "Gaza", "Bethlehem", "Jericho"],
+  Iraq: ["Baghdad", "Basra", "Mosul", "Erbil", "Sulaymaniyah", "Najaf", "Karbala"],
+  Syria: ["Damascus", "Aleppo", "Homs", "Hama", "Latakia"],
+  "United States": ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio"],
+  "United Kingdom": ["London", "Manchester", "Birmingham", "Leeds", "Glasgow", "Liverpool"],
+  Germany: ["Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt"],
+  Canada: ["Toronto", "Montreal", "Vancouver", "Calgary", "Edmonton"],
+  Australia: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"],
+};
+
+const RESIDENCE_COUNTRIES = [
+  "Jordan", "Saudi Arabia", "United Arab Emirates", "Kuwait", "Qatar",
+  "Bahrain", "Oman", "Egypt", "Lebanon", "Palestine", "Iraq", "Syria",
+  "United States", "United Kingdom", "Germany", "Canada", "Australia",
+];
+
 export default function Register() {
   const [, navigate] = useLocation();
   const { register } = useAuth();
   const { t } = useTranslation();
-
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [country, setCountry] = useState<CountryOption>(DEFAULT_COUNTRY);
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [phoneTouched, setPhoneTouched] = useState(false);
+  const [residenceCountry, setResidenceCountry] = useState("Jordan");
   const [city, setCity] = useState("");
+  const [customCity, setCustomCity] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const cities = COUNTRY_CITIES[residenceCountry] ?? [];
 
   function validatePhone(value: string, selectedCountry: CountryOption): string {
     if (!selectedCountry) return t("register.countryCodeRequired");
@@ -40,20 +69,18 @@ export default function Register() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-
     if (!fullName || !email || !password) {
       setError(t("register.fillRequired"));
       return;
     }
-
     const phoneErr = validatePhone(phone, country);
     if (phoneErr) {
       setPhoneError(phoneErr);
       setPhoneTouched(true);
       return;
     }
-
-    if (!city.trim()) {
+    const finalCity = city === "other" ? customCity.trim() : city;
+    if (!finalCity) {
       setError(t("register.cityRequired"));
       return;
     }
@@ -77,7 +104,7 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      await register({ fullName, email, phone: e164Phone, city: city.trim(), password });
+      await register({ fullName, email, phone: e164Phone, city: finalCity, country: residenceCountry, password });
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("register.registrationFailed"));
@@ -96,14 +123,9 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-[#FFFAF7] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block group">
-            <img
-              src={halfLogo}
-              alt="tabanni"
-              className="h-20 w-auto mx-auto group-hover:scale-105 transition-transform"
-            />
+            <img src={halfLogo} alt="tabanni" className="h-20 w-auto mx-auto group-hover:scale-105 transition-transform" />
           </Link>
           <p className="mt-3 text-[#333E48]/60 text-sm">{t("register.subtitle")}</p>
         </div>
@@ -174,20 +196,64 @@ export default function Register() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[#333E48] mb-1.5">
-                {t("register.city")} <span className="text-[#FA8D29]">{t("register.required")}</span>
-              </label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder={t("register.placeholderCity")}
-                className={inputCls()}
-                autoComplete="address-level2"
-                disabled={isLoading}
-              />
+            {/* Country + City side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-[#333E48] mb-1.5">
+                  Country <span className="text-[#FA8D29]">{t("register.required")}</span>
+                </label>
+                <select
+                  value={residenceCountry}
+                  onChange={(e) => {
+                    setResidenceCountry(e.target.value);
+                    setCity("");
+                    setCustomCity("");
+                  }}
+                  disabled={isLoading}
+                  className={inputCls()}
+                >
+                  {RESIDENCE_COUNTRIES.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#333E48] mb-1.5">
+                  {t("register.city")} <span className="text-[#FA8D29]">{t("register.required")}</span>
+                </label>
+                <select
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setCustomCity("");
+                  }}
+                  disabled={isLoading}
+                  className={inputCls()}
+                >
+                  <option value="">Select city...</option>
+                  {cities.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                  <option value="other">Other...</option>
+                </select>
+              </div>
             </div>
+
+            {city === "other" && (
+              <div>
+                <label className="block text-sm font-medium text-[#333E48] mb-1.5">
+                  Enter your city <span className="text-[#FA8D29]">{t("register.required")}</span>
+                </label>
+                <input
+                  type="text"
+                  value={customCity}
+                  onChange={(e) => setCustomCity(e.target.value)}
+                  placeholder="Enter city name..."
+                  className={inputCls()}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-[#333E48] mb-1.5">
