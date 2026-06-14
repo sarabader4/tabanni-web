@@ -314,7 +314,7 @@
     "faq5Q": "Does tabanni accept donations?",
     "faq5A": "Yes, tabanni relies entirely on donations from supporters. Contributions cover medical care, food, boarding, and rescue operations. <a href=\"/donate\" class=\"text-[#FA8D29] font-medium hover:underline\">Donate here →</a>",
     "faq6Q": "How can I support tabanni?",
-    "faq6A": "You can donate through bank transfer or in-person pickup. We also welcome volunteers and foster families to temporarily care for rescued pets. <a href=\"/donate\" class=\"text-[#FA8D29] font-medium hover:underline\">Donate</a> or <a href=\"/foster\" class=\"text-[#FA8D29] font-medium hover:underline\">become a foster →</a>",
+    "faq6A": "You can donate through bank transfer or in-person pickup. We also welcome volunteers and foster families to temporarily care for rescued pets. <a href=\"/donate\" class=\"text-[#FA8D29] font-medium hover:underline\">Donate</a> or <a href=\"/adopt?purpose=foster\" class=\"text-[#FA8D29] font-medium hover:underline\">become a foster →</a>",
     "faq7Q": "How are donations used?",
     "faq7A": "100% of donations go towards medical treatment, boarding, food, transportation, rehabilitation, and essential supplies.",
     "faq8Q": "Why does tabanni pay for boarding?",
