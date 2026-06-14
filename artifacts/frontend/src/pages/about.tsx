@@ -38,10 +38,6 @@ export default function About() {
                 className="w-full rounded-2xl object-cover"
                 loading="lazy"
               />
-              <div className="w-full border border-[#3D937F]/30 rounded-2xl px-4 py-3 text-center">
-                <p className="font-bold text-[#3D937F] text-sm leading-tight">{t("about.jsapBadge")}</p>
-                <p className="text-[10px] text-gray-500 leading-snug mt-0.5">{t("about.jsapName")}</p>
-              </div>
             </div>
 
             {/* Text block */}
