@@ -387,31 +387,26 @@ function PetModal({
                   <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} onBlur={() => setTouched(p => ({ ...p, name: true }))} className={inputCls("name")} placeholder="e.g. Bella" />
                   {touched.name && errors.name && <p className="text-xs text-red-500 mt-0.5">{errors.name}</p>}
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Type *</label>
                   <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} disabled={mode === "edit"} className={`${inputCls("type")} disabled:bg-gray-50`}>
                     {["dog", "cat", "rabbit", "bird", "other"].map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Breed *</label>
                   <input value={form.breed} onChange={e => setForm(f => ({ ...f, breed: e.target.value }))} onBlur={() => setTouched(p => ({ ...p, breed: true }))} className={inputCls("breed")} placeholder="e.g. Golden Retriever" />
                   {touched.breed && errors.breed && <p className="text-xs text-red-500 mt-0.5">{errors.breed}</p>}
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Birthdate *</label>
                   <input type="date" value={form.birthday} onChange={e => setForm(f => ({ ...f, birthday: e.target.value }))} onBlur={() => setTouched(p => ({ ...p, birthday: true }))} max={new Date().toISOString().split("T")[0]} className={inputCls("birthday")} />
                   {touched.birthday && errors.birthday && <p className="text-xs text-red-500 mt-0.5">{errors.birthday}</p>}
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Age (auto-calculated)</label>
                   <input value={ageDisplay} readOnly className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-default outline-none" placeholder="Select birthdate" />
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Gender *</label>
                   <select value={form.gender} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))} className={inputCls("gender")}>
@@ -419,7 +414,6 @@ function PetModal({
                     <option value="female">Female</option>
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Weight (kg) *</label>
                   <input type="number" step="0.1" min="0" value={form.weightKg} onChange={e => setForm(f => ({ ...f, weightKg: e.target.value }))} onBlur={() => setTouched(p => ({ ...p, weightKg: true }))} className={inputCls("weightKg")} placeholder="e.g. 5.2" />
@@ -507,17 +501,14 @@ function PetModal({
                   <input value={form.whatsappUrl} onChange={e => setForm(f => ({ ...f, whatsappUrl: e.target.value }))} onBlur={() => setTouched(p => ({ ...p, whatsappUrl: true }))} className={inputCls("whatsappUrl")} placeholder="+962 79 000 0000" />
                   {touched.whatsappUrl && errors.whatsappUrl && <p className="text-xs text-red-500 mt-0.5">{errors.whatsappUrl}</p>}
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">City</label>
                   <input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className={inputCls("city")} />
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Owner ID (optional)</label>
                   <input type="number" value={form.ownerId} onChange={e => setForm(f => ({ ...f, ownerId: e.target.value }))} placeholder="User ID" className={inputCls("ownerId")} />
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Availability</label>
                   <select value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value as any }))} className={inputCls("purpose")}>
@@ -527,7 +518,6 @@ function PetModal({
                     <option value="lost_found">Lost/Found</option>
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Status</label>
                   <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className={inputCls("status")}>
@@ -619,6 +609,17 @@ export default function AdminPets() {
 
   function formatDate(d: string) {
     return new Date(d).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  // Instant UI update helper
+  function updatePetInCache(petId: number, updates: Partial<AdminPet>) {
+    queryClient.setQueryData(
+      ["/api/admin/pets", search || undefined],
+      (old: AdminPetsResponse | undefined) => {
+        if (!old) return old;
+        return { ...old, pets: old.pets.map(p => p.id === petId ? { ...p, ...updates } : p) };
+      }
+    );
   }
 
   return (
@@ -785,15 +786,71 @@ export default function AdminPets() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {activeTab === "pending" ? (
                         <>
-                          <button onClick={() => approveMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })} disabled={approveMutation.isPending} className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold transition-colors disabled:opacity-40">Approve</button>
-                          <button onClick={() => { if (confirm(`Reject "${pet.name}"? The owner will be notified.`)) { rejectMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() }); } }} disabled={rejectMutation.isPending} className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-40">Reject</button>
+                          {pet.approved ? (
+                            <span className="px-3 py-1.5 rounded-lg bg-green-100 text-green-700 text-xs font-semibold flex items-center gap-1">
+                              <CheckCircle className="w-3.5 h-3.5" /> Approved
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => approveMutation.mutate({ id: pet.id }, {
+                                onSuccess: () => {
+                                  updatePetInCache(pet.id, { approved: true, rejected: false });
+                                  refetch();
+                                }
+                              })}
+                              disabled={approveMutation.isPending}
+                              className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold transition-colors disabled:opacity-40"
+                            >
+                              Approve
+                            </button>
+                          )}
+                          {!pet.approved && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Reject "${pet.name}"? The owner will be notified.`)) {
+                                  rejectMutation.mutate({ id: pet.id }, {
+                                    onSuccess: () => {
+                                      updatePetInCache(pet.id, { approved: false, rejected: true });
+                                      refetch();
+                                    }
+                                  });
+                                }
+                              }}
+                              disabled={rejectMutation.isPending}
+                              className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold transition-colors disabled:opacity-40"
+                            >
+                              Reject
+                            </button>
+                          )}
                         </>
                       ) : (
                         <>
-                          <button onClick={() => { if (!pet.approved) approveMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() }); }} title={pet.approved ? "Already approved" : "Approve"} className={`p-1.5 rounded-lg text-xs transition-colors ${pet.approved ? "bg-green-100 text-green-600 cursor-default" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"}`}>
+                          <button
+                            onClick={() => {
+                              if (!pet.approved) {
+                                approveMutation.mutate({ id: pet.id }, {
+                                  onSuccess: () => {
+                                    updatePetInCache(pet.id, { approved: true, rejected: false });
+                                    refetch();
+                                  }
+                                });
+                              }
+                            }}
+                            title={pet.approved ? "Already approved" : "Approve"}
+                            className={`p-1.5 rounded-lg text-xs transition-colors ${pet.approved ? "bg-green-100 text-green-600 cursor-default" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"}`}
+                          >
                             <CheckCircle className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => featureMutation.mutate({ id: pet.id }, { onSuccess: () => refetch() })} title={pet.featured ? "Unfeature" : "Feature"} className={`p-1.5 rounded-lg text-xs transition-colors ${pet.featured ? "bg-amber-100 text-amber-600" : "bg-gray-100 text-gray-500"} hover:bg-amber-100`}>
+                          <button
+                            onClick={() => featureMutation.mutate({ id: pet.id }, {
+                              onSuccess: () => {
+                                updatePetInCache(pet.id, { featured: !pet.featured });
+                                refetch();
+                              }
+                            })}
+                            title={pet.featured ? "Unfeature" : "Feature"}
+                            className={`p-1.5 rounded-lg text-xs transition-colors ${pet.featured ? "bg-amber-100 text-amber-600" : "bg-gray-100 text-gray-500"} hover:bg-amber-100`}
+                          >
                             <Star className="w-3.5 h-3.5" />
                           </button>
                         </>
@@ -806,7 +863,20 @@ export default function AdminPets() {
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                       </Link>
-                      <button onClick={() => { if (confirm(`Delete ${pet.name}?`)) { deleteMutation.mutate({ id: pet.id }, { onSuccess: () => { refetch(); queryClient.invalidateQueries({ queryKey: ["/api/pets"] }); } }); } }} title="Delete" className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors">
+                      <button
+                        onClick={() => {
+                          if (confirm(`Delete ${pet.name}?`)) {
+                            deleteMutation.mutate({ id: pet.id }, {
+                              onSuccess: () => {
+                                refetch();
+                                queryClient.invalidateQueries({ queryKey: ["/api/pets"] });
+                              }
+                            });
+                          }
+                        }}
+                        title="Delete"
+                        className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors"
+                      >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
