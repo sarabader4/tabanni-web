@@ -137,6 +137,8 @@ function PetModal({
   const updateMutation = useUpdatePet();
   const [generatingDesc, setGeneratingDesc] = useState(false);
   const [descError, setDescError] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [lightboxProof, setLightboxProof] = useState(false);
 
   const [form, setForm] = useState<PetFormData>({
     name: pet?.name ?? "",
@@ -158,7 +160,6 @@ function PetModal({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const imageUrlsArr = form.imageUrls ? form.imageUrls.split(",").map(s => s.trim()).filter(Boolean) : [];
-
     const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     if (mode === "add") {
       createMutation.mutate(
@@ -182,6 +183,7 @@ function PetModal({
             await fetch(`${base}/api/admin/pets/${created.id}/settings`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
+              credentials: "include",
               body: JSON.stringify({ status: form.status, featured: form.featured, approved: true, addedByAdmin: true }),
             });
             onSuccess();
@@ -209,6 +211,7 @@ function PetModal({
             await fetch(`${base}/api/admin/pets/${pet.id}/settings`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
+              credentials: "include",
               body: JSON.stringify({ status: form.status, featured: form.featured, addedByAdmin: form.addedByAdmin }),
             });
             onSuccess();
@@ -232,6 +235,7 @@ function PetModal({
       const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       const response = await fetch(`${base}/api/ai/generate-description`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pet: {
@@ -260,52 +264,42 @@ function PetModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="text-lg font-bold text-gray-900">{mode === "add" ? "Add New Pet" : "Edit Pet"}</h2>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100"><X className="w-5 h-5" /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Pet Images</label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={async (e) => {
-                  const files = Array.from(e.target.files ?? []);
-                  const urls: string[] = [];
-                  for (const file of files) {
-                    const reader = new FileReader();
-                    const base64 = await new Promise<string>((resolve) => {
-                      reader.onload = () => resolve(reader.result as string);
-                      reader.readAsDataURL(file);
-                    });
-                    const res = await fetch("/api/upload/image", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                      body: JSON.stringify({ image: base64 }),
-                    });
-                    const data = await res.json();
-                    if (data.url) urls.push(data.url);
-                  }
-                  if (urls.length > 0) {
-                    const existing = form.imageUrls ? form.imageUrls.split(",").map((s: string) => s.trim()).filter(Boolean) : [];
-                    setForm((prev: typeof form) => ({ ...prev, imageUrls: [...existing, ...urls].join(", ") }));
-                  }
-                }}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+
+        {/* Payment Proof (edit mode, pending pets) */}
+        {mode === "edit" && pet?.paymentProof && (
+          <div className="px-6 pt-4 pb-2">
+            <p className="text-xs font-semibold text-gray-500 mb-2">Payment Proof</p>
+            <div className="relative inline-block">
+              <img
+                src={pet.paymentProof}
+                alt="Payment proof"
+                onClick={() => setLightboxProof(true)}
+                className="h-32 w-auto object-cover rounded-xl border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
               />
-              {form.imageUrls && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {form.imageUrls.split(",").map((url: string, i: number) => url.trim() && (
-                    <img key={i} src={url.trim()} alt="" className="w-16 h-16 object-cover rounded-lg" />
-                  ))}
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setLightboxProof(true)}
+                className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded-lg"
+              >
+                View Full
+              </button>
             </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Pet Name */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Pet Name *</label>
+            <input value={form.name} onChange={f("name")} required placeholder="e.g. Bella" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1.5">Type</label>
               <select value={form.type} onChange={f("type")} disabled={mode === "edit"} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 disabled:bg-gray-50">
@@ -367,32 +361,75 @@ function PetModal({
                 <option value="found">Found</option>
               </select>
             </div>
-            <div className="flex items-center gap-5">
+            <div className="col-span-2 flex items-center gap-5">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.featured}
-                  onChange={(e) => setForm(prev => ({ ...prev, featured: e.target.checked }))}
-                  className="w-4 h-4 rounded accent-orange-500"
-                />
+                <input type="checkbox" checked={form.featured} onChange={(e) => setForm(prev => ({ ...prev, featured: e.target.checked }))} className="w-4 h-4 rounded accent-orange-500" />
                 <span className="text-xs font-semibold text-gray-500">Featured (show on home page)</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.addedByAdmin}
-                  onChange={(e) => setForm(prev => ({ ...prev, addedByAdmin: e.target.checked }))}
-                  className="w-4 h-4 rounded"
-                  style={{ accentColor: "#3D937F" }}
-                />
+                <input type="checkbox" checked={form.addedByAdmin} onChange={(e) => setForm(prev => ({ ...prev, addedByAdmin: e.target.checked }))} className="w-4 h-4 rounded" style={{ accentColor: "#3D937F" }} />
                 <span className="text-xs font-semibold" style={{ color: "#3D937F" }}>Verified by Tabanni</span>
               </label>
             </div>
           </div>
+
+          {/* Images Upload */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Image URLs (comma-separated)</label>
-            <input value={form.imageUrls} onChange={f("imageUrls")} placeholder="https://..." className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200" />
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Pet Images</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              disabled={uploadingImage}
+              onChange={async (e) => {
+                const files = Array.from(e.target.files ?? []);
+                if (!files.length) return;
+                setUploadingImage(true);
+                const urls: string[] = [];
+                for (const file of files) {
+                  const reader = new FileReader();
+                  const base64 = await new Promise<string>((resolve) => {
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.readAsDataURL(file);
+                  });
+                  const res = await fetch("/api/upload/image", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ image: base64 }),
+                  });
+                  const data = await res.json();
+                  if (data.url) urls.push(data.url);
+                }
+                if (urls.length > 0) {
+                  const existing = form.imageUrls ? form.imageUrls.split(",").map((s: string) => s.trim()).filter(Boolean) : [];
+                  setForm((prev) => ({ ...prev, imageUrls: [...existing, ...urls].join(", ") }));
+                }
+                setUploadingImage(false);
+              }}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
+            />
+            {uploadingImage && <p className="text-xs text-orange-500 mt-1">Uploading images...</p>}
+            {form.imageUrls && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {form.imageUrls.split(",").map((url: string, i: number) => url.trim() && (
+                  <div key={i} className="relative">
+                    <img src={url.trim()} alt="" className="w-16 h-16 object-cover rounded-lg" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const urls = form.imageUrls.split(",").map(s => s.trim()).filter((_, idx) => idx !== i);
+                        setForm(prev => ({ ...prev, imageUrls: urls.join(", ") }));
+                      }}
+                      className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                    >×</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* Story */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-gray-500">Story</label>
@@ -400,33 +437,35 @@ function PetModal({
                 type="button"
                 onClick={generateDescription}
                 disabled={generatingDesc}
-                data-testid="generate-desc-btn"
                 className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                 style={{ background: "#FA8D29" }}
               >
-                {generatingDesc ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Sparkles className="w-3 h-3" />
-                )}
+                {generatingDesc ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                 Generate with AI ✨
               </button>
             </div>
             <textarea value={form.story} onChange={f("story")} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none" />
             {descError && <p className="text-red-500 text-xs mt-1">{descError}</p>}
           </div>
+
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Cancel</button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="px-5 py-2 rounded-xl bg-[#FA8D29] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors disabled:opacity-50"
-            >
+            <button type="submit" disabled={isPending || uploadingImage} className="px-5 py-2 rounded-xl bg-[#FA8D29] text-white text-sm font-semibold hover:bg-[#e55a27] transition-colors disabled:opacity-50">
               {isPending ? (mode === "add" ? "Adding..." : "Saving...") : (mode === "add" ? "Add Pet" : "Save Changes")}
             </button>
           </div>
         </form>
       </div>
+
+      {/* Payment Proof Lightbox */}
+      {lightboxProof && pet?.paymentProof && (
+        <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxProof(false)}>
+          <button className="absolute top-4 right-4 p-2 bg-white/10 rounded-full text-white hover:bg-white/20" onClick={() => setLightboxProof(false)}>
+            <X className="w-6 h-6" />
+          </button>
+          <img src={pet.paymentProof} alt="Payment proof" className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 }
