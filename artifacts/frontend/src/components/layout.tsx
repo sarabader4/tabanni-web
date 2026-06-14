@@ -568,7 +568,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-40 bg-white pt-20 pb-6 px-4 flex flex-col lg:hidden"
+            className="fixed inset-0 z-40 bg-white pt-20 pb-6 px-4 flex flex-col lg:hidden overflow-y-auto"
           >
             <nav className="flex flex-col gap-4">
               {navLinks.map((link) => (
@@ -851,3 +851,5 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+
