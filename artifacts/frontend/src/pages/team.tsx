@@ -41,19 +41,19 @@ export default function Team() {
   const [, setLocation] = useLocation();
 
   const boardMembers: TeamMember[] = [
-    { name: "Dina Nimry", role: t("team.roleDinaNimry"), initials: "DN", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444777/WhatsApp_Image_2026-04-28_at_9.23.48_PM_erqdtf.jpg" },
-    { name: "Dima Al Masri", role: t("team.roleDimaAlMasri"), initials: "DM", accentColor: "#FA8D29", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.23.46_PM_hkujkz.jpg" },
-    { name: "Gida Hamam", role: t("team.roleGidaHamam"), initials: "GH", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444775/WhatsApp_Image_2026-04-28_at_9.23.45_PM_1_zafhrv.jpg" },
+    { name: "Dina Nimry", role: t("team.roleDinaNimry"), initials: "DN", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781471483/WhatsApp_Image_2026-04-28_at_9.23.46_PM_r0gn7q.jpg" },
+    { name: "Dima Al Masri", role: t("team.roleDimaAlMasri"), initials: "DM", accentColor: "#FA8D29", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781471487/WhatsApp_Image_2026-04-28_at_9.23.45_PM_1_vyzncs.jpg" },
+    { name: "Gida Hamam", role: t("team.roleGidaHamam"), initials: "GH", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781471488/WhatsApp_Image_2026-04-28_at_9.23.47_PM_aq12r1.jpg" },
   ];
 
   const operationsMembers: TeamMember[] = [
-    { name: "Bader Albeetar", role: t("team.roleBaderAlbeetar"), initials: "BA", accentColor: "#FA8D29", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.23.47_PM_iac1es.jpg" },
-    { name: "Ahmad Shalaldeh", role: t("team.roleAhmadShalaldeh"), initials: "AS", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444775/WhatsApp_Image_2026-04-28_at_9.23.46_PM_1_kp51ud.jpg" },
+    { name: "Bader Albeetar", role: t("team.roleBaderAlbeetar"), initials: "BA", accentColor: "#FA8D29", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781471486/WhatsApp_Image_2026-04-28_at_9.23.46_PM_1_xg14hq.jpg" },
+    { name: "Ahmad Shalaldeh", role: t("team.roleAhmadShalaldeh"), initials: "AS", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781471487/WhatsApp_Image_2026-04-28_at_9.23.47_PM_1_p0yikb.jpg" },
   ];
 
   const socialMembers: TeamMember[] = [
-    { name: "Jude Abdelhadi", role: t("team.roleJudeAbdelhadi"), initials: "JA", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.23.47_PM_1_vmafph.jpg" },
-    { name: "Sereen Aqilan", role: t("team.roleSereenAqilan"), initials: "SA", accentColor: "#FA8D29", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444775/WhatsApp_Image_2026-04-28_at_9.23.45_PM_ehybkz.jpg" },
+    { name: "Jude Abdelhadi", role: t("team.roleJudeAbdelhadi"), initials: "JA", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781471487/WhatsApp_Image_2026-04-28_at_9.23.45_PM_jz0ycd.jpg" },
+    { name: "Sereen Aqilan", role: t("team.roleSereenAqilan"), initials: "SA", accentColor: "#FA8D29", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781471487/WhatsApp_Image_2026-04-28_at_9.23.44_PM_yzcqfc.jpg" },
   ];
 
   return (
