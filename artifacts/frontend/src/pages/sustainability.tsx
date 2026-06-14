@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { SEOHead } from "@/components/seo-head";
-import sustainabilityImg from "@assets/image_1776789199135.png";
-
+const sustainabilityImg = "https://res.cloudinary.com/dmu2itokb/image/upload/v1781445611/1781444790371-6e5f9d0d-64f0-4132-9585-4bf20cdcd1f6_1.jpg_omswwv.jpg";
 export default function Sustainability() {
   const { t } = useTranslation();
 

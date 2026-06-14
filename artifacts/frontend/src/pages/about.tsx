@@ -32,6 +32,12 @@ export default function About() {
                 alt="tabanni"
                 className="w-32 h-auto"
               />
+              <img
+                src="https://res.cloudinary.com/dmu2itokb/image/upload/v1781444777/WhatsApp_Image_2026-04-28_at_9.21.44_PM_g922oj.jpg"
+                alt="JSAP"
+                className="w-full rounded-2xl object-cover"
+                loading="lazy"
+              />
               <div className="w-full border border-[#3D937F]/30 rounded-2xl px-4 py-3 text-center">
                 <p className="font-bold text-[#3D937F] text-sm leading-tight">{t("about.jsapBadge")}</p>
                 <p className="text-[10px] text-gray-500 leading-snug mt-0.5">{t("about.jsapName")}</p>

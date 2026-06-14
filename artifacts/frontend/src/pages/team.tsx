@@ -1,38 +1,41 @@
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { SEOHead } from "@/components/seo-head";
-import teamPhotoImg from "@assets/image_1776785909352.png";
+const teamPhotoImg = "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444777/WhatsApp_Image_2026-04-28_at_import { useTranslation } from "react-i18next";
+import { SEOHead } from "@/components/seo-head";
 
-interface TeamMember {
-  name: string;
-  role: string;
-  initials: string;
-  accentColor: string;
+interface Program {
+  titleKey: string;
+  descKey: string;
+  image: string;
+  imageAlt: string;
 }
 
-function AvatarCircle({ initials, accentColor }: { initials: string; accentColor: string }) {
-  return (
-    <div
-      className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 border-4 text-white font-bold text-xl select-none"
-      style={{ backgroundColor: accentColor, borderColor: accentColor + "55" }}
-    >
-      {initials}
-    </div>
-  );
-}
+const PROGRAMS: Program[] = [
+  { titleKey: "programs.rescueTitle", descKey: "programs.rescueDesc", image: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.21.38_PM_quyzek.jpg", imageAlt: "Rescue program" },
+  { titleKey: "programs.adoptionTitle", descKey: "programs.adoptionDesc", image: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.21.39_PM_ybvx71.jpg", imageAlt: "Adoption program" },
+  { titleKey: "programs.rightsTitle", descKey: "programs.rightsDesc", image: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444777/WhatsApp_Image_2026-04-28_at_9.21.45_PM_cwa5hy.jpg", imageAlt: "Animal rights advocacy" },
+  { titleKey: "programs.strayCareTitle", descKey: "programs.strayCareDesc", image: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.23.42_PM_pigyc0.jpg", imageAlt: "Stray care program" },
+  { titleKey: "programs.strayCommunitiesTitle", descKey: "programs.strayCommunitiesDesc", image: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.23.36_PM_jh0yvn.jpg", imageAlt: "Stray dog communities" },
+  { titleKey: "programs.rehabTitle", descKey: "programs.rehabDesc", image: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444775/WhatsApp_Image_2026-04-28_at_9.23.40_PM_sjbhv0.jpg", imageAlt: "Rehabilitation program" },
+  { titleKey: "programs.basboosTtitle", descKey: "programs.basboosDes", image: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444775/WhatsApp_Image_2026-04-28_at_9.23.39_PM_qguo30.jpg", imageAlt: "The Basboos Project" },
+];
 
 function MemberCard({ member }: { member: TeamMember }) {
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 text-center hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center">
-      <AvatarCircle initials={member.initials} accentColor={member.accentColor} />
-      <h3 className="font-display font-bold text-[#333E48] text-sm leading-snug mb-1">
-        {member.name}
-      </h3>
+    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 text-center hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center">
+      {member.photo ? (
+        <img src={member.photo} alt={member.name} className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4" style={{ borderColor: member.accentColor + "55" }} loading="lazy" />
+      ) : (
+        <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 border-4 text-white font-bold text-xl select-none" style={{ backgroundColor: member.accentColor, borderColor: member.accentColor + "55" }}>
+          {member.initials}
+        </div>
+      )}
+      <h3 className="font-display font-bold text-[#333E48] text-sm leading-snug mb-1">{member.name}</h3>
       <p className="text-xs text-[#3D937F] font-medium leading-snug">{member.role}</p>
     </div>
   );
 }
-
 function SectionHeading({ title }: { title: string }) {
   return (
     <div className="text-center mb-8">
@@ -45,20 +48,20 @@ export default function Team() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
 
-  const boardMembers: TeamMember[] = [
-    { name: "Dina Nimry", role: t("team.roleDinaNimry"), initials: "DN", accentColor: "#3D937F" },
-    { name: "Dima Al Masri", role: t("team.roleDimaAlMasri"), initials: "DM", accentColor: "#FA8D29" },
-    { name: "Gida Hamam", role: t("team.roleGidaHamam"), initials: "GH", accentColor: "#3D937F" },
+ const boardMembers: TeamMember[] = [
+    { name: "Dina Nimry", role: t("team.roleDinaNimry"), initials: "DN", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444777/WhatsApp_Image_2026-04-28_at_9.23.48_PM_erqdtf.jpg" },
+    { name: "Dima Al Masri", role: t("team.roleDimaAlMasri"), initials: "DM", accentColor: "#FA8D29", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.23.46_PM_hkujkz.jpg" },
+    { name: "Gida Hamam", role: t("team.roleGidaHamam"), initials: "GH", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444775/WhatsApp_Image_2026-04-28_at_9.23.45_PM_1_zafhrv.jpg" },
   ];
 
   const operationsMembers: TeamMember[] = [
-    { name: "Bader Albeetar", role: t("team.roleBaderAlbeetar"), initials: "BA", accentColor: "#FA8D29" },
-    { name: "Ahmad Shalaldeh", role: t("team.roleAhmadShalaldeh"), initials: "AS", accentColor: "#3D937F" },
+    { name: "Bader Albeetar", role: t("team.roleBaderAlbeetar"), initials: "BA", accentColor: "#FA8D29", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.23.47_PM_iac1es.jpg" },
+    { name: "Ahmad Shalaldeh", role: t("team.roleAhmadShalaldeh"), initials: "AS", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444775/WhatsApp_Image_2026-04-28_at_9.23.46_PM_1_kp51ud.jpg" },
   ];
 
   const socialMembers: TeamMember[] = [
-    { name: "Jude Abdelhadi", role: t("team.roleJudeAbdelhadi"), initials: "JA", accentColor: "#3D937F" },
-    { name: "Sereen Aqilan", role: t("team.roleSereenAqilan"), initials: "SA", accentColor: "#FA8D29" },
+    { name: "Jude Abdelhadi", role: t("team.roleJudeAbdelhadi"), initials: "JA", accentColor: "#3D937F", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444776/WhatsApp_Image_2026-04-28_at_9.23.47_PM_1_vmafph.jpg" },
+    { name: "Sereen Aqilan", role: t("team.roleSereenAqilan"), initials: "SA", accentColor: "#FA8D29", photo: "https://res.cloudinary.com/dmu2itokb/image/upload/v1781444775/WhatsApp_Image_2026-04-28_at_9.23.45_PM_ehybkz.jpg" },
   ];
 
   return (
