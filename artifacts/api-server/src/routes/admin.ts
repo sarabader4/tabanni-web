@@ -529,7 +529,7 @@ router.delete("/admin/volunteer-applications/:id", async (req, res) => {
 
 router.get("/admin/pets", async (req, res) => {
   try {
-    const { search, approved, rejected, purpose, page = "1", limit = "100" } = req.query as {
+    const { search, approved, rejected, purpose, page = "1", limit = "20" } = req.query as {
       search?: string;
       approved?: string;
       rejected?: string;
@@ -539,7 +539,7 @@ router.get("/admin/pets", async (req, res) => {
     };
 
     const pageNum = Math.max(1, parseInt(page) || 1);
-    const limitNum = Math.min(200, Math.max(1, parseInt(limit) || 100));
+const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 20));
     const offset = (pageNum - 1) * limitNum;
 
     const conditions = [];
