@@ -1,6 +1,5 @@
 import { db, notificationsTable, adminNotificationsTable, adminNotificationEmailLogsTable, usersTable, NotificationType } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { sendNotificationEmail, sendAdminEmail } from "./mailer";
 import { logger } from "./logger";
 
 export type { NotificationType };
