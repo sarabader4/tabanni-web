@@ -291,4 +291,19 @@ router.put("/admin/lost-found/:id/reject", async (req, res) => {
   }
 });
 
+router.delete("/admin/lost-found/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    const [deleted] = await db.delete(lostFoundReportsTable)
+      .where(eq(lostFoundReportsTable.id, id))
+      .returning();
+    if (!deleted) return res.status(404).json({ error: "not_found", message: "Report not found" });
+    res.json({ success: true });
+  } catch (err) {
+    req.log.error({ err }, "Error deleting lost/found report");
+    res.status(500).json({ error: "internal_error", message: "Failed to delete report" });
+  }
+});
+
 export default router;

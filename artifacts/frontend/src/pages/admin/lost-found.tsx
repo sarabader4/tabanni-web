@@ -5,8 +5,8 @@ import {
   useApproveLostFoundReport,
   useRejectLostFoundReport,
 } from "@workspace/api-client-react";
-import { Loader2, CheckCircle2, XCircle, Clock, Search } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2, CheckCircle2, XCircle, Clock, Search, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type StatusFilter = "all" | "pending" | "approved" | "rejected" | "resolved";
@@ -27,7 +27,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function AdminLostFound() {
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -38,6 +38,18 @@ export default function AdminLostFound() {
 
   const approveMutation = useApproveLostFoundReport();
   const rejectMutation = useRejectLostFoundReport();
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+      const res = await fetch(`${base}/api/admin/lost-found/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      return res.json();
+    },
+  });
 
   const reports = (data?.reports ?? []).filter((r) => {
     if (!search) return true;
@@ -70,12 +82,23 @@ export default function AdminLostFound() {
     }
   };
 
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Delete report for "${name}"?`)) return;
+    try {
+      await deleteMutation.mutateAsync(id);
+      toast({ title: "Report deleted" });
+      refetch();
+    } catch {
+      toast({ title: "Failed to delete", variant: "destructive" });
+    }
+  };
+
   const STATUS_TABS: { key: StatusFilter; label: string }[] = [
+    { key: "all", label: "All" },
     { key: "pending", label: "Pending" },
     { key: "approved", label: "Approved" },
     { key: "rejected", label: "Rejected" },
     { key: "resolved", label: "Resolved" },
-    { key: "all", label: "All" },
   ];
 
   return (
@@ -141,11 +164,7 @@ export default function AdminLostFound() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           {report.imageUrls?.[0] ? (
-                            <img
-                              src={report.imageUrls[0]}
-                              alt={report.name}
-                              className="w-10 h-10 rounded-xl object-cover shrink-0"
-                            />
+                            <img src={report.imageUrls[0]} alt={report.name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
                           ) : (
                             <div className="w-10 h-10 rounded-xl bg-gray-100 shrink-0" />
                           )}
@@ -159,38 +178,42 @@ export default function AdminLostFound() {
                       </td>
                       <td className="py-3 px-4 text-gray-600 capitalize">{report.type}</td>
                       <td className="py-3 px-4 text-gray-600">{report.reporterName ?? "—"}</td>
-                      <td className="py-3 px-4 text-gray-600">
-                        {[report.area, report.city].filter(Boolean).join(", ")}
-                      </td>
+                      <td className="py-3 px-4 text-gray-600">{[report.area, report.city].filter(Boolean).join(", ")}</td>
                       <td className="py-3 px-4 text-gray-400 text-xs">
-                        {report.createdAt
-                          ? new Date(report.createdAt).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" })
-                          : "—"}
+                        {report.createdAt ? new Date(report.createdAt).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" }) : "—"}
                       </td>
                       <td className="py-3 px-4">
                         <StatusBadge status={report.status} />
                       </td>
                       <td className="py-3 px-4">
-                        {isPending ? (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleApprove(report.id)}
-                              disabled={isApproving || isRejecting}
-                              className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-semibold hover:bg-green-600 transition-colors disabled:opacity-50"
-                            >
-                              {isApproving ? <Loader2 className="w-3 h-3 animate-spin" /> : "Approve"}
-                            </button>
-                            <button
-                              onClick={() => handleReject(report.id)}
-                              disabled={isApproving || isRejecting}
-                              className="px-3 py-1.5 border border-red-200 text-red-500 rounded-lg text-xs font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
-                            >
-                              {isRejecting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Reject"}
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
+                        <div className="flex gap-2 items-center">
+                          {isPending && (
+                            <>
+                              <button
+                                onClick={() => handleApprove(report.id)}
+                                disabled={isApproving || isRejecting}
+                                className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-semibold hover:bg-green-600 transition-colors disabled:opacity-50"
+                              >
+                                {isApproving ? <Loader2 className="w-3 h-3 animate-spin" /> : "Approve"}
+                              </button>
+                              <button
+                                onClick={() => handleReject(report.id)}
+                                disabled={isApproving || isRejecting}
+                                className="px-3 py-1.5 border border-red-200 text-red-500 rounded-lg text-xs font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
+                              >
+                                {isRejecting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Reject"}
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => handleDelete(report.id, report.name ?? "this report")}
+                            disabled={deleteMutation.isPending}
+                            className="p-1.5 bg-red-50 text-red-400 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
