@@ -11,6 +11,8 @@ import CityGateModal from "@/components/city-gate-modal";
 import Home from "@/pages/home";
 const Login = lazy(() => import("@/pages/login"));
 const Register = lazy(() => import("@/pages/register"));
+const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
+const ResetPassword = lazy(() => import("@/pages/reset-password"));
 const Adopt = lazy(() => import("@/pages/adopt"));
 const Foster = lazy(() => import("@/pages/foster"));
 const PetDetail = lazy(() => import("@/pages/pet-detail"));
@@ -99,7 +101,12 @@ function AppRoutes() {
       <Route path="/register">
         {() => <Suspense fallback={<PageLoader />}><Register /></Suspense>}
       </Route>
-
+      <Route path="/forgot-password">
+        {() => <Suspense fallback={<PageLoader />}><ForgotPassword /></Suspense>}
+      </Route>
+      <Route path="/reset-password">
+        {() => <Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>}
+      </Route>
       <Route path="/admin">
         {() => <AdminGuard><Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense></AdminGuard>}
       </Route>
