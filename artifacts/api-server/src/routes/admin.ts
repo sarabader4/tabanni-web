@@ -462,6 +462,9 @@ router.put("/admin/content/:key", async (req, res) => {
 
 router.get("/admin/volunteer-applications", async (req, res) => {
   try {
+    const cacheKey = "admin:volunteer-applications";
+    const cached = await cache.get<unknown[]>(cacheKey);
+    if (cached) return res.json(cached);
     const applications = await db
       .select({
         id: volunteerApplicationsTable.id,
@@ -484,6 +487,7 @@ router.get("/admin/volunteer-applications", async (req, res) => {
       .leftJoin(usersTable, eq(volunteerApplicationsTable.userId, usersTable.id))
       .orderBy(desc(volunteerApplicationsTable.createdAt));
 
+await cache.set(cacheKey, applications, "EX", 30);
     res.json(applications);
   } catch (err) {
     req.log.error({ err }, "Error listing volunteer applications");
