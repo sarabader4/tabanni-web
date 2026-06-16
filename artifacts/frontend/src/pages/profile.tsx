@@ -2689,7 +2689,7 @@ function AddPetModal({ onClose, onSuccess, userName, userPhone, initialData }: A
                   </div>
                   <div className="flex items-center gap-2 px-1">
                     <span className="text-sm text-gray-500">{t("profile.addPetCliqName").split(":")[0]}:</span>
-                    <span className="text-sm font-bold text-white bg-[#3D937F] px-3 py-0.5 rounded-full tracking-wide">Tabanni</span>
+                    <span className="text-sm font-bold text-white bg-[#3D937F] px-3 py-0.5 rounded-full tracking-wide">tabanni</span>
                   </div>
 
                   <div>
@@ -4572,3 +4572,4 @@ export default function Profile() {
     </div>
   );
 }
+
