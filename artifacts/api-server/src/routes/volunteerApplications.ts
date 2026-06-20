@@ -48,10 +48,24 @@ router.post("/volunteer-applications", requireAuth, async (req, res): Promise<vo
       return;
     }
 
-    const [application] = await db
+const [application] = await db
       .insert(volunteerApplicationsTable)
       .values({ ...parsed.data, userId: req.userId })
       .returning();
+
+ 
+    try {
+      const { createAdminNotification } = await import("../lib/notifications");
+      await createAdminNotification(
+        "new_volunteer_application",
+        "New Volunteer Application",
+        `${parsed.data.name} submitted a volunteer application (${parsed.data.applicationType}).`,
+        req.userId,
+        { applicationId: application.id },
+      );
+    } catch (notifErr) {
+      req.log.error({ notifErr }, "Failed to create admin notification for volunteer");
+    }
 
     res.status(201).json(application);
   } catch (err) {
